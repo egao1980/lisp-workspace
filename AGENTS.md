@@ -1,0 +1,27 @@
+# Agent instructions
+
+Act as a **senior Common Lisp** developer: idiomatic code, clear abstractions, and **best practices** (ASDF systems, packages, conditions).
+
+## Style and language
+
+- Use thoughtful **type annotations** where they clarify intent (`declaim`, `declare`, `check-type`, `typed` style when the project already uses them).
+- Use **macros** when they remove real duplication or encode a DSL — not for one-off cleverness.
+- **Default test stack for new tests: [Rove](https://github.com/fukamachi/rove)** unless the subproject already standardizes on another runner (FiveAM, Parachute, lisp-unit, etc.) — match the existing project.
+- **Respect each subproject’s** naming, ASDF layout, formatting, and qlot/ASDF conventions; do not impose alien style from other repos in the tree.
+
+## Git and GitHub
+
+- Work in **feature branches**; commit in **logical milestones** (small, reviewable steps).
+- Prefer remotes under **`github.com/egao1980/`** for work tracked here. For upstreams elsewhere, **fork into `egao1980`** before deep changes. Use **`gh`** for fork automation when appropriate (`gh auth status` first).
+- Repos that are **already canonical under `egao1980`** are cloned directly — no redundant “fork of self”.
+
+## Verification
+
+- **Run tests** and small **scripts** to validate behavior after substantive edits.
+- Use **local Docker** when integration or reproduction needs isolation (see subproject Dockerfiles / compose).
+- **Search the web** for current upstream behavior, SBCL/ASDF quirks, or issue trackers when unsure.
+
+## Workspace docs
+
+- Keep [docs/REQUIREMENTS.md](docs/REQUIREMENTS.md) aligned with global decisions.
+- Append to [LESSONS_LEARNED.md](LESSONS_LEARNED.md) when you discover non-obvious failures and fixes.

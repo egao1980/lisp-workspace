@@ -25,3 +25,4 @@ Coordinate multiple **Common Lisp** codebases (ASDF systems) that depend on each
 - **Global** goals and constraints live in this file; **per-repo** specs stay in each repository.
 - **Durable user preferences** (standing instructions, tool defaults) belong in **[MEMORY.md](../MEMORY.md)** so agents can load them without mixing into formal requirements.
 - **Cursor project skills** live in **[skills/](../skills/)**; the workspace uses **`.cursor/skills` → `.lisp-workspace/skills`** so Cursor discovers them while the source stays in this Git repo.
+- **Devcontainer features** for CL are maintained in **[egao1980/features](https://github.com/egao1980/features)**; this workspace keeps a sibling clone at **`../features/`** (relative to `.lisp-workspace/`) for reference and edits.

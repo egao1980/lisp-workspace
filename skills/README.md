@@ -19,3 +19,16 @@ mkdir -p .cursor && ln -sfn .lisp-workspace/skills .cursor/skills
 ```
 
 Recreate this symlink after clone if **`.cursor/skills`** is missing so Cursor loads project skills.
+
+## Skill index (this workspace)
+
+| Skill | Focus |
+|-------|--------|
+| [add-cl-project](add-cl-project/SKILL.md) | Clone + fork + ASDF wiring script |
+| [asdf](asdf/SKILL.md) | ASDF systems, source registry, operations |
+| [common-lisp-workspace](common-lisp-workspace/SKILL.md) | Whole-tree conventions |
+| [docker-devcontainers](docker-devcontainers/SKILL.md) | Docker + Dev Containers spec and credible refs |
+| [egao1980-devcontainers](egao1980-devcontainers/SKILL.md) | **`features/`** — GHCR features for Roswell / Lem |
+| [qlot](qlot/SKILL.md) | qlfile, `qlot exec`, project-local deps |
+| [rove](rove/SKILL.md) | Rove testing |
+| [roswell](roswell/SKILL.md) | `ros` CLI, implementations, scripting |

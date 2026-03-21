@@ -6,6 +6,8 @@ Scripts and docs for this **multi-repo Common Lisp** tree live under **`.lisp-wo
 
 Flat checkout of interdependent projects (e.g. `cl-repository/`, `grpc/`, sibling libs). Prefer **Roswell** (`ros`), **qlot** per repo, and **ASDF** for systems — not global Quicklisp as the only story.
 
+**`features/`** — checkout of [egao1980/features](https://github.com/egao1980/features) (Dev Container **Features** for Common Lisp: Roswell, Lem). Not an ASDF library; safe to ignore Lisp system discovery under that tree for coding tasks.
+
 ## Add a project from GitHub
 
 Use [`.lisp-workspace/scripts/add-cl-project.sh`](scripts/add-cl-project.sh):

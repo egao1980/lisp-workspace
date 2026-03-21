@@ -89,3 +89,13 @@ Append-only log of **symptom → cause → fix** for this workspace.
 - **Symptom:** `Unknown argument: s` — all test-roswell and test-lem CI jobs fail immediately.
 - **Cause:** The `-s` (scenario) flag was assumed from older docs or examples, but `@devcontainers/cli` uses `--filter` to select a specific scenario by name.
 - **Fix:** Replace `-s ${{ matrix.scenario }}` with `--filter ${{ matrix.scenario }}` in CI workflows.
+
+## 2026-03 — Token waste from verbose command output
+
+- **Symptom:** Agent burns thousands of tokens reading qlot/roswell/SBCL compilation output, ANSI escape sequences, and progress bars that carry no diagnostic value.
+- **Cause:** Long-running commands (`ros install`, `qlot install`, `apt-get install`, SBCL compilation) produce massive stdout/stderr that the model reads in full when piped directly.
+- **Fix:** Redirect output of long-running commands to a temp file, then only read the tail on failure:
+  ```bash
+  ros install lem-project/lem > /tmp/lem-install.log 2>&1 || { tail -50 /tmp/lem-install.log; exit 1; }
+  ```
+  Or use `| tail -N` to cap output. For progress-style output with ANSI escapes, pipe through `cat` or redirect to file to avoid terminal noise. Only inspect the full log when debugging a failure.

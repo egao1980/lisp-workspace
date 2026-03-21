@@ -187,11 +187,10 @@ write_asdf_snippet() {
   local tree_path="$1"
   local conf_path="${ASDF_CONF_DIR}/${ASDF_SNIPPET_PREFIX}-${DEST_NAME}.conf"
   mkdir -p "$ASDF_CONF_DIR"
+  # Files in conf.d/ contain bare directives (ASDF wraps them automatically).
   cat >"$conf_path" <<EOF
 ;; Added by add-cl-project.sh — tree for ${DEST_NAME}
-(:source-registry
- (:tree #P"${tree_path//\\/\\\\}/")
- :inherit-configuration)
+(:tree "${tree_path}/")
 EOF
   echo "Wrote ASDF config: $conf_path"
 }

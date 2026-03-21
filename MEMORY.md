@@ -1,6 +1,6 @@
 # Workspace memory
 
-Durable **user instructions and preferences** for this Lisp workspace (similar in spirit to Claude Code’s project memory). **Agents should read this file** when starting work here and **edit it** when the user states a preference that should persist across sessions.
+Durable **user instructions and preferences** for this Lisp workspace (similar in spirit to Claude Code's project memory). **Agents should read this file** when starting work here and **edit it** when the user states a preference that should persist across sessions.
 
 Keep entries **short and actionable**. Remove or supersede items that go stale.
 
@@ -9,19 +9,25 @@ Keep entries **short and actionable**. Remove or supersede items that go stale.
 ## How to use
 
 - **User:** add bullets under the sections below, or tell the agent to record something here.
-- **Agent:** after the user gives a standing instruction (tool choice, style, workflow, “always…”, “never…”), add or update a line here and commit in `.lisp-workspace/` when appropriate.
+- **Agent:** after the user gives a standing instruction (tool choice, style, workflow, "always…", "never…"), add or update a line here and commit in `.lisp-workspace/` when appropriate.
 
 ---
 
 ## Preferences
 
-<!-- Example: Prefer uv + ruff for Python touchpoints; line length 120; no black. -->
-<!-- Add skills under .lisp-workspace/skills/ for recurring workflows; see skills/README.md. -->
+- **Python touchpoints:** uv + ruff; line length 120; no black; modern typing (3.12+); optimize imports.
+- **Documentation:** terse; no verbose boilerplate.
+- **CL MCP:** use [cl-ai-project/cl-mcp](https://github.com/cl-ai-project/cl-mcp), not the quasi/cl-mcp stack.
+- **GitHub repos:** always use full `owner/repo` — never bare repo name when multiple owners share a name.
 
 ## Standing instructions
 
-<!-- Example: Run tests before declaring done; use feature branches in subproject repos. -->
+- Plan before acting on new projects or massive changes; use git to preserve initial state and track in a branch.
+- Run tests before declaring done.
+- Use feature branches in subproject repos.
+- When a skill proves wrong or incomplete during use, append the correction to `skills/<name>/STAGED.md` rather than editing SKILL.md in-flight.
 
 ## Project-specific notes
 
-<!-- Optional: quirks of cl-repository vs grpc vs … if not better placed in each repo’s AGENTS.md. -->
+- `cl-mcp/` upstream is cl-ai-project (not quasi); fork is egao1980/cl-mcp.
+- `features/` is the devcontainer features repo — not an ASDF library.

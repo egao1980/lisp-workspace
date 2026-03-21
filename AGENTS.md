@@ -13,6 +13,17 @@ Act as a **senior Common Lisp** developer: idiomatic code, clear abstractions, a
 - For wiring, debugging, and **MCP Inspector**, read **[skills/cl-mcp-tooling/SKILL.md](skills/cl-mcp-tooling/SKILL.md)** and **[docs/cl-mcp.md](docs/cl-mcp.md)**.
 - Use **`npx @modelcontextprotocol/inspector`** to probe the server without going through Cursor.
 
+## Skill staging
+
+Skills are living documents. When you discover that a skill is wrong, incomplete, or could be improved — **stage** the improvement rather than editing `SKILL.md` mid-task. Append to `skills/<name>/STAGED.md` under `## Pending` with a date, source, and proposed change. Review staged items with `/review-skill-improvements`. See **[skills/README.md](skills/README.md)** for the full staging format.
+
+## Commands
+
+Cursor commands live in **`.cursor/commands/`**:
+
+- **`/load-and-test`** — load an ASDF system via cl-mcp and run its test suite with structured results.
+- **`/review-skill-improvements`** — scan all `STAGED.md` files and propose apply/reject for each pending item.
+
 ## Style and language
 
 - Use thoughtful **type annotations** where they clarify intent (`declaim`, `declare`, `check-type`, `typed` style when the project already uses them).

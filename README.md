@@ -36,9 +36,19 @@ Remove wiring (optional delete tree with `--purge`):
 | [AGENTS.md](AGENTS.md) | Expectations for AI/human contributors |
 | [MEMORY.md](MEMORY.md) | Durable user preferences and standing instructions (agents read/update) |
 | [skills/](skills/) | Cursor **project skills** (`SKILL.md` per folder); hooked as **`.cursor/skills` → `skills/`** |
+| [skills/README.md](skills/README.md) | Skill index + **staging mechanism** for iterative improvement |
 | [docs/REQUIREMENTS.md](docs/REQUIREMENTS.md) | Workspace requirements and Git policy |
 | [docs/cl-mcp.md](docs/cl-mcp.md) | cl-ai-project/cl-mcp bootstrap and MCP notes |
 | [LESSONS_LEARNED.md](LESSONS_LEARNED.md) | Issues and fixes in practice |
+
+## Cursor integration
+
+| Path | Role |
+|------|------|
+| `.cursor/mcp.json` | cl-mcp MCP server config (stdio via `ros`) |
+| `.cursor/rules/` | Project rules (always-apply workspace rule + glob-scoped Lisp REPL rule) |
+| `.cursor/commands/` | `/load-and-test`, `/review-skill-improvements` |
+| `.cursor/skills` → `skills/` | Symlink so Cursor discovers project skills |
 
 ## ASDF
 

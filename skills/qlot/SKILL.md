@@ -25,3 +25,9 @@ Repository: [fukamachi/qlot](https://github.com/fukamachi/qlot).
 
 - **Roswell** remains the Lisp launcher; **qlot** wraps execution so the right dist is visible.
 - **ASDF** loads systems from paths visible in that process — qlot keeps deps consistent per project.
+
+## Pitfalls
+
+- **`qlot install --no-deps`** only materializes dependencies declared in the `qlfile` (typically git repos, local paths, custom dists). It does **not** install standard Quicklisp/Ultralisp systems — those must already be available in the Quicklisp environment or be installed separately.
+- Some projects (e.g. Lem) run `qlot install --no-deps` from top-level forms inside their `.asd` file. If the `.asd` also uses `:defsystem-depends-on` on a Quicklisp-only system, that system must be pre-installed before ASDF attempts to parse the `.asd`.
+- **`qlot exec`** sets up the project-local environment so that ASDF sees `.qlot/` paths. However, combining `qlot exec ros install <repo>` can be fragile — Roswell's internal install mechanism may not fully inherit qlot's reconfigured Quicklisp client.

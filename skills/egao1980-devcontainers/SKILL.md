@@ -36,3 +36,11 @@ Upstream repo: [egao1980/features](https://github.com/egao1980/features) (also c
 ## Editing features
 
 - Feature metadata: **`features/src/*/devcontainer-feature.json`**, **`install.sh`** next to it — follow [containers.dev](https://containers.dev/) feature conventions and upstream CI in **`features/.github/workflows/`**.
+
+## Build-time gotchas (learned the hard way)
+
+- **`containerEnv`** from `devcontainer-feature.json` only applies at **container runtime**, not during `install.sh`. Downstream features must hardcode `export PATH=".../bin:${PATH}"`.
+- **`${options.*}`** substitution is **not supported** inside `containerEnv` — it's a pending spec proposal. Use hardcoded defaults and emit `/etc/profile.d/*.sh` overrides if the path is customizable.
+- **Lem feature** requires pre-installing the `deploy` Quicklisp system (`ros -e '(ql:quickload :deploy :silent t)' -q`) before `ros install lem-project/lem`, because Lem's `.asd` uses `:defsystem-depends-on ("deploy")`.
+- **Lem feature** also needs `libwebkitgtk-6.0-4` and `libgtk-4-1` (Debian) for the bundled `libwebview.so` CFFI dependency.
+- Use the standalone **`@devcontainers/cli`** (`npx @devcontainers/cli features test`) — Cursor/VS Code's wrapper `devcontainer` binary injects unsupported arguments.

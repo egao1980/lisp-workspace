@@ -24,3 +24,10 @@ description: >-
 
 - Prefer **multi-stage** builds for smaller runtime images; pin base image digests when reproducibility matters.
 - **Devcontainer Features** publish to OCI registries (e.g. `ghcr.io/...`); validate with **`@devcontainers/cli`** locally when possible.
+
+## Feature authoring pitfalls
+
+- **`containerEnv`** in `devcontainer-feature.json` sets env vars at **container runtime** only. Feature `install.sh` scripts execute during the **build phase** and do not see these variables. Hardcode necessary PATH exports in `install.sh`.
+- **`${options.*}`** substitution works in `install.sh` (as shell vars), `entrypoint`, and `onCreateCommand`, but is **not yet supported** in `containerEnv` — it's a pending spec proposal ([devcontainers/spec#62](https://github.com/devcontainers/spec/issues/62)).
+- **`su -` resets the environment.** When running commands as a non-root user in `install.sh`, explicitly inject PATH and other required env vars into the `su -c` command string.
+- **Shell quoting:** use `printf '%q ' "$@"` to properly escape arguments for `su -c`; `"$*"` concatenates and loses word boundaries.

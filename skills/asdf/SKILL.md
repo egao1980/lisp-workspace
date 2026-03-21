@@ -29,3 +29,5 @@ Manual: [asdf.common-lisp.dev](https://asdf.common-lisp.dev/asdf.html) (ASDF 3.x
 ## Pitfalls
 
 - Nested trees (e.g. `.qlot/`) under a single `:tree` can register duplicate system names — prefer per-project **qlot** isolation or narrow registry entries.
+- **`:defsystem-depends-on`** is resolved at **parse time** — ASDF must be able to `find-system` those dependencies before the `defsystem` form is processed. If a `:defsystem-depends-on` target is not in any known source registry or Quicklisp dist, the entire `.asd` file fails to load. Pre-install such systems before loading the `.asd` (e.g. `(ql:quickload :deploy)` before `ros install lem-project/lem`).
+- Top-level forms in `.asd` files (outside `defsystem`) execute during `load-asd`. Some projects use this to run `qlot install --no-deps` or load setup files. These side effects can conflict with Roswell's or ASDF's own session state.

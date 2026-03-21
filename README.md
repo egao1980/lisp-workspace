@@ -2,7 +2,7 @@
 
 Scripts and docs for this **multi-repo Common Lisp** tree live under **`.lisp-workspace/`** so the visible root stays mostly project checkouts. Cursor-specific rules stay in **`.cursor/rules/`**.
 
-**This directory is its own Git repository** (`git init` here). Commit script and doc changes under `.lisp-workspace/` without tying them to sibling project repos (`cl-repository/`, `grpc/`, etc.). Add a remote when you want to back up or share housekeeping (e.g. a private `egao1980/lisp-workspace-meta` repo).
+**This directory is its own Git repository.** Work here with `git add` / `git commit` so housekeeping stays separate from sibling checkouts (`cl-repository/`, `grpc/`, …). Default branch is **`main`**. Add `origin` when you want a remote (e.g. private `egao1980/lisp-workspace-meta`).
 
 Flat checkout of interdependent projects (e.g. `cl-repository/`, `grpc/`, sibling libs). Prefer **Roswell** (`ros`), **qlot** per repo, and **ASDF** for systems — not global Quicklisp as the only story.
 

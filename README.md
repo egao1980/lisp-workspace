@@ -50,6 +50,20 @@ Remove wiring (optional delete tree with `--purge`):
 | `.cursor/commands/` | `/load-and-test`, `/review-skill-improvements` |
 | `.cursor/skills` → `skills/` | Symlink so Cursor discovers project skills |
 
+## Dev Container
+
+**`.devcontainer/`** provides an isolated CL environment so the host Quicklisp/Roswell stay clean.
+
+```bash
+devcontainer up --workspace-folder .
+devcontainer exec --workspace-folder . ros run
+```
+
+- **Base:** `mcr.microsoft.com/devcontainers/base:ubuntu`
+- **Feature:** `ghcr.io/egao1980/features/roswell:1` — Roswell + SBCL + **Ultralisp** dist + qlot
+- **Post-create** (`post-create.sh`): writes ASDF snippets for all workspace projects, installs cl-mcp deps via Quicklisp+Ultralisp, verifies cl-mcp loads
+- **Env:** `MCP_PROJECT_ROOT` is set to the container workspace folder
+
 ## ASDF
 
 Snippets are named `50-lisp-workspace-<name>.conf`. Override config root with `XDG_CONFIG_HOME` if needed.

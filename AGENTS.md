@@ -14,6 +14,7 @@ Act as a **senior Common Lisp** developer: idiomatic code, clear abstractions, a
 - Work in **feature branches**; commit in **logical milestones** (small, reviewable steps).
 - Prefer remotes under **`github.com/egao1980/`** for work tracked here. For upstreams elsewhere, **fork into `egao1980`** before deep changes. Use **`gh`** for fork automation when appropriate (`gh auth status` first).
 - Repos that are **already canonical under `egao1980`** are cloned directly — no redundant “fork of self”.
+- **Rollback with Git, not from memory:** To undo bad edits, **use the repo** — `git status`, `git diff`, `git restore` / `git checkout -- <path>`, `git reset` / `git revert` as appropriate for the subproject. Do **not** try to reconstruct prior file contents from conversation context; that is error-prone. If uncommitted work should be discarded, say so and run the git commands (or ask the user when destructive). For experiments, commit or stash before risky changes so rollback is one command.
 
 ## Verification
 

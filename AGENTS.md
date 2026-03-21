@@ -7,9 +7,9 @@ Act as a **senior Common Lisp** developer: idiomatic code, clear abstractions, a
 - **Project skills** live in **[`.lisp-workspace/skills/`](skills/)** (also visible as **`.cursor/skills/`** via symlink for Cursor). Each subfolder has a **`SKILL.md`** with frontmatter — read the skill whose **`description`** matches the current task (add project, workspace conventions, etc.) **before** doing specialized work.
 - **Personal skills** (`~/.cursor/skills/`) apply across repos; do not duplicate them here unless you want a workspace-specific override.
 
-## MCP (cl-mcp + cl-mcp-server)
+## MCP (cl-mcp)
 
-- Workspace checkouts: **`cl-mcp/`** (MCP library) and **`cl-mcp-server/`** (stdio MCP server, persistent Lisp REPL + many tools: evaluation, introspection, ASDF/Quicklisp helpers, profiling — see upstream README).
+- Workspace checkout: **`cl-mcp/`** — upstream **[cl-ai-project/cl-mcp](https://github.com/cl-ai-project/cl-mcp)** (stdio/TCP/HTTP MCP server: **`repl-eval`**, **`inspect-object`**, **`load-system`**, fs tools, Lisp read/edit, introspection, **`run-tests`**, etc.). Set **`MCP_PROJECT_ROOT`** (or **`fs-set-project-root`** after connect).
 - For wiring, debugging, and **MCP Inspector**, read **[skills/cl-mcp-tooling/SKILL.md](skills/cl-mcp-tooling/SKILL.md)** and **[docs/cl-mcp.md](docs/cl-mcp.md)**.
 - Use **`npx @modelcontextprotocol/inspector`** to probe the server without going through Cursor.
 

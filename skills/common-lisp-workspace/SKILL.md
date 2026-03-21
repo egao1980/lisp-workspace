@@ -22,7 +22,7 @@ description: >-
 
 ## MCP (Lisp tools for agents)
 
-- **`cl-mcp/`** + **`cl-mcp-server/`** — MCP server with persistent REPL and many introspection/edit-adjacent tools; see **[cl-mcp-tooling](../cl-mcp-tooling/SKILL.md)** and [docs/cl-mcp.md](../../docs/cl-mcp.md).
+- **`cl-mcp/`** — [cl-ai-project/cl-mcp](https://github.com/cl-ai-project/cl-mcp): MCP server (eval, **`inspect-object`**, ASDF, fs, code tools, tests); see **[cl-mcp-tooling](../cl-mcp-tooling/SKILL.md)** and [docs/cl-mcp.md](../../docs/cl-mcp.md).
 
 ## Devcontainers
 

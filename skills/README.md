@@ -26,7 +26,7 @@ Recreate this symlink after clone if **`.cursor/skills`** is missing so Cursor l
 |-------|--------|
 | [add-cl-project](add-cl-project/SKILL.md) | Clone + fork + ASDF wiring script |
 | [asdf](asdf/SKILL.md) | ASDF systems, source registry, operations |
-| [cl-mcp-tooling](cl-mcp-tooling/SKILL.md) | **`cl-mcp/`** + **`cl-mcp-server/`** — MCP Lisp REPL + tools; Inspector |
+| [cl-mcp-tooling](cl-mcp-tooling/SKILL.md) | **`cl-mcp/`** — cl-ai-project MCP server; Inspector |
 | [common-lisp-workspace](common-lisp-workspace/SKILL.md) | Whole-tree conventions |
 | [docker-devcontainers](docker-devcontainers/SKILL.md) | Docker + Dev Containers spec and credible refs |
 | [egao1980-devcontainers](egao1980-devcontainers/SKILL.md) | **`features/`** — GHCR features for Roswell / Lem |

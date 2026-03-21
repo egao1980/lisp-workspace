@@ -16,6 +16,7 @@ Keep entries **short and actionable**. Remove or supersede items that go stale.
 ## Preferences
 
 <!-- Example: Prefer uv + ruff for Python touchpoints; line length 120; no black. -->
+<!-- Add skills under .lisp-workspace/skills/ for recurring workflows; see skills/README.md. -->
 
 ## Standing instructions
 

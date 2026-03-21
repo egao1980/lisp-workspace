@@ -31,6 +31,7 @@ Remove wiring (optional delete tree with `--purge`):
 |------|------|
 | [AGENTS.md](AGENTS.md) | Expectations for AI/human contributors |
 | [MEMORY.md](MEMORY.md) | Durable user preferences and standing instructions (agents read/update) |
+| [skills/](skills/) | Cursor **project skills** (`SKILL.md` per folder); hooked as **`.cursor/skills` → `skills/`** |
 | [docs/REQUIREMENTS.md](docs/REQUIREMENTS.md) | Workspace requirements and Git policy |
 | [LESSONS_LEARNED.md](LESSONS_LEARNED.md) | Issues and fixes in practice |
 

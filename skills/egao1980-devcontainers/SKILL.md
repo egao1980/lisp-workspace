@@ -45,3 +45,4 @@ Upstream repo: [egao1980/features](https://github.com/egao1980/features) (also c
 - **Lem feature** also needs `libwebkitgtk-6.0-4` and `libgtk-4-1` (Debian) for the bundled `libwebview.so` CFFI dependency.
 - Use the standalone **`@devcontainers/cli`** (`npx @devcontainers/cli features test`) — Cursor/VS Code's wrapper `devcontainer` binary injects unsupported arguments.
 - **Run CI locally** before pushing with **[act](../act-github-actions/SKILL.md)**: `act -j validate -W .github/workflows/validate.yml` for fast validation, add `--privileged` for Docker-in-Docker feature tests.
+- **Lint install.sh** with **[ShellCheck](../shellcheck-configuration/SKILL.md)** before committing: `shellcheck features/src/*/install.sh`. See **[bash-defensive-patterns](../bash-defensive-patterns/SKILL.md)** for quoting, error handling, and `su -c` patterns.

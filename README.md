@@ -30,6 +30,7 @@ Remove wiring (optional delete tree with `--purge`):
 | File | Role |
 |------|------|
 | [AGENTS.md](AGENTS.md) | Expectations for AI/human contributors |
+| [MEMORY.md](MEMORY.md) | Durable user preferences and standing instructions (agents read/update) |
 | [docs/REQUIREMENTS.md](docs/REQUIREMENTS.md) | Workspace requirements and Git policy |
 | [LESSONS_LEARNED.md](LESSONS_LEARNED.md) | Issues and fixes in practice |
 

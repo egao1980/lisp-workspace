@@ -26,3 +26,4 @@ Act as a **senior Common Lisp** developer: idiomatic code, clear abstractions, a
 
 - Keep [docs/REQUIREMENTS.md](docs/REQUIREMENTS.md) aligned with global decisions.
 - Append to [LESSONS_LEARNED.md](LESSONS_LEARNED.md) when you discover non-obvious failures and fixes.
+- Read **[MEMORY.md](MEMORY.md)** at the start of substantive work in this workspace; **update it** when the user expresses a **durable preference** or standing instruction (same idea as Claude Code–style project memory). Do not duplicate long policy that already lives in REQUIREMENTS — link or one-line reminders only.

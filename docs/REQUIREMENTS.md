@@ -23,3 +23,4 @@ Coordinate multiple **Common Lisp** codebases (ASDF systems) that depend on each
 ## Specs
 
 - **Global** goals and constraints live in this file; **per-repo** specs stay in each repository.
+- **Durable user preferences** (standing instructions, tool defaults) belong in **[MEMORY.md](../MEMORY.md)** so agents can load them without mixing into formal requirements.

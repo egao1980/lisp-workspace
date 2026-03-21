@@ -100,6 +100,7 @@ act -j test-scenarios -W .github/workflows/test.yaml --privileged \
 - **Slow first run** — act pulls the runner image on first use; subsequent runs use cache.
 - **`action not allowed`** — act doesn't enforce `allowed_actions` permissions. If it works locally but not on GitHub, check the repo's Actions permissions (Settings → Actions → General).
 - **Matrix jobs** — act runs all matrix combinations by default. Use `--matrix scenario:roswell_ubuntu` to run a single combination.
+- **`-s` flag does not exist** on `devcontainer features test` — use `--filter <scenario_name>` to run a specific scenario. This was a CI bug we hit.
 
 ## Integration with gh CLI
 

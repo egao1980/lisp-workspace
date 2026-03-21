@@ -66,10 +66,11 @@ Append-only log of **symptom → cause → fix** for this workspace.
 
 - **Symptom:** `Unable to load foreign library (LIBWEBVIEW)` — CFFI fails to dlopen `libwebview.so.0.12.0` during Lem compilation.
 - **Cause:** Lem's qlot dependency `lem-project/webview` ships prebuilt `.so` files for linux/arm64 and linux/x64, but these link against `libwebkitgtk-6.0.so.4`, `libgtk-4.so.1`, and related GLib/GObject libraries that are not installed in the base devcontainer image.
-- **Fix:** Install system packages before `ros install lem-project/lem`:
-  - **Debian/Ubuntu:** `libwebkitgtk-6.0-4 libgtk-4-1`
-  - **RHEL/Fedora:** `webkit2gtk4.1 gtk4`
-  - **Alpine:** `webkit2gtk-6.0 gtk4.0`
+- **Fix:** Install system packages before `ros install lem-project/lem`. The prebuilt `libwebview.so` links against different WebKit libraries per architecture:
+  - **x64:** `libwebkit2gtk-4.1.so.0` (GTK3 WebKit) — install `libwebkit2gtk-4.1-0`
+  - **arm64:** `libwebkitgtk-6.0.so.4` (GTK4 WebKit) — install `libwebkitgtk-6.0-4 libgtk-4-1`
+  - Install both on Debian/Ubuntu to cover either arch. Requires Ubuntu 22.04+ (focal lacks both).
+  - **Alpine** does not package either library — lem cannot build with webview support on Alpine.
 
 ## 2026-03 — Cursor's `devcontainer` CLI wrapper vs standalone CLI
 

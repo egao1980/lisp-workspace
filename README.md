@@ -8,6 +8,8 @@ Flat checkout of interdependent projects (e.g. `cl-repository/`, `grpc/`, siblin
 
 **`features/`** — checkout of [egao1980/features](https://github.com/egao1980/features) (Dev Container **Features** for Common Lisp: Roswell, Lem). Not an ASDF library; safe to ignore Lisp system discovery under that tree for coding tasks.
 
+**`cl-mcp/`**, **`cl-mcp-server/`** — [quasi/cl-mcp](https://github.com/quasi/cl-mcp) + [quasi/cl-mcp-server](https://github.com/quasi/cl-mcp-server) (MCP tooling for Lisp: REPL, inspect/introspection tools). Bootstrap: [docs/cl-mcp.md](docs/cl-mcp.md).
+
 ## Add a project from GitHub
 
 Use [`.lisp-workspace/scripts/add-cl-project.sh`](scripts/add-cl-project.sh):
@@ -35,6 +37,7 @@ Remove wiring (optional delete tree with `--purge`):
 | [MEMORY.md](MEMORY.md) | Durable user preferences and standing instructions (agents read/update) |
 | [skills/](skills/) | Cursor **project skills** (`SKILL.md` per folder); hooked as **`.cursor/skills` → `skills/`** |
 | [docs/REQUIREMENTS.md](docs/REQUIREMENTS.md) | Workspace requirements and Git policy |
+| [docs/cl-mcp.md](docs/cl-mcp.md) | cl-mcp + cl-mcp-server bootstrap and MCP notes |
 | [LESSONS_LEARNED.md](LESSONS_LEARNED.md) | Issues and fixes in practice |
 
 ## ASDF

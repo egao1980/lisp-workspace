@@ -7,6 +7,12 @@ Act as a **senior Common Lisp** developer: idiomatic code, clear abstractions, a
 - **Project skills** live in **[`.lisp-workspace/skills/`](skills/)** (also visible as **`.cursor/skills/`** via symlink for Cursor). Each subfolder has a **`SKILL.md`** with frontmatter — read the skill whose **`description`** matches the current task (add project, workspace conventions, etc.) **before** doing specialized work.
 - **Personal skills** (`~/.cursor/skills/`) apply across repos; do not duplicate them here unless you want a workspace-specific override.
 
+## MCP (cl-mcp + cl-mcp-server)
+
+- Workspace checkouts: **`cl-mcp/`** (MCP library) and **`cl-mcp-server/`** (stdio MCP server, persistent Lisp REPL + many tools: evaluation, introspection, ASDF/Quicklisp helpers, profiling — see upstream README).
+- For wiring, debugging, and **MCP Inspector**, read **[skills/cl-mcp-tooling/SKILL.md](skills/cl-mcp-tooling/SKILL.md)** and **[docs/cl-mcp.md](docs/cl-mcp.md)**.
+- Use **`npx @modelcontextprotocol/inspector`** to probe the server without going through Cursor.
+
 ## Style and language
 
 - Use thoughtful **type annotations** where they clarify intent (`declaim`, `declare`, `check-type`, `typed` style when the project already uses them).

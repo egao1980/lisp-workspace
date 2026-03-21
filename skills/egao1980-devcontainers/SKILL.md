@@ -44,3 +44,4 @@ Upstream repo: [egao1980/features](https://github.com/egao1980/features) (also c
 - **Lem feature** requires pre-installing the `deploy` Quicklisp system (`ros -e '(ql:quickload :deploy :silent t)' -q`) before `ros install lem-project/lem`, because Lem's `.asd` uses `:defsystem-depends-on ("deploy")`.
 - **Lem feature** also needs `libwebkitgtk-6.0-4` and `libgtk-4-1` (Debian) for the bundled `libwebview.so` CFFI dependency.
 - Use the standalone **`@devcontainers/cli`** (`npx @devcontainers/cli features test`) — Cursor/VS Code's wrapper `devcontainer` binary injects unsupported arguments.
+- **Run CI locally** before pushing with **[act](../act-github-actions/SKILL.md)**: `act -j validate -W .github/workflows/validate.yml` for fast validation, add `--privileged` for Docker-in-Docker feature tests.

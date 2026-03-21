@@ -9,3 +9,13 @@ Each subdirectory is a **skill**: a `SKILL.md` with YAML frontmatter (`name`, `d
 3. Commit under `.lisp-workspace/`.
 
 Personal skills (all projects): `~/.cursor/skills/`. Do **not** put project skills in `~/.cursor/skills-cursor/` (reserved).
+
+## Cursor discovery
+
+From the **workspace root** (the directory that contains `.lisp-workspace/`):
+
+```bash
+mkdir -p .cursor && ln -sfn .lisp-workspace/skills .cursor/skills
+```
+
+Recreate this symlink after clone if **`.cursor/skills`** is missing so Cursor loads project skills.

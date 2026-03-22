@@ -165,3 +165,9 @@ Run **cl-protobufs** first if **grpc** depends on that OCI version; then **grpc*
 
 - **Homebrew inside act:** transient **GitHub 500** on `brew` clone — retry act.
 - **ORAS:** see section *`oras-project/setup-oras@v1` version pin* — use **`1.2.3`** in workflow `with.version` for act **arm64** until the action’s bundled manifest updates.
+
+## 2026-03 — cl-repository overlay platform keys: `os` / `release` / `arch`
+
+- **Fact:** cl-repository's `overlay-spec` and `.asd` `:platform` entries support **three** keys: **`os`**, **`release`**, and **`arch`** — not just `os`/`arch`.
+- **Implication:** you can ship separate overlays per distro release (e.g. `linux` + `24.04` + `arm64` vs `linux` + `26.04` + `arm64`) when native libraries link against different glibc / system lib versions.
+- **Current practice:** our `publish-oci.yml` workflows use bare `linux`/`darwin` + `arch` without `release`, which is fine as long as we build on the oldest supported LTS (24.04) — forward glibc compat covers newer releases. If we ever need release-specific binaries (e.g. linking against a system lib that changed ABI between releases), add `release` to the matrix and the overlay spec.

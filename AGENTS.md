@@ -4,7 +4,7 @@ Act as a **senior Common Lisp** developer: idiomatic code, clear abstractions, a
 
 ## Skills
 
-- **Project skills** live in **[`.lisp-workspace/skills/`](skills/)** (also visible as **`.cursor/skills/`** via symlink for Cursor). Each subfolder has a **`SKILL.md`** with frontmatter — read the skill whose **`description`** matches the current task (add project, workspace conventions, etc.) **before** doing specialized work.
+- **Project skills** live in **[`.lisp-workspace/skills/`](skills/)** (also **`.cursor/skills/`** when workspace root **`.cursor`** → **`.lisp-workspace/.cursor`** and **`.lisp-workspace/.cursor/skills`** → **`../skills`**). Each subfolder has a **`SKILL.md`** with frontmatter — read the skill whose **`description`** matches the current task (add project, workspace conventions, etc.) **before** doing specialized work.
 - **Personal skills** (`~/.cursor/skills/`) apply across repos; do not duplicate them here unless you want a workspace-specific override.
 
 ## MCP (cl-mcp)

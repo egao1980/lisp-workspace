@@ -1,6 +1,6 @@
 # Lisp workspace housekeeping
 
-Scripts and docs for this **multi-repo Common Lisp** tree live under **`.lisp-workspace/`** so the visible root stays mostly project checkouts. Cursor-specific rules stay in **`.cursor/rules/`**.
+Scripts and docs for this **multi-repo Common Lisp** tree live under **`.lisp-workspace/`** so the visible root stays mostly project checkouts. **Cursor config** (`rules/`, `commands/`, `mcp.json`) lives in **`.lisp-workspace/.cursor/`** (this repo). At the **workspace root** (parent of `.lisp-workspace/`), **`.cursor`** should be **`ln -s .lisp-workspace/.cursor .cursor`** so Cursor finds project rules; **`.lisp-workspace/.cursor/skills`** → **`../skills`** (no duplicate skill trees).
 
 **This directory is its own Git repository.** Work here with `git add` / `git commit` so housekeeping stays separate from sibling checkouts (`cl-repository/`, `grpc/`, …). Default branch is **`main`**. Remote: **[egao1980/lisp-workspace](https://github.com/egao1980/lisp-workspace)** (private).
 
@@ -35,7 +35,7 @@ Remove wiring (optional delete tree with `--purge`):
 |------|------|
 | [AGENTS.md](AGENTS.md) | Expectations for AI/human contributors |
 | [MEMORY.md](MEMORY.md) | Durable user preferences and standing instructions (agents read/update) |
-| [skills/](skills/) | Cursor **project skills** (`SKILL.md` per folder); hooked as **`.cursor/skills` → `skills/`** |
+| [skills/](skills/) | Cursor **project skills** (`SKILL.md` per folder); **`.lisp-workspace/.cursor/skills` → `../skills`** |
 | [skills/README.md](skills/README.md) | Skill index + **staging mechanism** for iterative improvement |
 | [docs/REQUIREMENTS.md](docs/REQUIREMENTS.md) | Workspace requirements and Git policy |
 | [docs/cl-mcp.md](docs/cl-mcp.md) | cl-ai-project/cl-mcp bootstrap and MCP notes |
@@ -45,10 +45,11 @@ Remove wiring (optional delete tree with `--purge`):
 
 | Path | Role |
 |------|------|
+| [`.cursor/`](.cursor/) | Rules, commands, `mcp.json` (versioned here). At workspace root: **`.cursor` → `.lisp-workspace/.cursor`**. |
 | `.cursor/mcp.json` | cl-mcp MCP server config (stdio via `ros`) |
 | `.cursor/rules/` | Project rules (always-apply workspace rule + glob-scoped Lisp REPL rule) |
 | `.cursor/commands/` | `/load-and-test`, `/review-skill-improvements` |
-| `.cursor/skills` → `skills/` | Symlink so Cursor discovers project skills |
+| `.cursor/skills` → `../skills` | Symlink so Cursor discovers **this** `skills/` tree (no second copy) |
 
 ## Dev Container
 

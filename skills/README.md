@@ -1,6 +1,6 @@
 # Workspace skills (Cursor)
 
-Each subdirectory is a **skill**: a `SKILL.md` with YAML frontmatter (`name`, `description`) plus instructions. Cursor loads **project** skills from **`.cursor/skills/`** — this repo uses a **symlink** so skills live under **`.lisp-workspace/skills/`** and stay in the housekeeping Git repo.
+Each subdirectory is a **skill**: a `SKILL.md` with YAML frontmatter (`name`, `description`) plus instructions. Cursor loads **project** skills from **`.cursor/skills/`**. Skills live only under **`.lisp-workspace/skills/`**; **`.lisp-workspace/.cursor/skills`** is a symlink **`../skills`** so there is a single tree (no duplicate or broken chain when root **`.cursor`** points here).
 
 ## Adding a skill
 
@@ -15,10 +15,12 @@ Personal skills (all projects): `~/.cursor/skills/`. Do **not** put project skil
 From the **workspace root** (the directory that contains `.lisp-workspace/`):
 
 ```bash
-mkdir -p .cursor && ln -sfn .lisp-workspace/skills .cursor/skills
+ln -sfn .lisp-workspace/.cursor .cursor
 ```
 
-Recreate this symlink after clone if **`.cursor/skills`** is missing so Cursor loads project skills.
+**`.lisp-workspace/.cursor/skills` → `../skills`** is committed in this repo — do not replace it with a direct `.cursor/skills` → `.lisp-workspace/skills` link at the root (that would skip the bundled rules/commands/mcp.json).
+
+Recreate the root **`.cursor`** symlink after clone if Cursor does not see project rules/skills.
 
 ## Skill improvement staging
 

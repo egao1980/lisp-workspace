@@ -1,0 +1,16 @@
+---
+description: Lisp workspace layout, skills, git policy, docs — always active
+alwaysApply: true
+---
+
+# Lisp workspace (egao1980)
+
+- **Layout:** Versioned copy of Cursor project config is **`.lisp-workspace/.cursor/`**. Repo root **`.cursor`** → symlink to that dir. **`.lisp-workspace/.cursor/skills`** → **`../skills`** (same tree as `.lisp-workspace/skills/`).
+- **Skills:** `.lisp-workspace/skills/<name>/SKILL.md` (also **`.cursor/skills/...`** via symlinks). Read the skill whose `description` matches the current task **before** doing specialized work.
+- **MCP:** **cl-mcp** MCP server configured in `.cursor/mcp.json`; checkout at **`cl-mcp/`** ([cl-ai-project/cl-mcp](https://github.com/cl-ai-project/cl-mcp)). See `common-lisp-repl` rule for tool usage when editing `.lisp`/`.asd`.
+- **Commands:** `.cursor/commands/` — `/load-and-test`, `/review-skill-improvements`.
+- **Git:** prefer **`github.com/egao1980/`** remotes; fork third-party via `gh`; set **upstream**. Feature branches; small milestone commits. **Undo with git** — never from memory.
+- **ASDF:** `.lisp-workspace/scripts/add-cl-project.sh` writes snippets under `~/.config/common-lisp/source-registry.conf.d/`. Use **qlot** per subproject when present.
+- **Docs:** update `.lisp-workspace/docs/REQUIREMENTS.md` for policy; append `.lisp-workspace/LESSONS_LEARNED.md` for fixes. Read/update **`.lisp-workspace/MEMORY.md`** for durable user preferences.
+- **Skill staging:** when you learn something new about a tool/workflow, append to the relevant `skills/<name>/STAGED.md`. See `skills/README.md` for format.
+- **Long-running commands:** redirect stdout/stderr of builds, installs, and compilations to a temp file. Only read the tail on failure. This avoids burning tokens on verbose progress output (ANSI escapes, progress bars, compilation notes). Pattern: `cmd > /tmp/out.log 2>&1 || { tail -50 /tmp/out.log; exit 1; }`. Use `| tail -N` for quick status checks.

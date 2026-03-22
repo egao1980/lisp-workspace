@@ -24,6 +24,6 @@ Coordinate multiple **Common Lisp** codebases (ASDF systems) that depend on each
 
 - **Global** goals and constraints live in this file; **per-repo** specs stay in each repository.
 - **Durable user preferences** (standing instructions, tool defaults) belong in **[MEMORY.md](../MEMORY.md)** so agents can load them without mixing into formal requirements.
-- **Cursor project skills** live in **[skills/](../skills/)**; the workspace uses **`.cursor/skills` → `.lisp-workspace/skills`** so Cursor discovers them while the source stays in this Git repo.
+- **Cursor project config** lives in **[`.cursor/`](../.cursor/)** inside this repo; workspace root **`.cursor`** should symlink there. **`.cursor/skills` → `../skills`** so Cursor discovers **[skills/](../skills/)** without duplicating the tree.
 - **Devcontainer features** for CL are maintained in **[egao1980/features](https://github.com/egao1980/features)**; this workspace keeps a sibling clone at **`../features/`** (relative to `.lisp-workspace/`) for reference and edits.
 - **MCP for Lisp:** **[cl-ai-project/cl-mcp](https://github.com/cl-ai-project/cl-mcp)** in sibling dir **`cl-mcp/`**; see **[cl-mcp.md](cl-mcp.md)**. Use MCP Inspector (`npx @modelcontextprotocol/inspector`) when debugging stdio servers.

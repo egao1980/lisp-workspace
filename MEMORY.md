@@ -31,3 +31,4 @@ Keep entries **short and actionable**. Remove or supersede items that go stale.
 
 - `cl-mcp/` upstream is cl-ai-project (not quasi); fork is egao1980/cl-mcp.
 - `features/` is the devcontainer features repo — not an ASDF library.
+- **OCI publish + consumer test (cl-protobufs / grpc):** run **`act`** against `publish-oci.yml` with local registry + artifact server, then verify in a **roswell devcontainer** with **`cl-repository`** mounted and `host.docker.internal` to the registry. Full command pattern and pitfalls → **`.lisp-workspace/LESSONS_LEARNED.md`** (section *act + local OCI registry + devcontainer*).

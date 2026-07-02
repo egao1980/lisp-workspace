@@ -171,3 +171,71 @@ Run **cl-protobufs** first if **grpc** depends on that OCI version; then **grpc*
 - **Fact:** cl-repository's `overlay-spec` and `.asd` `:platform` entries support **three** keys: **`os`**, **`release`**, and **`arch`** — not just `os`/`arch`.
 - **Implication:** you can ship separate overlays per distro release (e.g. `linux` + `24.04` + `arm64` vs `linux` + `26.04` + `arm64`) when native libraries link against different glibc / system lib versions.
 - **Current practice:** our `publish-oci.yml` workflows use bare `linux`/`darwin` + `arch` without `release`, which is fine as long as we build on the oldest supported LTS (24.04) — forward glibc compat covers newer releases. If we ever need release-specific binaries (e.g. linking against a system lib that changed ABI between releases), add `release` to the matrix and the overlay spec.
+
+## 2026-03 — OCI consumer test: `publish-oci.yml` (act) vs `test-oci-local.sh`
+
+End-to-end test: `act` builds cl-protobufs & grpc → local registry → devcontainer → `cl-repository-client/quickload:load-system`.
+
+**What works (reference):** The `scripts/test-oci-local.sh` scripts in cl-protobufs / grpc. They use **relative** paths in overlay `overlay-spec :files` (e.g. `("lib/linux-amd64/grpc.so" . "grpc.so")`) and only package the wrapper `.so`, not the full bundle. The packager correctly builds `native/grpc.so` in the overlay tarball. Consumer gets `native/` in CFFI search dirs via `cl-repo-init.lisp` — works without `LD_LIBRARY_PATH`.
+
+**What broke:** `publish-oci.yml` run via `act`. Three issues, all in the CI workflow — **not** in `cl-repository-client`:
+
+### 1. Empty overlay tarball (grpc `publish-oci.yml`)
+
+- The `publish.lisp` heredoc in the workflow collects overlay files via `(directory ...)` which returns **absolute** paths. `overlay-spec :files` alist gets `("/full/path/lib/linux-arm64/grpc.so" . "grpc.so")`. The packager's layer builder resolves relative to `:source-dir` and can't find the file at that absolute path → empty tarball.
+- **Meanwhile**, `lib/linux-arm64/` exists inside the source tree (created by the "Arrange overlay" step), so the source tarball includes all `.so` files.
+- **Fix:** Use relative paths in overlay `:files` (match `test-oci-local.sh`), or fix the layer builder to handle absolute paths.
+
+### 2. Missing soname symlinks (`bundle-grpc-native-deps.sh`)
+
+- The bundle script uses `realpath` → `basename`, copying e.g. `libgrpc.so.52.0.0`. The soname links (`libgrpc.so.52`) are not created. `grpc.so` has `NEEDED: libgrpc.so.52` + `RUNPATH: $ORIGIN` → `not found`.
+- **Fix:** Add `ldconfig -n "$destdir"` at the end, or manually create soname symlinks.
+- **Note:** `test-oci-local.sh` doesn't hit this because it only ships `grpc.so` (wrapper), relying on system grpc libs. Full self-contained bundle is the `publish-oci.yml` goal.
+
+### 3. `latest` tag → 0 files (cl-repository-client)
+
+- Pulling `cl-protobufs:latest` (as transitive dep) extracts 0 files. Explicit `:version "2.1.0"` works (176 files).
+- **Likely cause:** `compute-strip-prefix` gets version `"latest"` → strip prefix `"cl-protobufs-latest/"` → doesn't match tarball entries `"cl-protobufs-2.1.0/"` → all entries skipped.
+- **Workaround:** Always pass explicit `:version` to `load-system`.
+
+## 2026-03 — cl-repository: push only to fork, never to upstream
+
+- **Symptom:** PR conflict resolution and force-push could accidentally target `CommonLispNext/cl-repository` (upstream) instead of `egao1980/cl-repository` (fork).
+- **Cause:** `origin` and `upstream` remotes both exist; `gh pr view` defaults to the upstream repo when the PR is on `CommonLispNext`. Easy to conflate the two when rebasing.
+- **Fix:** Always push to `origin` (`egao1980/cl-repository`). Never push or create PRs directly on `CommonLispNext/cl-repository`. When SSH keys aren't configured, temporarily switch to HTTPS (`git remote set-url`) for fetch/push, then restore SSH URLs afterward.
+
+### ASDF source-registry conflict (devcontainer test setup)
+
+- `post-create.sh` registers all workspace subdirs in ASDF. Must remove `50-lisp-workspace-cl-protobufs.conf` and `50-lisp-workspace-grpc.conf` before OCI consumer tests, or use `(:directory "/workspaces/lisp/cl-repository/")` (not `:tree`).
+
+## 2026-06 — cl-repository: structured `cffi-libraries` + finishing the native-deps init hook
+
+Implemented the per-library `cffi-libraries` metadata the spec always described (`name -> {define-foreign-library, canary, search-path}`) and wired `generate-init-file` to consume it. Findings from the work + the live integration run:
+
+- **Author form stays backward-compatible.** `:cffi-libraries ("libfoo")` (bare name list) still works everywhere; the richer form is `("libfoo" :define-foreign-library "pkg::libfoo" :canary "foo_init" :search-path "lib/")`. Normalization to a canonical alist `(NAME . PLIST)` happens **inside `make-cl-system-config`** (idempotent), so every caller — packager, repackager, JSON deserialize — stores the same shape. Keep `package-spec-cffi-libraries` as the **raw author value** so existing asdf-plugin tests don't break; normalize only at config-build time.
+- **Init files load BEFORE `asdf:load-system`** (`load-system-init-files` runs in quickload phase 3, before the system loads). So the system's own `define-foreign-library` symbol does **not** exist at init time — the only actionable field is `search-path` (push onto `cffi:*foreign-library-directories*`). `define-foreign-library`/`canary` are recorded as comments for the canary pattern, not executed. Per `native-deps.md` this is correct: the prebuilt lib loads transparently once the search dir is registered. Don't try to `load-foreign-library` by name at init time — it's load-order-wrong and platform-fragile.
+- **yason quirk:** a plain CL list serializes as a JSON **array**, not an object. The old code wrote `cffi-libraries` as the raw list (→ `["libfoo"]`), mismatching the spec's object form. New `serialize-cffi-libraries`/`deserialize-cffi-libraries` use a hash-table for the object form; deserialize still accepts the legacy array (yason parses JSON arrays as **lists** by default, not vectors) for old blobs.
+
+### Local integration run (Docker registry `localhost:5050`)
+
+- Start: `docker run -d --name oci-registry -p 5050:5000 registry:2`; verify `curl -fsS http://localhost:5050/v2/` returns `{}`.
+- Run: `qlot exec sbcl --non-interactive` loading the 5 `.asd`s then `(asdf:test-system "cl-repository-integration-tests")`. **All passed** (~9 s after warm fasl cache).
+- The relevant E2E test `install-and-load-native-overlay` exercises the changed path exactly: publish → install → `generate-init-file` → **`cffi:load-foreign-library` of the bundled `libcalc.dylib` + call into C** (returns version 1.0.0). Green. Confirms backward compat of the simple `("libcalc")` form through the full publish/install/load cycle.
+- **Gotcha:** rove's end summary prints `All 1 test passed` for the integration system even though dozens of `deftest`s ran — it counts the package run, not assertions. Don't trust the count; grep the log for `✗`/`fail` to confirm (there were none). Native overlay tests need a working `cc` (they compile `libcalc` on the fly).
+
+### `ocicl-compat` CI flake — transient read race in upstream ocicl
+
+- **Symptom:** `ocicl-compat` job fails intermittently. Same commit content / same ocicl version (2.16.14) / same registry pass on re-run with no change.
+- **Two distinct log lines, only one is fatal:**
+  - `Error getting bearer token ... "404 page not found" ... not of type (VECTOR (UNSIGNED-BYTE 8))` — **benign noise present on every run** (passing too). ocicl probes `/token` on the no-auth `registry:2`, gets 404, falls back to anonymous.
+  - `error downloading ... ; end of file on STRING-INPUT-STREAM from "{\"schema..."` — **the real, intermittent failure.** ocicl hits EOF parsing an otherwise-complete `200 OK` (correct `Content-Length`). Not registry readiness (`Registry ready` logged, 200s served) — a race in ocicl's Drakma/`Connection: close` HTTP read path.
+- **Fix:** bounded retry around `ocicl install` in `tests/integration/test-ocicl-compat.sh` via `with_retries` helper, configurable through `OCICL_INSTALL_RETRIES` (default 3) and `OCICL_INSTALL_RETRY_DELAY` (default 3s). A genuine failure still exits 1 after N attempts (no masking). Pinning the ocicl version does **not** help — the race occurs within a single version.
+
+### Code review 2026-07-02 — cl-repository + features hardening
+
+- **`loop ... do (return X)` values get discarded when the loop is a non-final form.** `version-utils:compare-segments` computed segment differences in a loop, `return`ed -1/1 from it — then fell through to the length-based `cond`, throwing the result away. Net effect: `version<` was NIL for all same-segment-count versions ("1" < "2" → NIL), so `select-preferred-version` order was accidental and the SAT solver's "latest version" pick was alphabetical. Fixed by `(or (loop ...) fallback)`. Lesson: when a `loop` communicates via `return`, its value must be *used*; unit-test comparison predicates directly, not just through their consumers.
+- **Rove counts packages, not deftests** (again — see integration note above). `× 1 of 11 tests failed` names the suite; grep the log for the failing `deftest` name.
+- **Tar extraction must reject `..`/absolute/`~`-prefixed names** — `merge-pathnames` on SBCL expands `~/...` to HOME, so a hostile tar entry name is a traversal vector even without `..`. Also reject wildcard chars (`*?[`) — they build wild pathnames and `with-open-file` misbehaves.
+- **OCI pulls need explicit digest checks**: descriptors carry digest+size, but `pull-blob` returns whatever the registry sends. Verify size + `verify-digest` on every config/layer blob at install time (`pull-verified-blob`).
+- **devcontainer template boilerplate carries bugs**: the upstream `find_version_from_git_tags` "two-part version" check is `grep -o "." | wc -l` — counts *characters*, not dots, so exact pins still resolved via `git ls-remote`. Also `set -e` only (no `-u`/`pipefail`), unquoted expansions, and `curl -sSL` without `-f` (saves HTML error pages as tarballs).
+- **Feature options are attacker-ish input**: `installPath` was interpolated into `/etc/profile.d`/rc files unvalidated (shell injection as root at build time). Validate option charsets before interpolation (`^/[A-Za-z0-9._/-]+$` etc.).

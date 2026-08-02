@@ -9,6 +9,18 @@ description: >-
 
 # Add a CL project to the workspace
 
+## When *not* to use this
+
+If the library is an **unmodified** third-party dependency (no patches, no native overlay ownership), **do not** fork/clone it here. Add an import to **[`egao1980/cl-stack-systems`](https://github.com/egao1980/cl-stack-systems)** instead:
+
+```bash
+cd cl-stack-systems && ./scripts/add-import.sh owner/repo <ref>
+```
+
+Use this skill only for forks you will patch, overlay packages you own, or first-party `egao1980` checkouts.
+
+**Exclusivity:** after forking with this script, **remove** any matching `cl-stack-systems/imports/<name>/`. Conversely, if you add an import, do **not** also `add-cl-project` / fork that upstream.
+
 ## Steps
 
 1. Confirm **`gh auth status`** if the repo needs forking (`owner/repo` form).

@@ -22,6 +22,8 @@ Keep entries **short and actionable**. Remove or supersede items that go stale.
 
 ## Standing instructions
 
+- **Unforked third-party deps:** add to **[`egao1980/cl-stack-systems`](https://github.com/egao1980/cl-stack-systems)** (`imports/<name>/qlfile`) for OCI republish into `ghcr.io/egao1980/cl-systems`. Fork/checkout only when patching or shipping native overlays. One import dir per upstream pin (CI matrix isolation). Seeded set: see `cl-stack-systems/imports/IMPORTS.md` (chipz/salza2, mime/quri/idna support libs, cffi, cl+ssl, …).
+- **Fork ↔ import exclusivity:** never both. Fork ⇒ delete `cl-stack-systems/imports/<name>/`. Import ⇒ no workspace fork of that lib.
 - **Native overlays:** resolve via `cffi:*foreign-library-directories*` + absolute preload (`cl-repo-init.lisp` / `ensure-*`). **Never** require `LD_LIBRARY_PATH` / `DYLD_LIBRARY_PATH` for correctness (Linux ignores mid-process `setenv`; see cl-repository `docs/requirements/native-deps.md`).
 
 - Plan before acting on new projects or massive changes; use git to preserve initial state and track in a branch.
@@ -33,7 +35,7 @@ Keep entries **short and actionable**. Remove or supersede items that go stale.
 
 ## Project-specific notes
 
-- **http-protocol:** [`egao1980/http-protocol`](https://github.com/egao1980/http-protocol) — Content-Encoding via `decode-content-coding` / `encode-content-coding` (not `mime:decode-content`). Soft `cl-stack-brotli`/`cl-stack-zstd`.
+- **http-protocol:** [`egao1980/http-protocol`](https://github.com/egao1980/http-protocol) — CE + client types/`send`/`send-async` + facade `http` (`*-async` → Blackbird promises). Sync: [`http-backend-dexador`](https://github.com/egao1980/http-backend-dexador). Async: [`http-backend-async`](https://github.com/egao1980/http-backend-async) on `event-protocol` `register-io` (not Carrier/cl-async); CI matrix × libuv + libev; cleartext HTTP/1.1 wave-1, HTTPS next via `cl-stack-ssl`. Encoding: [`http-encoding-chipz`](https://github.com/egao1980/http-encoding-chipz), [`http-encoding-brotli`](https://github.com/egao1980/http-encoding-brotli), [`http-encoding-zstd`](https://github.com/egao1980/http-encoding-zstd). Natives: `cl-stack-brotli` / `cl-stack-zstd`. Not `mime:decode-content` (CTE).
 
 - **MIME:** pin fork [`egao1980/cl-mime`](https://github.com/egao1980/cl-mime) of [`40ants/cl-mime`](https://github.com/40ants/cl-mime) (hanshuebner lineage) for MIME parse/print + CTE (`decode-content`/`encode-content` = base64/qp/7bit). OCI: `ghcr.io/egao1980/cl-systems/cl-mime:0.5.1` (source-only). **Not** HTTP `Content-Encoding` (gzip/br/zstd) — that stays chipz/salza2 + cl-stack-brotli/zstd.
 

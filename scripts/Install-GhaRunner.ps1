@@ -92,10 +92,27 @@ function Get-DefaultRunnerName {
   return "$base-$hash"
 }
 
+function Test-RunnerZip {
+  param([string] $ZipPath)
+
+  try {
+    Add-Type -AssemblyName System.IO.Compression.FileSystem
+    $archive = [System.IO.Compression.ZipFile]::OpenRead($ZipPath)
+    try {
+      return [bool]$archive.GetEntry("config.cmd")
+    } finally {
+      $archive.Dispose()
+    }
+  } catch {
+    return $false
+  }
+}
+
 function Stop-RunnerService {
-  if (-not (Test-Path ".\svc.cmd")) { return }
+  if (-not (Test-Path ".\svc.cmd")) { return $false }
   & .\svc.cmd stop 2>$null
   & .\svc.cmd uninstall 2>$null
+  return $true
 }
 
 function Restore-RunnerService {
@@ -128,10 +145,31 @@ function Install-RunnerPayloadFromStaging {
   param([string] $StagingDir, [string] $DestDir, [string] $Version)
 
   # Overlay in place — never wipe Dest before copy succeeds.
-  Get-ChildItem -Force $StagingDir | ForEach-Object {
-    Copy-Item -Path $_.FullName -Destination $DestDir -Recurse -Force
+  $backup = $null
+  if (Test-Path (Join-Path $DestDir "config.cmd")) {
+    $backup = Join-Path $env:TEMP ("gha-runner-overlay-backup-" + [guid]::NewGuid().ToString("n"))
+    Copy-Item -Path $DestDir -Destination $backup -Recurse -Force
   }
-  Set-Content -Path (Join-Path $DestDir ".gha-runner-ver") -Value $Version -NoNewline
+  try {
+    Get-ChildItem -Force $StagingDir | ForEach-Object {
+      Copy-Item -Path $_.FullName -Destination $DestDir -Recurse -Force
+    }
+    Set-Content -Path (Join-Path $DestDir ".gha-runner-ver") -Value $Version -NoNewline
+  } catch {
+    if ($backup) {
+      Get-ChildItem -Force $DestDir | ForEach-Object {
+        Remove-Item -LiteralPath $_.FullName -Recurse -Force -ErrorAction SilentlyContinue
+      }
+      Get-ChildItem -Force $backup | ForEach-Object {
+        Copy-Item -Path $_.FullName -Destination $DestDir -Recurse -Force
+      }
+    }
+    throw
+  } finally {
+    if ($backup) {
+      Remove-Item -LiteralPath $backup -Recurse -Force -ErrorAction SilentlyContinue
+    }
+  }
 }
 
 if (-not $RunnerName) {
@@ -154,6 +192,10 @@ Set-Location $Dir
 $installedVer = if (Test-Path $VerStamp) { (Get-Content -Raw $VerStamp).Trim() } else { "" }
 $needPayload = (-not (Test-Path ".\config.cmd")) -or ($installedVer -ne $RunnerVer)
 
+if ((Test-Path $Zip) -and -not (Test-RunnerZip (Join-Path $Dir $Zip))) {
+  Write-Warning "Removing invalid or corrupt runner zip: $Zip"
+  Remove-Item -Force $Zip
+}
 if (-not (Test-Path $Zip)) {
   Write-Host "Downloading $Url"
   Invoke-WebRequest -Uri $Url -OutFile $Zip -UseBasicParsing
@@ -173,8 +215,7 @@ if ($needPayload) {
 $serviceRemoved = $false
 try {
   # Stop/uninstall only after staging succeeds (or when reconfiguring in place).
-  Stop-RunnerService
-  $serviceRemoved = $true
+  $serviceRemoved = Stop-RunnerService
 
   if ($staging) {
     Install-RunnerPayloadFromStaging -StagingDir $staging -DestDir $Dir -Version $RunnerVer
@@ -212,6 +253,7 @@ try {
 
 if (Get-Command gh -ErrorAction SilentlyContinue) {
   gh api "repos/$Repo/actions/runners" --jq '.runners[] | {name,status,labels:[.labels[].name]}'
+  if ($LASTEXITCODE -ne 0) { throw "gh api failed ($LASTEXITCODE)" }
 }
 
 Write-Host "OK: $RunnerName -> $Repo ($LabelCsv) under $Dir (runner $RunnerVer)"

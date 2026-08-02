@@ -22,6 +22,8 @@ Keep entries **short and actionable**. Remove or supersede items that go stale.
 
 ## Standing instructions
 
+- **Native overlays:** resolve via `cffi:*foreign-library-directories*` + absolute preload (`cl-repo-init.lisp` / `ensure-*`). **Never** require `LD_LIBRARY_PATH` / `DYLD_LIBRARY_PATH` for correctness (Linux ignores mid-process `setenv`; see cl-repository `docs/requirements/native-deps.md`).
+
 - Plan before acting on new projects or massive changes; use git to preserve initial state and track in a branch.
 - Run tests before declaring done.
 - Use feature branches in subproject repos.

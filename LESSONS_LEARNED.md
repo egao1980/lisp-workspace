@@ -267,3 +267,11 @@ Implemented the per-library `cffi-libraries` metadata the spec always described 
 - **`split-tar-name` (packager) crashed on 101-155 char entry names**: the ustar split scan started at `(char name (min (length name) 155))` — one past the end for names in that range. Exactly what deep staged artifact paths produced. Fixed in cl-repository (start at `(1- (length name))`; unsplittable names now signal instead of silently truncating to 100 chars). Boundary-test anything that splits fixed-size header fields.
 - **GHCR: the shared `<namespace>/catalog` package is writable only by the repo whose workflow created it.** Other repos' `GITHUB_TOKEN`s get 403 pushing catalog referrers *after* the package published fine. Packager now warns instead of dying; publishing repos can pass `:skip-catalog t` (or grant repo access in the package's Actions settings).
 - **Pre-existing red CI is not your red CI, but check**: cl-protobufs ABCL-Tests has failed since 2026-03 (`COMPILE-CONSTANT unhandled case HASH-TABLE` — ABCL can't dump hash-table literals in some upstream file); grpc SBCL/CCL tests crash in `grpc_cq_begin_op` because the workflow builds gRPC C++ from *upstream master* at test time — version drift, unrelated to packaging changes. Verify by finding the same failure on the base branch / previous runs.
+
+## 2026-08-02 — event-backend-libuv Windows OCI publish
+
+- **`sb-ext:atomic-exchange` does not exist** on SBCL 2.4.11 (Windows *and* current Homebrew 2.6.x). Linux/Darwin publish looked green only because grovel finished before backend failed and `ros -q` exits 0 from the debugger; find still located `grovel.processed-grovel-file`. Use `sb-ext:compare-and-swap` loops (or drop atomics). Always set `*debugger-hook*` → `uiop:quit 1` for one-shot `ros -e`.
+- **UIOP fasl cache on Windows** is `%LOCALAPPDATA%/cache/common-lisp/`, not `%LOCALAPPDATA%/common-lisp/`.
+- **`CL_SOURCE_REGISTRY` + drive letters:** `D:/foo//:D:/bar//:` is split on `:`. Use MSYS `/d/foo//:/d/bar//:` (as in test.yml) or `;` with real Windows paths. `asdf:load-asd` wants drive paths (`cygpath -m`).
+- **bash 3.2:** `}# comment if ...` does *not* start a comment — the `if` is parsed. Always newline after `}`.
+- **`close-loop` had an extra `)`** that left a top-level `loop)` — masked by the earlier READ error on `atomic-exchange`.

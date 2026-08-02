@@ -23,6 +23,7 @@ Keep entries **short and actionable**. Remove or supersede items that go stale.
 ## Standing instructions
 
 - **Unforked third-party deps:** add to **[`egao1980/cl-stack-systems`](https://github.com/egao1980/cl-stack-systems)** (`imports/<name>/qlfile`) for OCI republish into `ghcr.io/egao1980/cl-systems`. Fork/checkout only when patching or shipping native overlays. One import dir per upstream pin (CI matrix isolation). Seeded set: see `cl-stack-systems/imports/IMPORTS.md` (chipz/salza2, mime/quri/idna support libs, cffi, cl+ssl, …).
+- **Fork ↔ import exclusivity:** never both. Fork ⇒ delete `cl-stack-systems/imports/<name>/`. Import ⇒ no workspace fork of that lib.
 - **Native overlays:** resolve via `cffi:*foreign-library-directories*` + absolute preload (`cl-repo-init.lisp` / `ensure-*`). **Never** require `LD_LIBRARY_PATH` / `DYLD_LIBRARY_PATH` for correctness (Linux ignores mid-process `setenv`; see cl-repository `docs/requirements/native-deps.md`).
 
 - Plan before acting on new projects or massive changes; use git to preserve initial state and track in a branch.

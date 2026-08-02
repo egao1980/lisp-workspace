@@ -25,7 +25,9 @@ Keep entries **short and actionable**. Remove or supersede items that go stale.
 - Plan before acting on new projects or massive changes; use git to preserve initial state and track in a branch.
 - Run tests before declaring done.
 - Use feature branches in subproject repos.
+- **Before deleting "dead" code** (unused params/vars/functions), check it isn't scaffolding for a planned-but-unimplemented feature — grep TODO/docs/requirements + `git log -S`. If planned: keep it and document the reserved intent (e.g. `;; TODO(<area>)`) rather than removing.
 - When a skill proves wrong or incomplete during use, append the correction to `skills/<name>/STAGED.md` rather than editing SKILL.md in-flight.
+- **Never push or create PRs to `CommonLispNext/cl-repository`** — all work stays in **`egao1980/cl-repository`**. Rebase/merge against upstream locally, but push only to the fork.
 
 ## Project-specific notes
 

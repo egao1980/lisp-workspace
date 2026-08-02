@@ -102,7 +102,6 @@ function Restore-RunnerService {
   if (-not (Test-Path ".\svc.cmd")) { return $false }
   Write-Warning "Install failed after service removal; attempting to restore Windows service."
   & .\svc.cmd install 2>$null
-  if ($LASTEXITCODE -ne 0) { return $false }
   & .\svc.cmd start 2>$null
   return ($LASTEXITCODE -eq 0)
 }

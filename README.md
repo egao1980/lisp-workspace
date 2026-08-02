@@ -1,6 +1,16 @@
 # Lisp workspace housekeeping
 
-Scripts and docs for this **multi-repo Common Lisp** tree live under **`.lisp-workspace/`** so the visible root stays mostly project checkouts. **Cursor config** (`rules/`, `commands/`, `mcp.json`) lives in **`.lisp-workspace/.cursor/`** (this repo). At the **workspace root** (parent of `.lisp-workspace/`), **`.cursor`** should be **`ln -s .lisp-workspace/.cursor .cursor`** so Cursor finds project rules; **`.lisp-workspace/.cursor/skills`** → **`../skills`** (no duplicate skill trees).
+Scripts and docs for this **multi-repo Common Lisp** tree live under **`.lisp-workspace/`** so the visible root stays mostly project checkouts. Prefer private **[egao1980/cl-workspace](https://github.com/egao1980/cl-workspace)** as that root (submodule + `scripts/bootstrap.sh`).
+
+**Cursor config** (`rules/`, `commands/`, `mcp.json`) lives in **`.lisp-workspace/.cursor/`** (this repo). At the **workspace root** (parent of `.lisp-workspace/`), bootstrap (or manually) symlink:
+
+```bash
+ln -sfn .lisp-workspace/.cursor .cursor
+ln -sfn .lisp-workspace/AGENTS.md AGENTS.md
+ln -sfn .lisp-workspace/LESSONS_LEARNED.md LESSONS_LEARNED.md
+```
+
+**`.lisp-workspace/.cursor/skills`** → **`../skills`** (no duplicate skill trees).
 
 **This directory is its own Git repository.** Work here with `git add` / `git commit` so housekeeping stays separate from sibling checkouts (`cl-repository/`, `grpc/`, …). Default branch is **`main`**. Remote: **[egao1980/lisp-workspace](https://github.com/egao1980/lisp-workspace)** (private).
 
@@ -46,6 +56,7 @@ Remove wiring (optional delete tree with `--purge`):
 | Path | Role |
 |------|------|
 | [`.cursor/`](.cursor/) | Rules, commands, `mcp.json` (versioned here). At workspace root: **`.cursor` → `.lisp-workspace/.cursor`**. |
+| Root `AGENTS.md` / `LESSONS_LEARNED.md` | Symlinks → this folder so agents see them at the workspace root. |
 | `.cursor/mcp.json` | cl-mcp MCP server config (stdio via `ros`) |
 | `.cursor/rules/` | Project rules (always-apply workspace rule + glob-scoped Lisp REPL rule) |
 | `.cursor/commands/` | `/load-and-test`, `/review-skill-improvements` |

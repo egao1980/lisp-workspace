@@ -33,6 +33,8 @@ Keep entries **short and actionable**. Remove or supersede items that go stale.
 
 ## Project-specific notes
 
+- **http-protocol:** [`egao1980/http-protocol`](https://github.com/egao1980/http-protocol) — Content-Encoding via `decode-content-coding` / `encode-content-coding` (not `mime:decode-content`). Soft `cl-stack-brotli`/`cl-stack-zstd`.
+
 - **MIME:** pin fork [`egao1980/cl-mime`](https://github.com/egao1980/cl-mime) of [`40ants/cl-mime`](https://github.com/40ants/cl-mime) (hanshuebner lineage) for MIME parse/print + CTE (`decode-content`/`encode-content` = base64/qp/7bit). OCI: `ghcr.io/egao1980/cl-systems/cl-mime:0.5.1` (source-only). **Not** HTTP `Content-Encoding` (gzip/br/zstd) — that stays chipz/salza2 + cl-stack-brotli/zstd.
 
 - `cl-mcp/` upstream is cl-ai-project (not quasi); fork is egao1980/cl-mcp.

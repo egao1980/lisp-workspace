@@ -7,7 +7,8 @@ Coordinate multiple **Common Lisp** codebases (ASDF systems) that depend on each
 ## Git policy
 
 - **Default GitHub org for this workspace:** `egao1980` (`GITHUB_WORKSPACE_ORG` overrides in scripts).
-- **Third-party libraries:** fork into `egao1980`, clone the fork, add **`upstream`** to the canonical repo. The script runs **`gh repo fork`**; use **`--org`** only when `egao1980` is a **GitHub organization** (`gh api orgs/egao1980`). If `egao1980` is a **user** login matching `gh api user`, fork runs **without** `--org`.
+- **Third-party libraries (unmodified):** do **not** fork by default. Add an import unit to **[`egao1980/cl-stack-systems`](https://github.com/egao1980/cl-stack-systems)** — `imports/<name>/qlfile` with a pinned `github`/`git` line — so CI publishes a source-only package into **`ghcr.io/egao1980/cl-systems`**. One qlfile per upstream pin (isolation); use `./scripts/add-import.sh owner/repo <ref>`.
+- **Third-party libraries (patched / overlays / owned CI):** fork into `egao1980`, clone the fork, add **`upstream`** to the canonical repo. The script runs **`gh repo fork`**; use **`--org`** only when `egao1980` is a **GitHub organization** (`gh api orgs/egao1980`). If `egao1980` is a **user** login matching `gh api user`, fork runs **without** `--org`.
 - **Original projects** already living under `egao1980`: clone `egao1980/<repo>` directly.
 
 ## Tooling

@@ -10,6 +10,7 @@ alwaysApply: true
 - **MCP:** **cl-mcp** MCP server configured in `.cursor/mcp.json`; checkout at **`cl-mcp/`** ([cl-ai-project/cl-mcp](https://github.com/cl-ai-project/cl-mcp)). See `common-lisp-repl` rule for tool usage when editing `.lisp`/`.asd`.
 - **Commands:** `.cursor/commands/` — `/load-and-test`, `/review-skill-improvements`.
 - **Git:** prefer **`github.com/egao1980/`** remotes; fork third-party via `gh`; set **upstream**. Feature branches; small milestone commits. **Undo with git** — never from memory.
+- **Unforked deps → cl-stack-systems:** If we depend on a third-party CL library and are **not** forking/patching it, add an import under **`egao1980/cl-stack-systems`** (`imports/<name>/qlfile`, usually one `github`/`git` pin) so CI publishes it into **`ghcr.io/egao1980/cl-systems`**. Do **not** clone/fork into the workspace just to consume source. Fork only when patching, owning CI, or shipping native overlays.
 - **ASDF:** `.lisp-workspace/scripts/add-cl-project.sh` writes snippets under `~/.config/common-lisp/source-registry.conf.d/`. Use **qlot** per subproject when present.
 - **Docs:** update `.lisp-workspace/docs/REQUIREMENTS.md` for policy; append `.lisp-workspace/LESSONS_LEARNED.md` for fixes. Read/update **`.lisp-workspace/MEMORY.md`** for durable user preferences.
 - **Skill staging:** when you learn something new about a tool/workflow, append to the relevant `skills/<name>/STAGED.md`. See `skills/README.md` for format.

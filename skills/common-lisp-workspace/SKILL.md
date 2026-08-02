@@ -18,6 +18,7 @@ description: >-
 ## Git
 
 - Prefer **`github.com/egao1980/`**; fork third-party via `gh`; **upstream** remote on forks.
+- **Unforked deps:** add to **`egao1980/cl-stack-systems`** (`imports/<name>/qlfile`) → publish to `ghcr.io/egao1980/cl-systems`. Do not fork/clone into the workspace unless patching or owning native overlays. See [docs/REQUIREMENTS.md](../../docs/REQUIREMENTS.md).
 - **Rollback:** use `git restore` / `git revert` — not hand-edited recall.
 
 ## MCP (Lisp tools for agents)

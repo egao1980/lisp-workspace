@@ -48,7 +48,7 @@ Personal accounts are **repo-scoped** — run once per `owner/repo` (separate di
 .\.lisp-workspace\scripts\Install-GhaRunner.ps1 -Repo egao1980/grpc
 ```
 
-Requires `gh auth` with repo admin (or pass `-Token`). Installs under `C:\actions-runners\<repo-name>\`. Workflow target: `runs-on: [self-hosted, windows, x64, overlay]`.
+Requires `gh auth` with repo admin (or pass `-Token`). Installs under `C:\actions-runners\<owner>\<repo-name>\` (one dir + service per `owner/repo`). Workflow target: `runs-on: [self-hosted, windows, x64, overlay]`.
 
 ## Docs (this folder)
 

@@ -18,7 +18,7 @@
 
 .PARAMETER Root
   Parent directory for runner installs (default: C:\actions-runners).
-  Actual path: <Root>\<repo-name>\
+  Actual path: <Root>\<owner>\<repo-name>\
 
 .PARAMETER Labels
   Runner labels (default: self-hosted, windows, x64, overlay).
@@ -49,11 +49,12 @@ param(
 $ErrorActionPreference = "Stop"
 
 $owner, $name = $Repo.Split("/")
-$Dir = Join-Path $Root $name
+# Scope by owner/repo so same-named repos under different owners do not collide.
+$Dir = Join-Path (Join-Path $Root $owner) $name
 $Zip = "actions-runner-win-x64-$RunnerVer.zip"
 $Url = "https://github.com/actions/runner/releases/download/v$RunnerVer/$Zip"
 $LabelCsv = ($Labels -join ",")
-$RunnerName = "windows-amd64-$name"
+$RunnerName = "windows-amd64-$owner-$name"
 
 if (-not $Token) {
   if (-not (Get-Command gh -ErrorAction SilentlyContinue)) {

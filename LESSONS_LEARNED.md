@@ -23,6 +23,12 @@ Append-only log of **symptom → cause → fix** for this workspace.
 - **Cause:** GitHub repo names are only unique **per owner**. Unrelated projects often share a name (e.g. **`quasi/cl-mcp`**, **`cl-ai-project/cl-mcp`**, **`egao1980/cl-mcp`**). Referring to “**cl-mcp**” without **`owner/`** does not identify a single repository.
 - **Fix:** Always use full **`owner/repo`** in scripts, **`gh`**, **`add-cl-project.sh`** arguments, docs, and mental model. Set **`upstream`** remote to the **canonical** upstream you mean, not “whatever is called cl-mcp.” After a rename or switch, grep docs for the old **`owner/repo`** so nothing still points at the wrong fork.
 
+## 2026-08 — Install-GhaRunner.ps1 path must include owner
+
+- **Symptom:** Docs claim one Windows runner install per `owner/repo`, but a second install for a same-named repo under another owner hits the same folder / conflicts.
+- **Cause:** `$Dir = Join-Path $Root $name` and runner name `windows-amd64-$name` dropped `$owner`.
+- **Fix:** Install under `<Root>\<owner>\<repo>` and name runners `windows-amd64-<owner>-<repo>`.
+
 ## 2026-03 — ASDF source-registry.conf.d file format
 
 - **Symptom:** `INVALID-SOURCE-REGISTRY` error at startup: `(:source-registry (:tree #P"/path/") :inherit-configuration)` in a `.conf` file under `source-registry.conf.d/`.

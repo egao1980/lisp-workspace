@@ -27,7 +27,13 @@ Append-only log of **symptom → cause → fix** for this workspace.
 
 - **Symptom:** Docs claim one Windows runner install per `owner/repo`, but a second install for a same-named repo under another owner hits the same folder / conflicts.
 - **Cause:** `$Dir = Join-Path $Root $name` and runner name `windows-amd64-$name` dropped `$owner`.
-- **Fix:** Install under `<Root>\<owner>\<repo>` and name runners `windows-amd64-<owner>-<repo>`.
+- **Fix:** Install under `<Root>\<owner>\<repo>` and name runners `windows-amd64-<owner>-<repo>` (hash-shortened if over GitHub’s 64-char name limit).
+
+## 2026-08 — Install-GhaRunner.ps1 must not drop the service before payload is ready
+
+- **Symptom:** Version upgrade / reinstall can leave a previously online runner with no Windows service if extract/copy/`config.cmd` fails mid-flight.
+- **Cause:** `svc.cmd uninstall` ran before staging succeeded; install tree was wiped before `Copy-Item` finished.
+- **Fix:** Extract+validate into TEMP first; stop/uninstall only after staging is ready; overlay binaries in place (no wipe-before-copy); on failure after uninstall, attempt `svc.cmd install`/`start`. Also use `Invoke-WebRequest -UseBasicParsing` for PS 5.1/Server Core.
 
 ## 2026-03 — ASDF source-registry.conf.d file format
 

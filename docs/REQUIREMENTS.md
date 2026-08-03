@@ -12,10 +12,17 @@ Coordinate multiple **Common Lisp** codebases (ASDF systems) that depend on each
 - **Fork ↔ import exclusivity:** never keep both. Forking a library ⇒ remove `cl-stack-systems/imports/<name>/`. Adding an import ⇒ no workspace fork/checkout of that upstream (drop any existing fork from the workflow).
 - **Original projects** already living under `egao1980`: clone `egao1980/<repo>` directly.
 
+## Dependencies and CI
+
+- **Install path = cl-repository.** Project deps come from **`ghcr.io/egao1980/cl-systems`** via `cl-repository-client`.
+- **Bootstrap client from OCI.** Prefer `oras pull ghcr.io/egao1980/cl-repository/cl-repository-client:<ver>` (+ QL for the client’s own deps). Packager: `ghcr.io/egao1980/cl-repository/cl-repository-packager`. Do **not** git-checkout `cl-repository` in consumer CI (git clone only when developing that repo).
+- **No sibling checkouts for deps.** Consumer CI may `actions/checkout` **only** the repo under test. Do **not** checkout `cl-repository`, `http-protocol`, `event-protocol`, … as sibling paths to satisfy ASDF. Local multi-repo clones are for editing; CI/install must not depend on them.
+- **New first-party repos:** ship `scripts/ci-install.lisp` + `scripts/ci-test.lisp` and cl-repo CI from day one. Do not add `qlfile` as the project install story (qlot = legacy on unmigrated checkouts).
+
 ## Tooling
 
 - **ASDF:** per-project `50-lisp-workspace-<name>.conf` under `~/.config/common-lisp/source-registry.conf.d/` (from `.lisp-workspace/scripts/add-cl-project.sh`).
-- **Qlot:** project-local; use `qlot exec ros …` from a project root when that project uses qlot.
+- **Qlot:** legacy on unmigrated checkouts; prefer cl-repository CI scripts for new work. Use `qlot exec ros …` only where a project still has qlot.
 - **Quicklisp `local-projects`:** optional; use `add-cl-project.sh --quicklisp` only when you want global `ql:quickload` without qlot.
 
 ## Testing

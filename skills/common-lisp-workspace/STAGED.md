@@ -10,4 +10,10 @@
 
 - **Source:** user: “no sibling - cl-repository - add to rules”.
 - **Proposed change:** Rules/MEMORY/REQUIREMENTS: CI may checkout only the project under test + `egao1980/cl-repository`; never sibling-checkout other first-party deps for ASDF.
-- **Status:** applied 2026-08-03 (MEMORY, mdc rule, REQUIREMENTS, AGENTS, SKILL).
+- **Status:** applied 2026-08-03; **superseded** same day — bootstrap client from OCI, no git checkout of cl-repository either.
+
+### 2026-08-03 — cl-repository-client from GHCR OCI
+
+- **Source:** user: “cl-repository is also available from GHCR OCI repo”.
+- **Proposed change:** Prefer `oras pull ghcr.io/egao1980/cl-repository/cl-repository-client:<ver>` for consumer CI bootstrap; git checkout only when developing cl-repository. Document packager image too.
+- **Status:** applied 2026-08-03 (MEMORY, mdc, REQUIREMENTS, AGENTS, SKILL + winhttp CI).

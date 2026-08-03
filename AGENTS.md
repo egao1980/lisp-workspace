@@ -35,6 +35,7 @@ Cursor commands live in **`.cursor/commands/`**:
 
 - Work in **feature branches**; commit in **logical milestones** (small, reviewable steps).
 - Prefer remotes under **`github.com/egao1980/`** for work tracked here. For **unmodified** third-party deps, add an import to **`egao1980/cl-stack-systems`** (OCI republish) instead of forking. Fork into `egao1980` only for patches, owned CI, or native overlays. **Exclusive:** fork ⇒ remove `cl-stack-systems/imports/<name>/`; import ⇒ no workspace fork. Use **`gh`** for fork automation when appropriate (`gh auth status` first).
+- **CI deps:** checkout only the project + **`egao1980/cl-repository`**; install everything else via cl-repo/GHCR — never sibling-checkout `http-protocol` / event backends / etc. for tests.
 - Repos that are **already canonical under `egao1980`** are cloned directly — no redundant “fork of self”.
 - **Rollback with Git, not from memory:** To undo bad edits, **use the repo** — `git status`, `git diff`, `git restore` / `git checkout -- <path>`, `git reset` / `git revert` as appropriate for the subproject. Do **not** try to reconstruct prior file contents from conversation context; that is error-prone. If uncommitted work should be discarded, say so and run the git commands (or ask the user when destructive). For experiments, commit or stash before risky changes so rollback is one command.
 

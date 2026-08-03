@@ -4,4 +4,10 @@
 
 - **Source:** user correction during ws-protocol #35; MEMORY already said cl-repository for project deps, but new repo shipped `qlfile` + qlot CI.
 - **Proposed change:** In `SKILL.md` / deps section, state explicitly: **new first-party systems ship `scripts/ci-install.lisp` + cl-repository CI from day one**; do not introduce `qlfile` as the install story. Qlot = legacy on unmigrated checkouts only. QL fallback only via `ci-install` for unpublished `cl-systems` imports.
-- **Action:** apply on next `/review-skill-improvements`.
+- **Status:** applied 2026-08-03 (SKILL Deps bullet + no-sibling CI rule).
+
+### 2026-08-03 — no sibling checkouts for project deps
+
+- **Source:** user: “no sibling - cl-repository - add to rules”.
+- **Proposed change:** Rules/MEMORY/REQUIREMENTS: CI may checkout only the project under test + `egao1980/cl-repository`; never sibling-checkout other first-party deps for ASDF.
+- **Status:** applied 2026-08-03 (MEMORY, mdc rule, REQUIREMENTS, AGENTS, SKILL).

@@ -275,3 +275,19 @@ Implemented the per-library `cffi-libraries` metadata the spec always described 
 - **`cl-stack-ssl` cl-repo-init rewires CFFI** — install it last in the fetch phase (or only load init in the test image). Installing it early + `load-system-init-files` also breaks subsequent HTTPS.
 - **Windows SBCL NB connect**: WSAEWOULDBLOCK (10035) often surfaces as `EINTR (...could not be completed immediately.)`. Treat that (and `INTERRUPTED-ERROR`) as connect-in-progress / would-block, not hard failure.
 - **OCI `cl-unicode:0.1.6` lacks `idna-mapping`** (QL tip has it). Until republished from a newer pin, force `("cl-unicode" :ql)` via cl-repo `:sources`.
+
+## 2026-08-03 — New first-party repos: cl-repository CI, not qlot
+
+- **Symptom:** `ws-protocol` (wave-1, brand-new) shipped `qlfile` + `qlot exec` CI while MEMORY already required cl-repository for project deps. WSS/#35 CI then fought qlot (`CL_SOURCE_REGISTRY` rewritten; nested `qlot exec` → `Component "dexador" not found` for qlot itself).
+- **Cause:** Muscle memory from older checkouts / REQUIREMENTS still mentioning qlot; “new repo” scaffold copied the qlot path instead of `http-backend-dexador`/`async`’s `scripts/ci-install.lisp` + cl-repo client.
+- **Fix:**
+  - New first-party systems ship **`scripts/ci-install.lisp` + `scripts/ci-test.lisp`** and checkout `egao1980/cl-repository` in CI from day one. Do **not** add `qlfile` as the install story.
+  - Unpublished deps (e.g. `websocket-driver` / `clack` not yet in `cl-stack-systems/imports/`) → temporary **QL fallback inside `ci-install`**, then import+publish to `ghcr.io/egao1980/cl-systems`.
+  - Overlay natives (`cl-stack-ssl`): still stage `native/` onto the **process loader path before SBCL starts** (Linux ignores mid-process `LD_LIBRARY_PATH`); Lisp package itself via `cl-repo:install-system`, install **last**, load only in the test phase.
+  - Local docs should point at the CI-shaped cl-repo flow, not `qlot install`.
+- **Also:** Rove `(skip …)` does **not** abort the `deftest` — gate with `if`/`return-from`, or the “skipped” body still runs (e.g. spawned a WSS child after `skip`).
+- **Also:** Hunchentoot/Clack SSL + cl+ssl teardown can SIGSEGV on `clack:stop` / image exit (esp. darwin). WSS smoke: run assertions then `sb-ext:exit :code 0 :abort t` (child process), don’t destroy SSL acceptor threads in-process.
+
+- **`cl-base64:latest` on GHCR:** `oras repo tags` may list `latest` while `oras pull …:latest` / cl-repo install get HTTP 404 `MANIFEST_UNKNOWN`. Pin explicit `3.1` (same class of bug as `cl-protobufs:latest` → 0 files). Prefer explicit OCI versions in `ci-install`.
+
+- **cl-repo CI two-phase + QL fallback:** Phase-1 `ql:quickload` does **not** make systems visible to a fresh Phase-2 SBCL via ASDF alone. Re-`ql:quickload` the unpublished stack in `ci-test.lisp` (or install into cl-systems). Do all OCI `install-system` calls **before** any QL load that pulls cffi/cl+ssl.

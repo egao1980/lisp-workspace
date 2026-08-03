@@ -289,3 +289,5 @@ Implemented the per-library `cffi-libraries` metadata the spec always described 
 - **Also:** Hunchentoot/Clack SSL + cl+ssl teardown can SIGSEGV on `clack:stop` / image exit (esp. darwin). WSS smoke: run assertions then `sb-ext:exit :code 0 :abort t` (child process), don’t destroy SSL acceptor threads in-process.
 
 - **`cl-base64:latest` on GHCR:** `oras repo tags` may list `latest` while `oras pull …:latest` / cl-repo install get HTTP 404 `MANIFEST_UNKNOWN`. Pin explicit `3.1` (same class of bug as `cl-protobufs:latest` → 0 files). Prefer explicit OCI versions in `ci-install`.
+
+- **cl-repo CI two-phase + QL fallback:** Phase-1 `ql:quickload` does **not** make systems visible to a fresh Phase-2 SBCL via ASDF alone. Re-`ql:quickload` the unpublished stack in `ci-test.lisp` (or install into cl-systems). Do all OCI `install-system` calls **before** any QL load that pulls cffi/cl+ssl.

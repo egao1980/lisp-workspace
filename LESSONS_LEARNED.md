@@ -287,3 +287,5 @@ Implemented the per-library `cffi-libraries` metadata the spec always described 
   - Local docs should point at the CI-shaped cl-repo flow, not `qlot install`.
 - **Also:** Rove `(skip …)` does **not** abort the `deftest` — gate with `if`/`return-from`, or the “skipped” body still runs (e.g. spawned a WSS child after `skip`).
 - **Also:** Hunchentoot/Clack SSL + cl+ssl teardown can SIGSEGV on `clack:stop` / image exit (esp. darwin). WSS smoke: run assertions then `sb-ext:exit :code 0 :abort t` (child process), don’t destroy SSL acceptor threads in-process.
+
+- **`cl-base64:latest` on GHCR:** `oras repo tags` may list `latest` while `oras pull …:latest` / cl-repo install get HTTP 404 `MANIFEST_UNKNOWN`. Pin explicit `3.1` (same class of bug as `cl-protobufs:latest` → 0 files). Prefer explicit OCI versions in `ci-install`.

@@ -22,6 +22,7 @@ Keep entries **short and actionable**. Remove or supersede items that go stale.
 
 ## Standing instructions
 
+- **Package / project deps = cl-repository.** CI and local installs use `cl-repository-client` (`cl-repo:add-registry` + `cl-repo:load-system` / lockfile restore) against `ghcr.io/egao1980/cl-systems`. **Only cl-repository itself stays raw** (checkout or oras-pull of client/packager + QL for *its* bootstrap deps). No qlot / `ros install` / sibling git checkouts / hand-rolled `oras pull` of natives for *project* deps. Unpublished imports may temporarily QL-fallback via cl-repo/`ci-ensure-ql` until published into `cl-stack-systems`.
 - **Unforked third-party deps:** add to **[`egao1980/cl-stack-systems`](https://github.com/egao1980/cl-stack-systems)** (`imports/<name>/qlfile`) for OCI republish into `ghcr.io/egao1980/cl-systems`. Fork/checkout only when patching or shipping native overlays. One import dir per upstream pin (CI matrix isolation). Seeded set: see `cl-stack-systems/imports/IMPORTS.md` (chipz/salza2, mime/quri/idna support libs, cffi, cl+ssl, …).
 - **Fork ↔ import exclusivity:** never both. Fork ⇒ delete `cl-stack-systems/imports/<name>/`. Import ⇒ no workspace fork of that lib.
 - **Native overlays:** resolve via `cffi:*foreign-library-directories*` + absolute preload (`cl-repo-init.lisp` / `ensure-*`). **Never** require `LD_LIBRARY_PATH` / `DYLD_LIBRARY_PATH` for correctness (Linux ignores mid-process `setenv`; see cl-repository `docs/requirements/native-deps.md`).

@@ -69,5 +69,6 @@ Pending corrections, additions, and refinements discovered during use.
 | [docker-devcontainers](docker-devcontainers/SKILL.md) | Docker + Dev Containers spec and credible refs |
 | [egao1980-devcontainers](egao1980-devcontainers/SKILL.md) | **`features/`** — GHCR features for Roswell / Lem |
 | [qlot](qlot/SKILL.md) | qlfile, `qlot exec`, project-local deps |
-| [rove](rove/SKILL.md) | Rove testing |
+| [cl-unit-testing](cl-unit-testing/SKILL.md) | Rove default, `deftest-parametrize`, pins |
+| [rove](rove/SKILL.md) | Rove quick ref → cl-unit-testing |
 | [roswell](roswell/SKILL.md) | `ros` CLI, implementations, scripting |

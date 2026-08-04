@@ -13,7 +13,7 @@ description: >-
 - **ASDF:** `~/.config/common-lisp/source-registry.conf.d/50-lisp-workspace-*.conf` from add-cl-project.
 - **Deps:** **cl-repository** → `ghcr.io/egao1980/cl-systems` (`scripts/ci-install.lisp` / `ci-test.lisp`). Bootstrap **`cl-repository-client` from OCI** (`ghcr.io/egao1980/cl-repository/cl-repository-client:<ver>`). **No sibling CI checkouts** — only the repo under test; never git-checkout `cl-repository` or other deps for install. Qlot = legacy on unmigrated checkouts only; do not ship `qlfile` as the install story for new repos.
 - **Impl:** **Roswell** (`ros`) typical.
-- **Tests:** **Rove** for new tests unless the subproject already uses another runner.
+- **Tests:** **Rove** for new tests unless the subproject already uses another runner — see **[cl-unit-testing](../cl-unit-testing/SKILL.md)** (`deftest-parametrize`, `egao1980/rove` pin).
 
 ## Git
 

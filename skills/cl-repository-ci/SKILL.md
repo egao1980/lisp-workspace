@@ -160,6 +160,7 @@ Mirror [`cl-stack-http/.github/workflows/test.yml`](https://github.com/egao1980/
 Keep scripts **thin and parallel**. Gold shape:
 
 ```lisp
+;; Load client FIRST — any later `cl-repo:` form is read against that package.
 (asdf:load-system "cl-repository-client")
 (cl-repo:add-registry "https://ghcr.io" :namespace "egao1980/cl-systems" :priority :prepend)
 (cl-repo:ensure-system-dependencies "<sut>"
@@ -168,6 +169,8 @@ Keep scripts **thin and parallel**. Gold shape:
   :sources '(("babel" :ql) …))       ; optional policy pins
 (uiop:quit 0)
 ```
+
+Do **not** place helpers that mention `cl-repo:…` *above* the `load-system` form — the reader resolves package-qualified symbols when the form is read.
 
 **Phase 1 (`ci-install`):** `ensure-system-dependencies` — walks SUT `.asd` (+ `/tests`), installs missing via OCI then QL. No ASDF-load of SUT/overlays.  
 **Phase 2 (`ci-test`):** `configure-asdf-source-registry` + `load-system-init-files` → load checkout → `asdf:test-system`.

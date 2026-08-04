@@ -24,3 +24,11 @@
 - **Source:** user correction (chat).
 - **Status:** applied to SKILL.md + MEMORY + consumer `ci-install.lisp` rewrite (`ensure-system-dependencies`, client **0.11.0**).
 - **Proposed change:** ~~Rewrite skill §`ci-install`/`ci-test`…~~ Done.
+
+### 2026-08-04 — load client before any `cl-repo:` form
+
+- **Source:** CI failure (`Package CL-REPO does not exist` while reading `ci-install.lisp`).
+- **Proposed change:** In skill gold shape, stress that `(asdf:load-system "cl-repository-client")` must run **before** any top-level form whose *source text* contains `cl-repo:…` (helpers using `cl-repo:installed-system-version` included). Reader resolves package-qualified symbols at read time.
+- **Why:** `defun` bodies are not evaluated early, but `cl-repo:foo` still requires the package to exist when the form is read.
+- **Status:** applied to SKILL.md gold shape.
+

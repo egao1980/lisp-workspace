@@ -18,3 +18,9 @@
 - **Source:** workspace-wide Node 20 deprecation warnings.
 - **Proposed change:** Workflow checklist pins: checkout@v5, setup-oras@v2, upload-artifact@v6, download-artifact@v7 (reusable native publish).
 - **Why:** keep consumer CI examples warning-free.
+
+### 2026-08-04 — ci-install = client dep install for the system
+
+- **Source:** user correction (chat).
+- **Proposed change:** Rewrite skill §`ci-install`/`ci-test`: phase 1 is **only** `cl-repository-client` installing the **system-under-test's dependency closure** from `egao1980/cl-systems` (driven by that `.asd`), not a hand-maintained list of `ci-fetch`/`ci-ql` calls. Gold scripts today (cl-stack-http, http-backend-*, ws-protocol) diverge — migrate them to the thin shape. Keep phase split (no mid-flight ASDF-load of cffi/cl+ssl). Prefer public `cl-repo:` APIs over `cl-repository-client/quickload::` internals.
+- **Why:** hand inventories drift from `.asd` and defeat the client.

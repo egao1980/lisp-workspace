@@ -63,6 +63,7 @@ Keep entries **short and actionable**. Remove or supersede items that go stale.
 
 - **http-parity:** [`egao1980/http-parity`](https://github.com/egao1980/http-parity) — demo/CI canary for cl-stack-http vs requests/httpx. Default origin = local httpbin fixture (`HTTP_PARITY_FIXTURE=1`); prefer `:async` + libuv. Public httpbingo often 402s async TLS at Fly edge. Realistic app: `ros -l scripts/demo.lisp` (login → JSON catalog → download). Live CE+CD: `ros -l scripts/finance-demo.lisp` (Frankfurter + Fin-node; `HTTP_PARITY_FINANCE=1` for Rove). Pins: `http-protocol:0.2.3`, `cl-stack-http:0.1.6`, `http-backend-async:0.1.3`, `event-protocol:0.1.1`.
 - **http-protocol 0.2.3:** `response-elapsed` / `response-bytes-downloaded` slots. 0.2.2 = multi-value `:params`/`:form-data` lists + NIL drop; 0.2.1 = `http-request-extras` + client `base-url` join.
+- **rove fork:** [`egao1980/rove`](https://github.com/egao1980/rove) — `deftest-parametrize` (upstream [fukamachi/rove#76](https://github.com/fukamachi/rove/pull/76)); pin fork until merge. Design: `cl-stack/docs/ROVE-PARAMETRIZE.md`.
 - **Cookbook:** [`cl-stack/docs/cookbooks/http-client.md`](https://github.com/egao1980/cl-stack/blob/main/docs/cookbooks/http-client.md) — requests/httpx → stack-http (§13 timing/byte stats).
 - **event-protocol 0.1.1 / libuv 0.1.1 / libev 0.1.2:** `update-io` — in-place FD interest; fixes libuv `UV_EEXIST` from cancel+re-`uv_poll_init`.
 - **http-backend-async 0.1.3:** `arm-io` uses `update-io` (no cancel+`sleep*0` re-register).

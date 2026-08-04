@@ -58,7 +58,8 @@ Keep entries **short and actionable**. Remove or supersede items that go stale.
 - **HTTP Content-Encoding (wave-1):** gzip/deflate (**chipz**/**salza2**) + **br** + **zstd**. Overlays: [`cl-stack-brotli`](https://github.com/egao1980/cl-stack-brotli) Brotli **v1.2.0** → `ghcr.io/egao1980/cl-systems/cl-stack-brotli:1.2.0`; [`cl-stack-zstd`](https://github.com/egao1980/cl-stack-zstd) Zstd **v1.5.7** → `ghcr.io/egao1980/cl-systems/cl-stack-zstd:1.5.7` (linux/amd64+arm64, darwin/arm64, windows/amd64). Brief: `cl-stack/docs/capabilities/http-protocol.md`.
 
 - **http-parity:** [`egao1980/http-parity`](https://github.com/egao1980/http-parity) — demo/CI canary for cl-stack-http vs requests/httpx. Default origin = local httpbin fixture (`HTTP_PARITY_FIXTURE=1`); prefer `:async` + libuv. Public httpbingo often 402s async TLS at Fly edge. Realistic app: `ros -l scripts/demo.lisp` (login → JSON catalog → download). Live CE+CD: `ros -l scripts/finance-demo.lisp` (Frankfurter + Fin-node; `HTTP_PARITY_FINANCE=1` for Rove). Pins: `http-protocol:0.2.1`, `cl-stack-http:0.1.4`, `http-backend-async:0.1.3`, `event-protocol:0.1.1`.
-- **http-protocol 0.2.1:** exports `http-request-extras`; `apply-client-base-url!` on send (relative URL × client `:base-url`).
+- **http-protocol 0.2.2:** multi-value `:params`/`:form-data` lists + NIL drop (requests/httpx); 0.2.1 = `http-request-extras` + client `base-url` join.
+- **Cookbook:** [`cl-stack/docs/cookbooks/http-client.md`](https://github.com/egao1980/cl-stack/blob/main/docs/cookbooks/http-client.md) — requests/httpx → stack-http.
 - **event-protocol 0.1.1 / libuv 0.1.1 / libev 0.1.2:** `update-io` — in-place FD interest; fixes libuv `UV_EEXIST` from cancel+re-`uv_poll_init`.
 - **http-backend-async 0.1.3:** `arm-io` uses `update-io` (no cancel+`sleep*0` re-register).
 - **cl-stack-http 0.1.4:** download names honour Content-Type extension when basename has none; 0.1.3 = CD filename; 0.1.2 = `:trust-env` strip.

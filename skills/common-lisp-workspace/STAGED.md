@@ -1,5 +1,10 @@
 ## Pending
 
+- [2026-08-04] Do not silently close PRs; fix conflicts and merge when asked
+  - Source: user correction after agent closed conflicting PRs (#16, #74) instead of resolving
+  - Proposed change: under Git — never `gh pr close` for conflict/supersede without explicit user ask; rebase/fix and merge when the user wants pending PRs landed.
+
+
 - [2026-08-04] Never delete branches that head open upstream PRs
   - Source: user correction after `gh pr merge --delete-branch` risked fukamachi/rove#76 head
   - Proposed change: under Git — do not pass `--delete-branch` when merging a fork PR if that branch is (or may be) the head of an open PR against upstream; wait until upstream merges/abandons.

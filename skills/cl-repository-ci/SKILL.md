@@ -1,11 +1,10 @@
 ---
 name: cl-repository-ci
 description: >-
-  cl-repository CI install/test and OCI publish for egao1980 packages: oras-bootstrap
-  cl-repository-client, scripts/ci-install + ci-test, cl-stack-systems for source-only
-  publish (no per-repo publish scripts), native overlays via reusable workflows. Use before
-  adding GitHub Actions, migrating off qlot, publishing to ghcr.io/egao1980/cl-systems, or
-  deciding fork vs import.
+  cl-repository CI/publish: packaging = .asd :properties (:cl-repo) + auto-package-spec;
+  source-only via cl-stack-systems qlfile pin; natives via reusable workflow; OCI-bootstrap
+  client + ci-install/ci-test. Use before GitHub Actions, qlot migration, OCI publish, or
+  fork-vs-import decisions.
 ---
 
 # cl-repository CI & publish
@@ -60,48 +59,77 @@ Need to ship a Lisp system to ghcr.io/egao1980/cl-systems?
 
 Bump packager/client together; do not leave consumer workflows on `0.8.0`.
 
-## Publish: source-only → cl-stack-systems (no custom scripts)
+## Packaging contract = `.asd` (enough)
 
-### Add / update an import
+`cl-repository-packager/asdf-plugin:auto-package-spec` merges:
+
+| From ASDF | Fields |
+|-----------|--------|
+| Standard | `:version` `:description` `:author` `:license` `:depends-on` `:source-directory` |
+| `:properties (:cl-repo …)` | `:provides` `:cffi-libraries` `:overlays` |
+
+### Source-only (typical first-party)
+
+Honest `.asd` is enough — `:cl-repo` optional unless you need extra `:provides`:
+
+```lisp
+(defsystem "cl-stack-http"
+  :version "0.1.7"
+  :description "…"
+  :author "egao1980"
+  :license "MIT"
+  :depends-on ("http-protocol" "cl-stack-pathlib" …)
+  ;; optional:
+  ;; :properties (:cl-repo (:provides ("cl-stack-http")))
+  …)
+```
+
+Do **not** duplicate depends-on / version / description in a publish script.
+
+### With natives
+
+Declare overlays in the same place (see `cl-stack-ssl.asd`, `event-backend-libuv.asd`):
+
+```lisp
+:properties
+(:cl-repo
+ (:cffi-libraries ("libuv")
+  :provides ("event-backend-libuv")
+  :overlays ((:platform (:os "linux" :arch "amd64")
+              :layers ((:role "native-library" :files (…))
+                       (:role "cffi-grovel-output" :files (…))))
+             …)))
+```
+
+### Publish: source-only → cl-stack-systems
+
+`imports/<name>/qlfile` is only a **source locator** (where to clone), not packaging metadata:
 
 ```bash
 cd cl-stack-systems
-./scripts/add-import.sh egao1980/cl-stack-http v0.1.7   # first-party source-only
-./scripts/add-import.sh alexandria/alexandria v1.4      # third-party
-# optional: imports/<name>/system  when ASDF name ≠ directory (e.g. cl+ssl)
+./scripts/add-import.sh egao1980/cl-stack-http v0.1.7
+gh workflow run publish.yml -R egao1980/cl-stack-systems -f import=cl-stack-http
 ```
 
-`imports/<name>/qlfile` is the **only** per-package publish config:
+Shared path: `publish.yml` → `publish-import.lisp` → `build-package-from-github` →
+**`auto-package-spec`** on the cloned `.asd`. Optional `imports/<name>/system` when
+ASDF name ≠ directory (e.g. `cl+ssl`).
 
-```text
-github egao1980/cl-stack-http v0.1.7
-```
+### Native publish
 
-### Ship it
-
-```bash
-gh workflow run publish.yml -R egao1980/cl-stack-systems -f import=<name>
-```
-
-Shared path: `.github/workflows/publish.yml` → `scripts/publish-import.lisp`
-(`PKG_QLFILE`, `OCI_*`, `GITHUB_TOKEN`). Uses packager `build-package-from-github` /
-`auto-package-spec` — metadata comes from the **ASDF system**, not a hand-written spec in the consumer repo.
+Reuse `egao1980/cl-repository/.github/workflows/publish-native-package.yml`.
+It must still honor `.asd` `:cl-repo` overlays — not a parallel YAML-only inventory.
+Grovel at overlay build time; consumers load without a C toolchain.
+Resolve natives via `cffi:*foreign-library-directories*` + absolute preload —
+**never** require `LD_LIBRARY_PATH` / `DYLD_LIBRARY_PATH` for correctness.
 
 ### Anti-patterns (publish)
 
-- ❌ New `scripts/publish-source.lisp` in a source-only package
-- ❌ Copy-pasted `publish-oci.yml` that stages trees + hardcodes `package-spec`
-- ❌ Publishing source-only first-party from the package repo instead of cl-stack-systems
+- ❌ `make-instance 'package-spec` (or equivalent) in repo scripts — use `.asd` + `auto-package-spec`
+- ❌ New `scripts/publish-source.lisp` / copy-pasted source `publish-oci.yml`
+- ❌ Divergent depends-on/version between `.asd` and a publish helper
 - ❌ Packager tag `0.8.0` on new work
-- ❌ Import **and** fork of the same upstream (except documented egao1980-fork pin + local edit)
-
-### Native overlays only
-
-- Reuse `egao1980/cl-repository/.github/workflows/publish-native-package.yml` (or its documented entrypoints).
-- Grovel at **overlay build** time; consumers load without a C toolchain.
-- Resolve natives via `cffi:*foreign-library-directories*` + absolute preload — **never** require `LD_LIBRARY_PATH` / `DYLD_LIBRARY_PATH` for correctness.
-- Overlay keys may include `os` / `release` / `arch`.
-
+- ❌ Import upstream **and** keep a workspace fork of that upstream
 ## CI install / test (consumer repos)
 
 New first-party repos: **cl-repo CI from day one**. No `qlfile` as the install story (qlot = legacy migrate-away).
@@ -143,30 +171,25 @@ Env often used: `GITHUB_TOKEN`, `CL_SOURCE_REGISTRY`, optional version pins (`CL
 - ❌ Hand `oras pull` of natives + `LD_LIBRARY_PATH` in consumer test jobs  
 - ❌ Sibling path hacks in `CL_SOURCE_REGISTRY` for deps  
 
-## ASDF packaging metadata
-
-For clean `auto-package-spec` / import publish, keep `.asd` honest:
-
-- `:version`, `:description`, `:license`, `:author`, `:depends-on`
-- Optional `:properties ((:cl-repo …))` for `:provides` / overlay hints when needed
-
-Tag releases (`v*`) that match the import pin / OCI tag consumers will use. Update
-[`cl-stack/docs/QUICKSTART.md`](https://github.com/egao1980/cl-stack/blob/main/docs/QUICKSTART.md) pins in the **same** change set that publishes a user-facing feature.
-
 ## Gold vs migrate-away examples
 
 | Good | Migrate away |
 |------|----------------|
+| `.asd` drives `auto-package-spec` | Hardcoded `package-spec` in `publish-source.lisp` |
+| cl-stack-systems qlfile = clone pin only | Per-repo source `publish-oci.yml` |
+| `:cl-repo` overlays in `.asd` (ssl/libuv) | Overlay lists only in workflow YAML / Lisp |
 | cl-stack-http / winhttp — OCI client CI | http-protocol / event-protocol — qlot test CI |
-| cl-stack-systems import publish | Per-repo `publish-source.lisp` + staged `publish-oci.yml` for source-only |
-| cl-repository native reusable workflow | Copy-pasted native publish + `LD_*` |
+
+Tag releases (`v*`) matching the import pin / OCI tag. Update
+[`cl-stack/docs/QUICKSTART.md`](https://github.com/egao1980/cl-stack/blob/main/docs/QUICKSTART.md)
+pins in the **same** change set that publishes a user-facing feature.
 
 ## Checklist (agent)
 
 Before adding CI or publish to a package:
 
-- [ ] Source-only? → **cl-stack-systems import**, no custom publish script  
-- [ ] Natives? → reusable native workflow, not a new one-off  
-- [ ] Consumer CI checkouts **self only** + OCI client **0.10.0**  
-- [ ] `ci-install.lisp` + `ci-test.lisp` present; no qlfile install story  
-- [ ] Packager **0.10.0**; QUICKSTART / MEMORY pins updated if user-facing  
+- [ ] `.asd` has honest `:version` / `:depends-on` / `:cl-repo` (overlays if native) — **enough for package-spec**  
+- [ ] Source-only? → **cl-stack-systems** qlfile pin + shared publish (no repo publish script)  
+- [ ] Natives? → reusable native workflow reading the same `.asd`  
+- [ ] Consumer CI: self-only checkout + OCI client **0.10.0** + `ci-install`/`ci-test`  
+- [ ] Packager **0.10.0**; QUICKSTART pins updated if user-facing  

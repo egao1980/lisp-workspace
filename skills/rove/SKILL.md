@@ -1,21 +1,29 @@
 ---
 name: rove
 description: >-
-  Rove: Common Lisp testing library (assertions, reporting, ASDF integration). Use when writing or running tests,
-  adding test systems, or migrating tests — this workspace defaults to Rove unless a subproject already uses
-  FiveAM, Parachute, etc.
+  Rove: Common Lisp testing library (assertions, reporting, ASDF integration). Use when writing or running
+  Rove tests specifically. For workspace policy, parametrize, and runner choice, prefer skill cl-unit-testing.
 ---
 
 # Rove
 
-Repository: [fukamachi/rove](https://github.com/fukamachi/rove).
+Upstream: [fukamachi/rove](https://github.com/fukamachi/rove).  
+Stack pin (parametrize): [`egao1980/rove`](https://github.com/egao1980/rove) via [cl-stack-systems `imports/rove`](https://github.com/egao1980/cl-stack-systems).
 
-## Usage
+**Full guidance (default runner, `deftest-parametrize`, pins, ASDF):** skill **[cl-unit-testing](../cl-unit-testing/SKILL.md)**.
 
-- Add **`:rove`** (and often a test `:module` / `:components`) to your system’s **`.asd`** file per Rove’s README patterns.
-- Run tests via ASDF: **`asdf:test-system`** on your test system, or **`rove`**-specific APIs as the project defines.
-- Prefer matching **existing** test framework inside a subproject; use **Rove** for **new** test code when there is no prior choice ([`.lisp-workspace/AGENTS.md`](../AGENTS.md)).
+## Quick ref
 
-## Integration
+```lisp
+(deftest example
+  (ok (= 1 1))
+  (ok (signals (error "x") 'simple-error)))
 
-- Works with **Roswell**: e.g. **`qlot exec ros -e '(asdf:test-system :my-app/tests)'`** when the project uses qlot.
+(deftest-parametrize add
+    ((a b expected)
+     (1 2 3)
+     (0 0 0))
+  (ok (= (+ a b) expected)))
+```
+
+Run: `(asdf:test-system :my-lib)` with a `my-lib/tests` system that `:depends-on ("rove")` and `(symbol-call :rove :run c)`.

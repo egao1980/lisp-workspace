@@ -11,15 +11,15 @@ description: >-
 ## Stack
 
 - **ASDF:** `~/.config/common-lisp/source-registry.conf.d/50-lisp-workspace-*.conf` from add-cl-project.
-- **Deps:** **cl-repository** → `ghcr.io/egao1980/cl-systems` (`scripts/ci-install.lisp` / `ci-test.lisp`). Bootstrap **`cl-repository-client` from OCI** (`ghcr.io/egao1980/cl-repository/cl-repository-client:<ver>`). **No sibling CI checkouts** — only the repo under test; never git-checkout `cl-repository` or other deps for install. Qlot = legacy on unmigrated checkouts only; do not ship `qlfile` as the install story for new repos.
+- **Deps / CI / publish:** skill **[cl-repository-ci](../cl-repository-ci/SKILL.md)** — OCI-bootstrap client, `ci-install`/`ci-test`, **source-only publish via cl-stack-systems** (no per-repo `publish-source.lisp`). Qlot = legacy migrate-away.
 - **Impl:** **Roswell** (`ros`) typical.
-- **Tests:** **Rove** for new tests unless the subproject already uses another runner.
+- **Tests:** **Rove** — **[cl-unit-testing](../cl-unit-testing/SKILL.md)**.
 
 ## Git
 
 - Prefer **`github.com/egao1980/`**; fork third-party via `gh`; **upstream** remote on forks.
-- **Unforked deps:** add to **`egao1980/cl-stack-systems`** (`imports/<name>/qlfile`) → publish to `ghcr.io/egao1980/cl-systems`. Do not fork/clone into the workspace unless patching or owning native overlays. See [docs/REQUIREMENTS.md](../../docs/REQUIREMENTS.md).
-- **Fork ↔ import exclusivity:** never both. On fork, delete `cl-stack-systems/imports/<name>/`. On import, do not keep a workspace fork.
+- **Source-only packages** (third-party or first-party): **`cl-stack-systems` import** — not a custom publish script. Fork/clone only for patches or **native overlays**. See [docs/REQUIREMENTS.md](../../docs/REQUIREMENTS.md) + **cl-repository-ci**.
+- **Fork ↔ import exclusivity:** never both for the same upstream.
 - **Rollback:** use `git restore` / `git revert` — not hand-edited recall.
 
 ## MCP (Lisp tools for agents)

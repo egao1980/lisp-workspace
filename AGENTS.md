@@ -28,14 +28,14 @@ Cursor commands live in **`.cursor/commands/`**:
 
 - Use thoughtful **type annotations** where they clarify intent (`declaim`, `declare`, `check-type`, `typed` style when the project already uses them).
 - Use **macros** when they remove real duplication or encode a DSL — not for one-off cleverness.
-- **Default test stack for new tests: [Rove](https://github.com/fukamachi/rove)** unless the subproject already standardizes on another runner (FiveAM, Parachute, lisp-unit, etc.) — match the existing project.
+- **Default test stack for new tests: [Rove](https://github.com/fukamachi/rove)** (pin [`egao1980/rove`](https://github.com/egao1980/rove) for `deftest-parametrize`) unless the subproject already standardizes on another runner (FiveAM, Parachute, lisp-unit, etc.) — match the existing project. Skill: **[cl-unit-testing](skills/cl-unit-testing/SKILL.md)**.
 - **Respect each subproject’s** naming, ASDF layout, formatting, and qlot/ASDF conventions; do not impose alien style from other repos in the tree.
 
 ## Git and GitHub
 
 - Work in **feature branches**; commit in **logical milestones** (small, reviewable steps).
 - Prefer remotes under **`github.com/egao1980/`** for work tracked here. For **unmodified** third-party deps, add an import to **`egao1980/cl-stack-systems`** (OCI republish) instead of forking. Fork into `egao1980` only for patches, owned CI, or native overlays. **Exclusive:** fork ⇒ remove `cl-stack-systems/imports/<name>/`; import ⇒ no workspace fork. Use **`gh`** for fork automation when appropriate (`gh auth status` first).
-- **CI deps:** checkout only the project under test; bootstrap **`cl-repository-client` from GHCR OCI** (`ghcr.io/egao1980/cl-repository/cl-repository-client`); install everything else via cl-repo → `cl-systems`. Never sibling-checkout `cl-repository` / `http-protocol` / event backends for tests.
+- **CI / publish:** skill **[cl-repository-ci](skills/cl-repository-ci/SKILL.md)** — checkout only the project under test; OCI-bootstrap **`cl-repository-client`**; deps via cl-repo → `cl-systems`. **Source-only OCI publish = cl-stack-systems import** (no per-repo `publish-source.lisp`). Natives → cl-repository reusable native workflow. Never sibling-checkout deps for CI install.
 - Repos that are **already canonical under `egao1980`** are cloned directly — no redundant “fork of self”.
 - **Rollback with Git, not from memory:** To undo bad edits, **use the repo** — `git status`, `git diff`, `git restore` / `git checkout -- <path>`, `git reset` / `git revert` as appropriate for the subproject. Do **not** try to reconstruct prior file contents from conversation context; that is error-prone. If uncommitted work should be discarded, say so and run the git commands (or ask the user when destructive). For experiments, commit or stash before risky changes so rollback is one command.
 

@@ -11,13 +11,13 @@ description: >-
 
 ## When *not* to use this
 
-If the library is an **unmodified** third-party dependency (no patches, no native overlay ownership), **do not** fork/clone it here. Add an import to **[`egao1980/cl-stack-systems`](https://github.com/egao1980/cl-stack-systems)** instead:
+If the library is **source-only** (no native overlays) — third-party **or** first-party — publish via **[`egao1980/cl-stack-systems`](https://github.com/egao1980/cl-stack-systems)** import (`./scripts/add-import.sh …`). Do **not** add per-repo `publish-source.lisp`. See skill **[cl-repository-ci](../cl-repository-ci/SKILL.md)**.
 
 ```bash
 cd cl-stack-systems && ./scripts/add-import.sh owner/repo <ref>
 ```
 
-Use this skill only for forks you will patch, overlay packages you own, or first-party `egao1980` checkouts.
+Use **this** skill (fork/clone) only for patches, **native overlay** ownership, or local editing of first-party repos (CI still installs deps from OCI).
 
 **Exclusivity:** after forking with this script, **remove** any matching `cl-stack-systems/imports/<name>/`. Conversely, if you add an import, do **not** also `add-cl-project` / fork that upstream.
 

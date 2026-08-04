@@ -18,6 +18,7 @@ Coordinate multiple **Common Lisp** codebases (ASDF systems) that depend on each
 - **Bootstrap client from OCI.** Prefer `oras pull ghcr.io/egao1980/cl-repository/cl-repository-client:<ver>` (+ QL for the client’s own deps). Packager: `ghcr.io/egao1980/cl-repository/cl-repository-packager`. Do **not** git-checkout `cl-repository` in consumer CI (git clone only when developing that repo).
 - **No sibling checkouts for deps.** Consumer CI may `actions/checkout` **only** the repo under test. Do **not** checkout `cl-repository`, `http-protocol`, `event-protocol`, … as sibling paths to satisfy ASDF. Local multi-repo clones are for editing; CI/install must not depend on them.
 - **New first-party repos:** ship `scripts/ci-install.lisp` + `scripts/ci-test.lisp` and cl-repo CI from day one. Do not add `qlfile` as the project install story (qlot = legacy on unmigrated checkouts).
+- **Publish metadata = `.asd`.** Packaging is `auto-package-spec` from ASDF (`:version` / `:depends-on` / `:properties (:cl-repo …)`). Do **not** maintain a parallel `package-spec` in publish scripts. **Source-only → cl-stack-systems** (`imports/<name>/qlfile` is only a clone pin). Natives → cl-repository reusable native publish, still from `.asd` `:cl-repo` overlays. Skill: **[cl-repository-ci](../skills/cl-repository-ci/SKILL.md)**.
 
 ## Tooling
 

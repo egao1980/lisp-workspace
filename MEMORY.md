@@ -62,4 +62,4 @@ Keep entries **short and actionable**. Remove or supersede items that go stale.
 - **Cookbook:** [`cl-stack/docs/cookbooks/http-client.md`](https://github.com/egao1980/cl-stack/blob/main/docs/cookbooks/http-client.md) — requests/httpx → stack-http.
 - **event-protocol 0.1.1 / libuv 0.1.1 / libev 0.1.2:** `update-io` — in-place FD interest; fixes libuv `UV_EEXIST` from cancel+re-`uv_poll_init`.
 - **http-backend-async 0.1.3:** `arm-io` uses `update-io` (no cancel+`sleep*0` re-register).
-- **cl-stack-http 0.1.4:** download names honour Content-Type extension when basename has none; 0.1.3 = CD filename; 0.1.2 = `:trust-env` strip.
+- **cl-stack-http 0.1.5:** `prepare-request` / `handle-response` + `:client-class` on session (CLOS hooks). 0.1.4 = MIME download ext; 0.1.3 = CD filename; 0.1.2 = `:trust-env` strip.

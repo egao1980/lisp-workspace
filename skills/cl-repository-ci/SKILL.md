@@ -51,13 +51,13 @@ Need to ship a Lisp system to ghcr.io/egao1980/cl-systems?
 
 | Piece | Value |
 |-------|--------|
-| Client image | `ghcr.io/egao1980/cl-repository/cl-repository-client:**0.10.0**` |
+| Client image | `ghcr.io/egao1980/cl-repository/cl-repository-client:**0.11.0**` |
 | Packager image | `ghcr.io/egao1980/cl-repository/cl-repository-packager:**0.10.0**` |
 | Registry / namespace | `ghcr.io` / `egao1980/cl-systems` |
 | oras (Actions) | `1.2.3` |
-| SBCL (typical CI) | `2.4.11` via Roswell |
+| SBCL (typical CI) | `2.6.7` via Roswell (`sbcl-bin`) |
 
-Bump packager/client together; do not leave consumer workflows on `0.8.0`.
+Bump client when `ensure-*` APIs change; packager independently when packaging changes.
 
 ## Packaging contract = `.asd` (enough)
 
@@ -137,8 +137,8 @@ New first-party repos: **cl-repo CI from day one**. No `qlfile` as the install s
 ### Non-negotiable
 
 1. `actions/checkout` → **only** the repo under test.
-2. Bootstrap **`cl-repository-client` from OCI** (`oras pull` … `cl-repository/cl-repository-client:0.10.0`). Do **not** git-checkout `cl-repository` in consumer CI.
-3. Deps from `ghcr.io/egao1980/cl-systems` via `cl-repo:add-registry` + fetch/load. QL only for unpublished leftovers / client bootstrap deps.
+2. Bootstrap **`cl-repository-client` from OCI** (`oras pull` … `cl-repository/cl-repository-client:0.11.0`). Do **not** git-checkout `cl-repository` in consumer CI.
+3. Deps from `ghcr.io/egao1980/cl-systems` via `cl-repo:ensure-system-dependencies` (OCI → QL). QL also for *client* bootstrap deps only.
 4. Ship `scripts/ci-install.lisp` + `scripts/ci-test.lisp` (phase split: install must not ASDF-load cffi/cl+ssl mid-flight before overlays are ready).
 
 ### Workflow shape (canonical)
@@ -147,7 +147,7 @@ Mirror [`cl-stack-http/.github/workflows/test.yml`](https://github.com/egao1980/
 [`http-backend-winhttp`](https://github.com/egao1980/http-backend-winhttp):
 
 1. checkout self  
-2. `oras-project/setup-oras@v1` (`1.2.3`)  
+2. `oras-project/setup-oras@v2` (`1.2.3`)  
 3. Roswell + `sbcl-bin/$SBCL_VERSION`  
 4. `oras login` + pull client image → extract under `.cl-repository` / find `cl-oci-*`  
 5. QL **client deps only** (yason, ironclad, babel, dexador, …)  
@@ -157,18 +157,31 @@ Mirror [`cl-stack-http/.github/workflows/test.yml`](https://github.com/egao1980/
 
 ### `ci-install.lisp` / `ci-test.lisp` conventions
 
-Keep scripts **thin and parallel** across repos (same structure). Prefer copying from a gold-standard consumer (`cl-stack-http`, `http-backend-winhttp`) over inventing new helpers. Future: shared helper system — until then, do not diverge.
+Keep scripts **thin and parallel**. Gold shape:
 
-**Phase 1 (`ci-install`):** load client → `add-registry` `egao1980/cl-systems` → plan/ensure OCI deps → optional `ci-ql` for gaps → quit.  
+```lisp
+(asdf:load-system "cl-repository-client")
+(cl-repo:add-registry "https://ghcr.io" :namespace "egao1980/cl-systems" :priority :prepend)
+(cl-repo:ensure-system-dependencies "<sut>"
+  :also-tests t
+  :with '(…ci-only extras…)          ; optional
+  :sources '(("babel" :ql) …))       ; optional policy pins
+(uiop:quit 0)
+```
+
+**Phase 1 (`ci-install`):** `ensure-system-dependencies` — walks SUT `.asd` (+ `/tests`), installs missing via OCI then QL. No ASDF-load of SUT/overlays.  
 **Phase 2 (`ci-test`):** `configure-asdf-source-registry` + `load-system-init-files` → load checkout → `asdf:test-system`.
 
-Env often used: `GITHUB_TOKEN`, `CL_SOURCE_REGISTRY`, optional version pins (`CL_STACK_SSL_VERSION`, …).
+`:with` is for CI-only systems not in the `.asd` (e.g. `event-backend-libuv`, `cl-stack-ssl`, soft `http2/client`). Do **not** hand-list the full dep tree.
+
+Env often used: `GITHUB_TOKEN`, `CL_SOURCE_REGISTRY`, `HTTP_ASYNC_EVENT_BACKEND`, `CL_STACK_SSL_VERSION` (written by install when ssl is `:with`).
 
 ### CI anti-patterns
 
 - ❌ Second `actions/checkout` of `cl-repository` / `http-protocol` / event backends  
+- ❌ Hand-maintained `ci-fetch` / `ci-ql` inventories of every package  
 - ❌ qlot/`qlfile` as the primary CI install for new packages  
-- ❌ Hand `oras pull` of natives + `LD_LIBRARY_PATH` in consumer test jobs  
+- ❌ Hand `oras pull` of natives + `LD_LIBRARY_PATH` as the *dep install* path (staging overlay libs for the test process is OK)  
 - ❌ Sibling path hacks in `CL_SOURCE_REGISTRY` for deps  
 
 ## Gold vs migrate-away examples
@@ -191,5 +204,5 @@ Before adding CI or publish to a package:
 - [ ] `.asd` has honest `:version` / `:depends-on` / `:cl-repo` (overlays if native) — **enough for package-spec**  
 - [ ] Source-only? → **cl-stack-systems** qlfile pin + shared publish (no repo publish script)  
 - [ ] Natives? → reusable native workflow reading the same `.asd`  
-- [ ] Consumer CI: self-only checkout + OCI client **0.10.0** + `ci-install`/`ci-test`  
+- [ ] Consumer CI: self-only checkout + OCI client **0.11.0** + thin `ensure-system-dependencies` `ci-install`/`ci-test`  
 - [ ] Packager **0.10.0**; QUICKSTART pins updated if user-facing  

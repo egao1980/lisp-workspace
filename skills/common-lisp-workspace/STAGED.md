@@ -1,5 +1,12 @@
 ## Pending
 
+### 2026-08-04 — living QUICKSTART (source: agent / user)
+
+When shipping a published stack feature, update `egao1980/cl-stack` `docs/QUICKSTART.md`
+(pin table + minimal snippets) in the same change set as the OCI publish. Cookbooks stay
+deep recipes; QUICKSTART stays the 5-minute path. Link: https://github.com/egao1980/cl-stack/blob/main/docs/QUICKSTART.md
+
+
 ### 2026-08-03 — new projects: cl-repo CI, not qlot
 
 - **Source:** user correction during ws-protocol #35; MEMORY already said cl-repository for project deps, but new repo shipped `qlfile` + qlot CI.
@@ -17,3 +24,7 @@
 - **Source:** user: “cl-repository is also available from GHCR OCI repo”.
 - **Proposed change:** Prefer `oras pull ghcr.io/egao1980/cl-repository/cl-repository-client:<ver>` for consumer CI bootstrap; git checkout only when developing cl-repository. Document packager image too.
 - **Status:** applied 2026-08-03 (MEMORY, mdc, REQUIREMENTS, AGENTS, SKILL + winhttp CI).
+
+## Pending
+
+- 2026-08-04 | http-parity | Async sync-SEND / await requires binding `event-protocol:*event-backend*`, `*event-loop*`, and `http-backend-async:*event-backend-maker*` (mirror `with-async-test`). Maker alone is insufficient for promise `await` on the same loop as `send-async`.

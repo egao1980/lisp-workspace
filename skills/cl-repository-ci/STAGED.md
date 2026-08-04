@@ -12,3 +12,9 @@
 - **Source:** native packager migration + cl-stack-systems import matrix failures.
 - **Proposed change:** Checklist: natives must call upstream `publish-native-package.yml@main` with packager **0.10.0** (no vendored copy); optional `source-overlay-artifact` for version-synced sources. Import publish: parallel matrix races on deps → retry/soft-fail in `publish-import.lisp`; add missing QL pins (blackbird/vom/cl-cookie/…) before expecting a green all-imports push.
 - **Why:** ssl had a forked reusable; first-party import publish failed on blackbird + races even when sibling imports succeeded in the same run.
+
+### 2026-08-04 — CI action pins Node 24
+
+- **Source:** workspace-wide Node 20 deprecation warnings.
+- **Proposed change:** Workflow checklist pins: checkout@v5, setup-oras@v2, upload-artifact@v6, download-artifact@v7 (reusable native publish).
+- **Why:** keep consumer CI examples warning-free.

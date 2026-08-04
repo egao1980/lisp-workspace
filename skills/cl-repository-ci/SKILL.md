@@ -14,30 +14,37 @@ Policy sources: [MEMORY.md](../../MEMORY.md) · [REQUIREMENTS.md](../../docs/REQ
 [`cl-stack-systems`](https://github.com/egao1980/cl-stack-systems) · packager
 `ghcr.io/egao1980/cl-repository/cl-repository-packager`.
 
-**Convention over scripts.** Do not invent per-repo publish Lisp or copy-paste
-`publish-source.lisp`. Prefer shared tooling + manifests.
+**Convention over scripts.** Packaging metadata lives in the **`.asd`**
+(`:properties (:cl-repo …)` + normal ASDF fields). Shared CI/publish tooling
+reads it via `auto-package-spec`. Do **not** hand-write `package-spec` in
+per-repo Lisp, and do **not** copy-paste `publish-source.lisp`.
+
+Upstream pattern: [cl-repository examples/06-asd-embedded-config](https://github.com/egao1980/cl-repository/tree/main/examples/06-asd-embedded-config).
 
 ## Decision tree
 
 ```text
 Need to ship a Lisp system to ghcr.io/egao1980/cl-systems?
+│
+├─ Packaging truth = .asd (:version :depends-on :properties :cl-repo …)
+│     auto-package-spec is enough — no custom publish script
+│
 ├─ Has native overlays / grovel / CFFI libs to ship?
-│  ├─ YES → first-party repo + cl-repository *reusable native publish*
-│  │         (egao1980/cl-repository/.github/workflows/publish-native-package.yml)
-│  │         No hand-rolled LD_LIBRARY_PATH install stories.
-│  └─ NO  → cl-stack-systems import (imports/<name>/qlfile)
-│            Shared publish.yml + scripts/publish-import.lisp only.
-│            Applies to third-party *and* first-party source-only packages.
+│  ├─ YES → declare :overlays / :cffi-libraries in .asd :cl-repo
+│  │         + cl-repository *reusable native publish* workflow
+│  └─ NO  → cl-stack-systems import (qlfile = source pin only)
+│            Shared publish.yml → auto-package-spec from that .asd
+│
 └─ Only consume deps in CI?
    → oras-bootstrap cl-repository-client + scripts/ci-install.lisp + ci-test.lisp
 ```
 
-| Kind | Where it lives | How it publishes |
-|------|----------------|------------------|
-| Unmodified third-party | `cl-stack-systems/imports/<name>/` | shared import workflow |
-| First-party **source-only** (no natives) | `cl-stack-systems/imports/<name>/` pin → `egao1980/<repo>` tag/SHA | **same** shared workflow — **no** repo-local `publish-source.lisp` |
-| First-party **with natives** | own `egao1980/<repo>` | reusable **native** workflow from cl-repository |
-| Patched third-party | fork `egao1980/<name>` + import pin to fork, **or** fork-only if natives | import if source-only; never both fork checkout *and* import of upstream |
+| Kind | Source pin | Packaging metadata | Publish runner |
+|------|------------|--------------------|----------------|
+| Unmodified third-party | `imports/<name>/qlfile` | upstream `.asd` (as-is) | cl-stack-systems shared |
+| First-party **source-only** | `imports/<name>/qlfile` → `egao1980/<repo>` tag | **your** `.asd` / `:cl-repo` | cl-stack-systems shared |
+| First-party **with natives** | own repo tag | `.asd` `:cl-repo` overlays | reusable native workflow |
+| Patched third-party | import pin to `egao1980/<fork>` | fork `.asd` | shared import workflow |
 
 **Fork ↔ import exclusivity:** never import `fukamachi/X` while keeping a workspace fork of `X`. Importing `egao1980/X` (the fork) for OCI while developing that fork locally is OK.
 

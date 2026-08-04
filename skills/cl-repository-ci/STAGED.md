@@ -22,5 +22,5 @@
 ### 2026-08-04 — ci-install = client dep install for the system
 
 - **Source:** user correction (chat).
-- **Proposed change:** Rewrite skill §`ci-install`/`ci-test`: phase 1 is **only** `cl-repository-client` installing the **system-under-test's dependency closure** from `egao1980/cl-systems` (driven by that `.asd`), not a hand-maintained list of `ci-fetch`/`ci-ql` calls. Gold scripts today (cl-stack-http, http-backend-*, ws-protocol) diverge — migrate them to the thin shape. Keep phase split (no mid-flight ASDF-load of cffi/cl+ssl). Prefer public `cl-repo:` APIs over `cl-repository-client/quickload::` internals.
-- **Why:** hand inventories drift from `.asd` and defeat the client.
+- **Status:** applied to SKILL.md + MEMORY + consumer `ci-install.lisp` rewrite (`ensure-system-dependencies`, client **0.11.0**).
+- **Proposed change:** ~~Rewrite skill §`ci-install`/`ci-test`…~~ Done.

@@ -36,6 +36,7 @@ Keep entries **short and actionable**. Remove or supersede items that go stale.
 - Use feature branches in subproject repos.
 - **Before deleting "dead" code** (unused params/vars/functions), check it isn't scaffolding for a planned-but-unimplemented feature — grep TODO/docs/requirements + `git log -S`. If planned: keep it and document the reserved intent (e.g. `;; TODO(<area>)`) rather than removing.
 - When a skill proves wrong or incomplete during use, append the correction to `skills/<name>/STAGED.md` rather than editing SKILL.md in-flight.
+- **PRs:** do **not** close open PRs silently (e.g. for conflicts or “superseded”). When asked to merge / clear the board: **fix conflicts, update the branch, and merge**. Close only if the user explicitly says to close/abandon, or the PR author asks to.
 - **Upstream PR branches:** never `gh pr merge --delete-branch` (or otherwise delete) a branch that is the head of an **open upstream PR** (e.g. `egao1980/rove` `cursor/parametrize-3a7a` → fukamachi/rove#76). Delete only after upstream merges or the upstream PR is intentionally abandoned.
 - **Never push or create PRs to `CommonLispNext/cl-repository`** — all work stays in **`egao1980/cl-repository`**. Rebase/merge against upstream locally, but push only to the fork.
 

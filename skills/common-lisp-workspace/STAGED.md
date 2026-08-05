@@ -38,3 +38,7 @@ deep recipes; QUICKSTART stays the 5-minute path. Link: https://github.com/egao1
 ## Pending
 
 - 2026-08-04 | http-parity | Async sync-SEND / await requires binding `event-protocol:*event-backend*`, `*event-loop*`, and `http-backend-async:*event-backend-maker*` (mirror `with-async-test`). Maker alone is insufficient for promise `await` on the same loop as `send-async`.
+
+## Pending
+
+- **2026-08-05** (push-merge-publish): First-party OCI publish = owning-repo `publish-checkout.yml` (packager **0.12.0**). Load packager *before* project ASDF tree; force `:provides` to `PKG_SYSTEM` only. Never `sed … > same-file` when propagating templates. `cl-stack-systems` = third-party imports only; use `delete-package.yml` to reclaim GHCR ACL after mistaken first-party publishes.

@@ -35,6 +35,6 @@
 
 ### 2026-08-05 — GHCR write_package ACL after import migration
 
-- **Source:** cl-stack-systems publish failed with `permission_denied: write_package` (HTTP 403) for packages first published from per-repo `publish-oci.yml`.
-- **Proposed change:** Document that after migrating source-only publish to cl-stack-systems, each `ghcr.io/egao1980/cl-systems/<pkg>` package must grant **Actions write** to `egao1980/cl-stack-systems` (Package settings → Manage Actions access). Until then, owning-repo `publish-checkout.yml` is an emergency path.
-- **Why:** GITHUB_TOKEN write is scoped to packages linked to the publishing repository.
+- **Source:** cl-stack-systems publish failed with `permission_denied: write_package` (HTTP 403); user clarified first-party stays on owning repo.
+- **Status:** applied — MEMORY + SKILL: first-party publish from owning repo; cl-stack-systems = third-party only. ACL grant to cl-stack-systems not required for owned packages.
+- **Follow-up (optional):** drop obsolete first-party dirs under `cl-stack-systems/imports/` (http-protocol, backends, cl-stack-*, …) so nobody dispatches them there by habit.

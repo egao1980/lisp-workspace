@@ -298,3 +298,9 @@ Implemented the per-library `cffi-libraries` metadata the spec always described 
 - **libev `ev_break` is only valid inside `ev_run` callbacks.** Calling `stop` from a worker thread (e.g. a body-stream slurper) is silently lost: loop sits in `select()` forever with only the ref'd async watcher. Symptom set: `test-want-stream-body` hangs; `sample` shows main in `ev_run → select_poll`, worker already exited. Fix in event-backend-libev 0.1.1: off-loop `stop` routes through `wake-call` (ev_async_send). libuv "works" only because `uv_stop`'s flag persists and any later event wakes the loop — same latent race, consider the same treatment.
 - **Windows case-insensitive env in tests:** `(setf (uiop:getenv "http_proxy") …)` then unsetting `HTTP_PROXY` clears the value just set. Apply env bindings unset-first, then set.
 - **Debug loop that worked:** repro locally (`rove:run-test` in 30x loop; libev hang reproduced on macOS), `sample <pid>` for stacks, print-trace the await/stop sequence, and only then burn CI rounds — with byte-capture diagnostics so one Windows run answers "what did the parser see".
+
+## 2026-08 — http-server-protocol publish / Woo CI
+
+- **ASDF secondary systems need their own `.asd` files.** Defining `http-server-backend-*` inside `http-server-protocol.asd` made `cl-repo:ensure-system-dependencies` fail with “system not findable” even with `CL_SOURCE_REGISTRY=$(pwd)//:`. Mirror `json-protocol` (`json-backend-*.asd`).
+- **`workflow_dispatch` empty `version` is truthy in CL.** `(or (uiop:getenv "PKG_VERSION") asd-version)` returns `""` and publishes OCI tag `:` → GHCR 404. Treat blank string as missing before falling back to `.asd` `:version`.
+- **Woo CI + babel:** client bootstrap QL-loads babel (NIL fillers); GHCR `babel:latest` uses `0` → `sb-ext:defconstant-uneql` during woo load. Prefer `:sources '(("babel" :ql) …)` for Woo job and wrap load in `(handler-bind ((sb-ext:defconstant-uneql #'continue)) …)`.

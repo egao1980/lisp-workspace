@@ -32,3 +32,9 @@
 - **Why:** `defun` bodies are not evaluated early, but `cl-repo:foo` still requires the package to exist when the form is read.
 - **Status:** applied to SKILL.md gold shape.
 
+
+### 2026-08-05 — GHCR write_package ACL after import migration
+
+- **Source:** cl-stack-systems publish failed with `permission_denied: write_package` (HTTP 403) for packages first published from per-repo `publish-oci.yml`.
+- **Proposed change:** Document that after migrating source-only publish to cl-stack-systems, each `ghcr.io/egao1980/cl-systems/<pkg>` package must grant **Actions write** to `egao1980/cl-stack-systems` (Package settings → Manage Actions access). Until then, owning-repo `publish-checkout.yml` is an emergency path.
+- **Why:** GITHUB_TOKEN write is scoped to packages linked to the publishing repository.

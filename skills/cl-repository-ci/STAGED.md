@@ -1,5 +1,10 @@
 ## Pending
 
+### 2026-08-07 — CFFI natives auto-load on ASDF load
+- **Source:** user standing instruction (cl-stack-icu).
+- **Proposed change:** Document that first-party native/CFFI packages must `load-foreign-library` at system load (`eval-when (:load-toplevel :execute)`); consumers must not need `load-*` / `ensure-*`. Absolute preload preferred; no LD_LIBRARY_PATH.
+
+
 ### 2026-08-04 — first-party source-only migration landed
 
 - **Source:** agent migration (cl-stack-systems#5 + drop-source-publish PRs across stack).

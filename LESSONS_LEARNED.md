@@ -304,3 +304,10 @@ Implemented the per-library `cffi-libraries` metadata the spec always described 
 - **ASDF secondary systems need their own `.asd` files.** Defining `http-server-backend-*` inside `http-server-protocol.asd` made `cl-repo:ensure-system-dependencies` fail with “system not findable” even with `CL_SOURCE_REGISTRY=$(pwd)//:`. Mirror `json-protocol` (`json-backend-*.asd`).
 - **`workflow_dispatch` empty `version` is truthy in CL.** `(or (uiop:getenv "PKG_VERSION") asd-version)` returns `""` and publishes OCI tag `:` → GHCR 404. Treat blank string as missing before falling back to `.asd` `:version`.
 - **Woo CI + babel:** client bootstrap QL-loads babel (NIL fillers); GHCR `babel:latest` uses `0` → `sb-ext:defconstant-uneql` during woo load. Prefer `:sources '(("babel" :ql) …)` for Woo job and wrap load in `(handler-bind ((sb-ext:defconstant-uneql #'continue)) …)`.
+
+## 2026-08-07 — cl-stack#165: ensure-system-dependencies + :ql drops OCI packages
+
+- **Symptom:** `(cl-repo:ensure-system-dependencies …)` prints `tomlet not found in any registry` while `(cl-repo:load-system "tomlet" :version "0.1.0")` succeeds.
+- **Cause:** `compute-install-plan` ran OCI SAT for every missing name. With `:sources '(("tomlet" :ql))` (OCI-only package forced to QL), `oci-allowed-p` is false → SAT errors → `dependency-resolution-error` handler **only logged** and neither queued QL nor fell through to direct OCI (unlike the generic `error` handler). tomlet is not on Quicklisp.
+- **Fix:** cl-repository — `:ql`-only → QL accumulator; resolution-error → direct OCI if allowed else QL. Demos — remove `("tomlet" :ql)` from `local-install.lisp`.
+- **Rule:** never put OCI-only pins in `:sources … :ql`. Prefer default `:any` or explicit `:oci`.

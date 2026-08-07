@@ -324,3 +324,9 @@ Implemented the per-library `cffi-libraries` metadata the spec always described 
 - **Symptom:** `ros install ccl` / `ros install ccl-bin` fail or refuse on Apple Silicon.
 - **Cause:** Roswell target is **`ccl-bin`** (not `ccl`). Install script hard-errors on `uname-m = arm64`. Upstream CCL 1.13 has **no darwin/arm64** port.
 - **Fix:** Local probe = Clozure `ccl-1.13-darwinx86.tar.gz` under Rosetta (`arch -x86_64 ./dx86cl64 --no-init --batch`). CI = `ros install ccl-bin` on **ubuntu-latest (amd64)** only. Crypto/secrets Rove suites pass on CCL 1.13; PBKDF2 is very slow under Rosetta (~2 min/verify).
+
+## 2026-08 — CLISP MT unusable on clean Ubuntu (multi-impl #42)
+
+- **Symptom:** Cannot smoke Ironclad/crypto on CLISP in CI-shaped Linux.
+- **Cause:** (1) Ubuntu/Homebrew CLISP ship without `:mt` → bordeaux-threads rejects. (2) Building 2.49.92 with `--with-threads=POSIX_THREADS` in clean `ubuntu:24.04`: **arm64** `interpreted.mem` bootstrap **hangs** (0% CPU); **amd64** bootstrap **SIGSEGV** in GC (`Fault address = 0xa8`). Configure help: threads “highly experimental”. Wrong flag `POSIX` (need `POSIX_THREADS`); aarch64 also needs `-DNO_GENERATIONAL_GC` (no fast spinlocks) before you even reach the hang.
+- **Fix / policy:** No `test-clisp` job. Track in `cl-stack/docs/multi-impl.md`. Do not `continue-on-error` apt clisp.

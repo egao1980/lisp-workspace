@@ -318,3 +318,9 @@ Implemented the per-library `cffi-libraries` metadata the spec always described 
 - **Cause:** (1) `asdf:…` at read time before `(require :asdf)`; (2) interactive debugger without `--nodebug`; (3) brew ECL ships ASDF 3.1.8.11.
 - **Fix:** `--load` scripts; `(require :asdf)` first; `ecl --norc --nodebug -q`; `*debugger-hook*` → `si:quit`. Crypto/secrets Rove suites pass on ECL 26.5.5 with QL + `load-asd`.
 - **Also:** `'(("x" :ql), ("y" :ql))` → `Comma not inside a backquote` — strip commas from `:sources` (same footgun as crypto CI earlier).
+
+## 2026-08 — CCL local smoke (multi-impl #42)
+
+- **Symptom:** `ros install ccl` / `ros install ccl-bin` fail or refuse on Apple Silicon.
+- **Cause:** Roswell target is **`ccl-bin`** (not `ccl`). Install script hard-errors on `uname-m = arm64`. Upstream CCL 1.13 has **no darwin/arm64** port.
+- **Fix:** Local probe = Clozure `ccl-1.13-darwinx86.tar.gz` under Rosetta (`arch -x86_64 ./dx86cl64 --no-init --batch`). CI = `ros install ccl-bin` on **ubuntu-latest (amd64)** only. Crypto/secrets Rove suites pass on CCL 1.13; PBKDF2 is very slow under Rosetta (~2 min/verify).

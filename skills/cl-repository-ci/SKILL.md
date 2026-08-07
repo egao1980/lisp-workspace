@@ -55,8 +55,8 @@ Need to ship a Lisp system to ghcr.io/egao1980/cl-systems?
 
 | Piece | Value |
 |-------|--------|
-| Client image | `ghcr.io/egao1980/cl-repository/cl-repository-client:**0.11.0**` |
-| Packager image | `ghcr.io/egao1980/cl-repository/cl-repository-packager:**0.10.0**` |
+| Client image | `ghcr.io/egao1980/cl-repository/cl-repository-client` — CI uses **`CL_REPOSITORY_CLIENT_VERSION: latest`** (resolve system-name `:latest` anchor → annotated semver → `oras pull`) |
+| Packager image | `ghcr.io/egao1980/cl-repository/cl-repository-packager:**0.12.0**` |
 | Registry / namespace | `ghcr.io` / `egao1980/cl-systems` |
 | oras (Actions) | `1.2.3` |
 | SBCL (typical CI) | `2.6.7` via Roswell (`sbcl-bin`) |
@@ -151,7 +151,7 @@ New first-party repos: **cl-repo CI from day one**. No `qlfile` as the install s
 ### Non-negotiable
 
 1. `actions/checkout` → **only** the repo under test.
-2. Bootstrap **`cl-repository-client` from OCI** (`oras pull` … `cl-repository/cl-repository-client:0.11.0`). Do **not** git-checkout `cl-repository` in consumer CI.
+2. Bootstrap **`cl-repository-client` from OCI** (`CL_REPOSITORY_CLIENT_VERSION: latest` → resolve `:latest` anchor → `oras pull …:<semver>`). Do **not** git-checkout `cl-repository` in consumer CI.
 3. Deps from `ghcr.io/egao1980/cl-systems` via `cl-repo:ensure-system-dependencies` (OCI → QL). QL also for *client* bootstrap deps only.
 4. Ship `scripts/ci-install.lisp` + `scripts/ci-test.lisp` (phase split: install must not ASDF-load cffi/cl+ssl mid-flight before overlays are ready).
 

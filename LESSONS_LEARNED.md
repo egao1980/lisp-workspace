@@ -318,3 +318,9 @@ Implemented the per-library `cffi-libraries` metadata the spec always described 
 - **Cause:** (1) `asdf:…` at read time before `(require :asdf)`; (2) interactive debugger without `--nodebug`; (3) brew ECL ships ASDF 3.1.8.11.
 - **Fix:** `--load` scripts; `(require :asdf)` first; `ecl --norc --nodebug -q`; `*debugger-hook*` → `si:quit`. Crypto/secrets Rove suites pass on ECL 26.5.5 with QL + `load-asd`.
 - **Also:** `'(("x" :ql), ("y" :ql))` → `Comma not inside a backquote` — strip commas from `:sources` (same footgun as crypto CI earlier).
+
+## ABCL + cl-repository OCI (2026-08-07)
+
+- **chipz:** ABCL is not in chipz’s Gray-streams feature list → `make-decompressing-stream` errors. Fix: `chipz:decompress` buffer API in `cl-repository-client/installer` (`gunzip-octets`).
+- **JNA:** CFFI on ABCL needs `jna` + `jna-platform` on `CLASSPATH` (else `Class not found: com.sun.jna.Pointer`). Java 21+: `--enable-native-access=ALL-UNNAMED` and `--add-opens=java.base/java.io=ALL-UNNAMED`.
+- **Symptom without buffer gunzip:** `ensure-system-installed` logs `not in ghcr.io (make-decompressing-stream…)` and silently skips first-party deps → later `System "…" not found` at test time.

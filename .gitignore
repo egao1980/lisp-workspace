@@ -1,3 +1,6 @@
 .DS_Store
 *.swp
 *~
+
+# Local ABCL/CFFI JNA jars (download in CI / smoke; do not commit)
+vendor/jna/

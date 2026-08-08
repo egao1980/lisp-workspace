@@ -336,3 +336,13 @@ Implemented the per-library `cffi-libraries` metadata the spec always described 
 
 - OAuth `GITHUB_TOKEN` without `workflow` scope refuses `gh pr merge` when the PR touches `.github/workflows/*`.
 - **Workaround:** merge locally (`git merge` / ff onto `main`) and `git push origin main` (SSH).
+
+## 2026-08-08 — CCL Darwin arm64 ObjC "N-word heisenbug" was tagged pointers
+
+Symptom: `#/substringWithRange:` on short NSStrings (`"abcdef"`) failed ~half the time with `TYPE-ERROR` (Foreign Pointer ≠ objc-object); long strings were fine. Looked like NSRange/N-word FFI.
+
+Root cause: Apple arm64 ObjC **tagged pointers** (bit 63 set). `tagged-objc-instance-p` still used the **x86_64** low-nibble test, so many tagged NSStrings were treated as heap objects → `safe-get-ptr` on a non-address → `recognize-objc-object` failed. Process-stable because the same short string → same tagged bit pattern.
+
+Fix: arm64 branch of `tagged-objc-instance-p` (MSB + split basic/extended tag). N-word expand (x8664-style `%%get-unsigned-longlong`) still useful but was not the flake.
+
+Require OBJC-SUPPORT still SIGBUS/SIGSEGV flaky (~30%) — separate issue.

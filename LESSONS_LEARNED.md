@@ -346,3 +346,9 @@ Root cause: Apple arm64 ObjC **tagged pointers** (bit 63 set). `tagged-objc-inst
 Fix: arm64 branch of `tagged-objc-instance-p` (MSB + split basic/extended tag). N-word expand (x8664-style `%%get-unsigned-longlong`) still useful but was not the flake.
 
 Require OBJC-SUPPORT still SIGBUS/SIGSEGV flaky (~30%) — separate issue.
+
+## CCL darwinarm64 NXArgv paref (2026-08-08)
+
+- **Symptom:** intermittent SIGSEGV in `os_unfair_lock_lock` during `(require "OBJC-SUPPORT")` / Cocoa `dlopen`; fault address often `cs_area.high+0x4c10`.
+- **Cause:** `objc-runtime.lisp` cleared argv with `(paref (%get-ptr NXArgv) (:* :char) 1)` — that indexes **bytes**, smashing `argv[0]` mid-pointer. Correct element type for `char**` is `(:* (:* :char))` (see `library/jni.lisp`).
+- **Fix:** use `(:* (:* :char))` + `(%null-ptr)`.

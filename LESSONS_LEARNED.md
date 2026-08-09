@@ -367,3 +367,9 @@ Require OBJC-SUPPORT still SIGBUS/SIGSEGV flaky (~30%) — separate issue.
 - **Symptom:** after AREA_CODE/purify (dual-map retired), `(require "OBJC-SUPPORT")` died with `FATAL: NX fetch into non-code heap` at a PC inside purified code (`DEFINITION-BASE-NAME` method in `AREA_READONLY`, vmmap `r-x`). Math/cocoa smokes OK.
 - **Cause:** stock CCL dirties pure pages on write via `UnProtectMemory` → **RWX**. Darwin/arm64 `UnProtectMemory` is **RW only** (W^X). First store into pure (e.g. definition recording) stripped X from that 16KiB page; next fetch → NX. The FATAL check also treated *all* `IMAGE_BASE` insn aborts outside MAP_JIT as heap NX — including real `AREA_READONLY` PCs.
 - **Fix (proper, not dual-map):** oscillate protections like a W^X-safe unprotect: write fault in readonly → `mprotect(RW)`; NX fetch in readonly → `mprotect(RX)` and retry. Keep FATAL only for NX into the RW dynamic heap.
+
+## CCL darwinarm64 compile-file MAP_JIT (2026-08-09)
+
+- **Symptom:** stock `(rebuild-ccl :full t)` FATAL NX at dynamic-heap code-vector during compile-ccl; same for `compile-file` + `eval-when (:compile-toplevel)`.
+- **Cause:** after dual-map retirement heap is NX; `arm64-lap` still allocated heap code-vectors when `*compiling-file*` (assumed “fasl dump only”). Eval-when executes those functions in-process.
+- **Fix:** always `%allocate-code-vector` (MAP_JIT) for native Darwin compile; fasl dump only needs readable bytes. Verified: self-hosting `(rebuild-ccl :full t)` twice, clean-build smoke, ccl-tests 244/244, ansi+ccl 21920/21920.

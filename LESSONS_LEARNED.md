@@ -352,3 +352,12 @@ Require OBJC-SUPPORT still SIGBUS/SIGSEGV flaky (~30%) — separate issue.
 - **Symptom:** intermittent SIGSEGV in `os_unfair_lock_lock` during `(require "OBJC-SUPPORT")` / Cocoa `dlopen`; fault address often `cs_area.high+0x4c10`.
 - **Cause:** `objc-runtime.lisp` cleared argv with `(paref (%get-ptr NXArgv) (:* :char) 1)` — that indexes **bytes**, smashing `argv[0]` mid-pointer. Correct element type for `char**` is `(:* (:* :char))` (see `library/jni.lisp`).
 - **Fix:** use `(:* (:* :char))` + `(%null-ptr)`.
+
+## CCL darwinarm64 build review — circling on W^X host policy (2026-08-09)
+
+- **Branch:** `egao1980/ccl` `cursor/darwin-arm64-8969` (~100 commits on `arm64`). Unbiased rebuild script has reached `DARWIN-ARM64-UNBIASED-REBUILD-OK`; stock-like `(rebuild-ccl :full t)` is still special-cased (two-phase `DUAL_MAP`, tip-LAP heap install, fork retries, optional Rosetta xload).
+- **Circle:** Aug 8–9 commit stream repeatedly enable/disable MAP_JIT faslop on the rebuild host (`ea415887` → `d9edde78` → `b4f7a9f5` → `053b668d`). Root constraint is real: lisp that lives in MAP_JIT cannot call `pthread_jit_write_protect_np`. Fixing that with more host toggles is infinite.
+- **Proper path (prior art / Clozure#11):** do **not** MAP_JIT the mixed heap; purify impure boot code; allocate **code-only** (AREA_CODE / SBCL-shaped, license-safe reimpl — study SBCL/LuaJIT/CPython for ABI/WP protocol only). Dual-map/`HEAP_EXEC_BIAS` is temporary scaffolding.
+- **Good fixes already landed (keep):** 16KiB pages, MapFile short-read, Mach exception server, Apple ObjC tagged pointers, NXArgv `(:* (:* :char))`, Darwin variadic-on-stack, dedicated `*darwinarm64-target-arch*` nil, CDB regen path.
+- **Non-goal:** more `tools/rebuild-darwinarm64-*.sh` / surgical smokes as the success criterion. Success = bare `(rebuild-ccl :full t)` + `(require "OBJC-SUPPORT")` on the resulting image.
+- **Upstream:** xrme has unpublished darwinarm64 kernel work (Clozure/ccl#586 comment); sync before another kernel rewrite.

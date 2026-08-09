@@ -355,12 +355,19 @@ Require OBJC-SUPPORT still SIGBUS/SIGSEGV flaky (~30%) — separate issue.
 
 ## CCL darwinarm64 build review — circling on W^X host policy (2026-08-09)
 
-- **Branch:** `egao1980/ccl` `cursor/darwin-arm64-8969` (~100 commits on `arm64`). Unbiased rebuild script has reached `DARWIN-ARM64-UNBIASED-REBUILD-OK`; stock-like `(rebuild-ccl :full t)` is still special-cased (two-phase `DUAL_MAP`, tip-LAP heap install, fork retries, optional Rosetta xload).
-- **Circle:** Aug 8–9 commit stream repeatedly enable/disable MAP_JIT faslop on the rebuild host (`ea415887` → `d9edde78` → `b4f7a9f5` → `053b668d`). Root constraint is real: lisp that lives in MAP_JIT cannot call `pthread_jit_write_protect_np`. Fixing that with more host toggles is infinite.
-- **Proper path (prior art / Clozure#11):** do **not** MAP_JIT the mixed heap; purify impure boot code; allocate **code-only** (AREA_CODE / SBCL-shaped, license-safe reimpl — study SBCL/LuaJIT/CPython for ABI/WP protocol only). Dual-map/`HEAP_EXEC_BIAS` is temporary scaffolding.
-- **Good fixes already landed (keep):** 16KiB pages, MapFile short-read, Mach exception server, Apple ObjC tagged pointers, NXArgv `(:* (:* :char))`, Darwin variadic-on-stack, dedicated `*darwinarm64-target-arch*` nil, CDB regen path.
-- **Non-goal:** more `tools/rebuild-darwinarm64-*.sh` / surgical smokes as the success criterion. Success = bare `(rebuild-ccl :full t)` + `(require "OBJC-SUPPORT")` on the resulting image.
+- **Branch:** `egao1980/ccl` `cursor/darwin-arm64-8969` (rewritten to ~9 semantic commits on `arm64`).
+- **Resolved:** stock `(rebuild-ccl :full t)` self-hosts; dual-map / host faslop / surgical reload retired. Docs: `ccl/doc/porting/progress.md`.
+- **Circle (historical):** Aug 8–9 commit stream repeatedly enable/disable MAP_JIT faslop on the rebuild host. Root constraint was real: lisp that lives in MAP_JIT cannot call `pthread_jit_write_protect_np`. Host toggles were a dead end.
+- **Proper path (landed):** do **not** MAP_JIT the mixed heap; purify impure boot code; allocate **code-only** MAP_JIT arena (AREA_CODE stand-in). Dual-map/`HEAP_EXEC_BIAS` retired.
+- **Good fixes already landed (keep):** 16KiB pages, MapFile short-read, Mach exception server, Apple ObjC tagged pointers, NXArgv `(:* (:* :char))`, Darwin variadic-on-stack, dedicated `*darwinarm64-target-arch*` nil, CDB regen path, pure RW↔RX, `compile-file` always MAP_JIT.
 - **Clozure/ccl#586:** closed draft of our own scaffold — ignore; not an upstream signal.
+
+## CCL darwinarm64 docs refresh (2026-08-09)
+
+- Rewrote `ccl/doc/porting/progress.md` as current-status; aligned `darwin.md` / `tools/PR-darwinarm64.md` / CI with no dual-map.
+- Removed dead `run-darwin-drop-dual-map.sh` CI gate from `tools/run-darwin-arm64-ci.sh`.
+- Tip commit on ccl: `c6889313` (`darwinarm64: refresh porting docs for MAP_JIT / no dual-map`).
+
 
 ## CCL darwinarm64 AREA_READONLY dirty under W^X (2026-08-09)
 

@@ -361,3 +361,9 @@ Require OBJC-SUPPORT still SIGBUS/SIGSEGV flaky (~30%) — separate issue.
 - **Good fixes already landed (keep):** 16KiB pages, MapFile short-read, Mach exception server, Apple ObjC tagged pointers, NXArgv `(:* (:* :char))`, Darwin variadic-on-stack, dedicated `*darwinarm64-target-arch*` nil, CDB regen path.
 - **Non-goal:** more `tools/rebuild-darwinarm64-*.sh` / surgical smokes as the success criterion. Success = bare `(rebuild-ccl :full t)` + `(require "OBJC-SUPPORT")` on the resulting image.
 - **Clozure/ccl#586:** closed draft of our own scaffold — ignore; not an upstream signal.
+
+## CCL darwinarm64 AREA_READONLY dirty under W^X (2026-08-09)
+
+- **Symptom:** after AREA_CODE/purify (dual-map retired), `(require "OBJC-SUPPORT")` died with `FATAL: NX fetch into non-code heap` at a PC inside purified code (`DEFINITION-BASE-NAME` method in `AREA_READONLY`, vmmap `r-x`). Math/cocoa smokes OK.
+- **Cause:** stock CCL dirties pure pages on write via `UnProtectMemory` → **RWX**. Darwin/arm64 `UnProtectMemory` is **RW only** (W^X). First store into pure (e.g. definition recording) stripped X from that 16KiB page; next fetch → NX. The FATAL check also treated *all* `IMAGE_BASE` insn aborts outside MAP_JIT as heap NX — including real `AREA_READONLY` PCs.
+- **Fix (proper, not dual-map):** oscillate protections like a W^X-safe unprotect: write fault in readonly → `mprotect(RW)`; NX fetch in readonly → `mprotect(RX)` and retry. Keep FATAL only for NX into the RW dynamic heap.

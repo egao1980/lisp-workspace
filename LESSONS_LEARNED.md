@@ -380,3 +380,9 @@ Require OBJC-SUPPORT still SIGBUS/SIGSEGV flaky (~30%) — separate issue.
 - **Symptom:** stock `(rebuild-ccl :full t)` FATAL NX at dynamic-heap code-vector during compile-ccl; same for `compile-file` + `eval-when (:compile-toplevel)`.
 - **Cause:** after dual-map retirement heap is NX; `arm64-lap` still allocated heap code-vectors when `*compiling-file*` (assumed “fasl dump only”). Eval-when executes those functions in-process.
 - **Fix:** always `%allocate-code-vector` (MAP_JIT) for native Darwin compile; fasl dump only needs readable bytes. Verified: self-hosting `(rebuild-ccl :full t)` twice, clean-build smoke, ccl-tests 244/244, ansi+ccl 21920/21920.
+
+## CCL darwinarm64 (require :cocoa) / Hemlock htab (2026-08-09)
+
+- **Symptom:** Hemlock `echo.lisp` compile dies in `INTERN` / `%get-hashed-htab-symbol` with `BOGUS` pname (`TYPE-ERROR` as `SEQUENCE`) after loading `main`.
+- **Cause:** HI package htab can hold symbol-tagged cells whose `pname` is already dead; `%resize-htab` / probe assumed every `symbolp` entry has a string pname. Separately, modern AppKit leaves `NS*KeyMask` / `FLT_MAX` as unlinkable statics so `#$` fails.
+- **Fix:** harden `%get-hashed-htab-symbol` / `%resize-htab` with `simple-string-p` on pname; rehash HI before `echo`; CDB inject aliases (`inject-objc-bool-constants.lisp`). Smoke: `tools/darwin-require-cocoa-smoke.lisp`. Branch: `egao1980/ccl` `cursor/darwinarm64-cocoa-finish-bca7`.

@@ -360,4 +360,4 @@ Require OBJC-SUPPORT still SIGBUS/SIGSEGV flaky (~30%) — separate issue.
 - **Proper path (prior art / Clozure#11):** do **not** MAP_JIT the mixed heap; purify impure boot code; allocate **code-only** (AREA_CODE / SBCL-shaped, license-safe reimpl — study SBCL/LuaJIT/CPython for ABI/WP protocol only). Dual-map/`HEAP_EXEC_BIAS` is temporary scaffolding.
 - **Good fixes already landed (keep):** 16KiB pages, MapFile short-read, Mach exception server, Apple ObjC tagged pointers, NXArgv `(:* (:* :char))`, Darwin variadic-on-stack, dedicated `*darwinarm64-target-arch*` nil, CDB regen path.
 - **Non-goal:** more `tools/rebuild-darwinarm64-*.sh` / surgical smokes as the success criterion. Success = bare `(rebuild-ccl :full t)` + `(require "OBJC-SUPPORT")` on the resulting image.
-- **Upstream:** xrme has unpublished darwinarm64 kernel work (Clozure/ccl#586 comment); sync before another kernel rewrite.
+- **Clozure/ccl#586:** closed draft of our own scaffold — ignore; not an upstream signal.

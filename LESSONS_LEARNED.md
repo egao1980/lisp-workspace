@@ -461,3 +461,9 @@ Require OBJC-SUPPORT still SIGBUS/SIGSEGV flaky (~30%) — separate issue.
 - **W^X AltConsole:** successful MAP_JIT/purify fixups were `fprintf(dbgout)` — dbgout is AltConsole in the IDE. Looks like a crash; it is not. Gated behind `CCL_DEBUG_WX=1`.
 - **All-symbols crash class:** `apropos-search` ran `do-all-symbols` + `sort` of ~37k symbols *inside* an ObjC IMP on the event thread (TCR valence=foreign). GC → `freeGCptrs` with a corrupted gcable-macptr list. Not an xapropos-specific FFI bug.
 - **Fix:** run the package walk on a lisp worker (`process-run-function`); `queue-for-gui` only the table reload. Stale searches dropped via `search-generation`. Smoke: `tools/ide-xapropos-all-symbols-smoke.lisp`.
+
+## Inspector DISASSEMBLE-LINES missing on arm64 (2026-08-10)
+
+- **Symptom:** Inspect a function (e.g. from xapropos) → `Undefined function DISASSEMBLE-LINES` in `INSPECTOR::COMPUTE-DISASSEMBLY-LINES`.
+- **Cause:** arm64 had `arm64-xdisassemble` for the REPL `DISASSEMBLE` but never implemented the inspector’s `CCL::DISASSEMBLE-LINES` (x86/ppc have it; 32-bit ARM stubs with an error).
+- **Fix:** `compiler/ARM64/arm64-disassemble.lisp` — build lines from the existing DI vector. Smoke: `tools/darwin-disassemble-lines-smoke.lisp`. Rebake IDE so `bin/arm64-disassemble` is in the heap.

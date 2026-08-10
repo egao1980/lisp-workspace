@@ -445,3 +445,12 @@ Require OBJC-SUPPORT still SIGBUS/SIGSEGV flaky (~30%) — separate issue.
 - **Fix:** `execute-in-gui` around `#/ensureListener:` (`egao1980/ccl` `e18c9ec8`). Rebake `Clozure CL64.app`. Quit/reopen.
 - **Do not:** auto `#/newListener:` via `queue-for-gui` from `applicationDidFinishLaunching` — still wedges like untitled-during-launch. Keep File → New Listener after activate.
 - **Bake hygiene:** never `compile-file` cocoa sources into fasls *after* Cocoa is up (corrupt fasl / UUO 0 on load). Delete bad fasl, let `load-ide` / `rebuild-clozure-cl64-ide.lisp` recompile. Don't leave shell `HOME` stuck on `mktemp` from IDE probes.
+
+## Arm64 ObjC callback record returns — blanket ABI (2026-08-10)
+
+- **Symptom:** Mouse text select → `Clozure CL64 quit unexpectedly`, `EXC_BREAKPOINT` in `object_getClass` ← `SPffcall` ← `NSWindow sendEvent`. Same class would hit zoom/standard-frame.
+- **Root cause (ABI class, not a one-off IMP):** inbound `generate-callback-bindings` treated *every* foreign-record return as a hidden stret pointer in **x0**. On Apple arm64, `NSRange` returns in `x0`/`x1` (`:gpr`); AppKit passes `self` in `x0`. Lisp bound “stret” ← `self`, shifted args, then `%objc-struct-return` memmoved into the object → corrupted `isa`.
+- **Surfaces:** `#/selectionRangeForProposedRange:granularity:` → `:ns-range` (`:gpr`); `#/windowWillUseStandardFrame:defaultFrame:` → `#>`NSRect` (`:hfa`).
+- **Blanket fix:** mirror outbound `expand-ff-call` / x8664 callbacks in `lib/ffi-linuxarm64.lisp` (Darwin reexports): `:memory` keeps prepend `:address`; `:gpr`/`:hfa` allocate a local `rlet` and copy out to CBF `x0`/`x1` or `d0`..`dN`. `.SPcallback` exit reloads **d0–d7** (was only `d0`). Recompile cocoa-editor (etc.) *after* loading tip generators so IMPs re-expand. Smoke: `tools/darwin-callback-struct-return-smoke.lisp`.
+- **Still open:** trampoline stamps callback index into `x8` (real sret pointer lost) — no cocoa-ide IMP uses `:memory` yet.
+- **Do not:** whack individual IMPs; fix the callback generator once.

@@ -473,3 +473,13 @@ Require OBJC-SUPPORT still SIGBUS/SIGSEGV flaky (~30%) — separate issue.
 - **Symptom:** Tools → Search Files → Browse (folder chooser) never returns; IDE wedged. Same class can hit Open/Save if they still call the deprecated API.
 - **Cause:** `cocoa-ide/file-dialogs.lisp` used `#/runModalForDirectory:file:types:` / `#/runModalForDirectory:file:` (deprecated since 10.6). On modern macOS the panel is out-of-process (`openAndSavePanelservice`); those entry points can hang the app.
 - **Fix:** `#/setDirectoryURL:` + `#/runModal`; read selection from `#/URL` / path. Search `#/doBrowse:` already calls `cocoa-choose-directory-dialog`. Smoke: `tools/ide-file-dialog-smoke.lisp`. Load tip `file-dialogs.lisp` into the IDE or rebake (`file-dialogs` fasl).
+
+## 2026-08-10 — CCL darwinarm64: Listener MACPTR + 0-byte IDE image
+
+- **Symptom:** Listener shows garbled banner (`DArwinAkMo4o4`) and `%WAIT-ON-SEMAPHORE-PTR` with `#<SIMPLE-VECTOR 2>` not MACPTR. Same family as heap corruption / stale ABI, not a semaphore API bug.
+- **Fix:** Hard-quit the app; rebake IDE heap with tip callback ABI (`ccl/tools/safe-rebake-ide.sh`). Do not trust that session.
+- **Symptom:** `save-application` under `--batch` leaves a **0-byte** `darm64cl.image` and hangs.
+- **Cause:** `open-dumplisp-file` truncates first; then `process-interrupt` of `*initial-process*` never runs (Initial stuck in `nanosleep` via housekeeping), so dump never writes.
+- **Fix:** On `#+darwinarm64-target`, `lib/dumplisp.lisp` dumps via `%save-application-internal` on the **current** (TTY listener) process. Rebake: `./tools/safe-rebake-ide.sh`.
+- **Also:** Do not smoke-test a `cocoa-ide` image with `--batch --eval` — Initial runs IDE toplevel and looks like `CLASS-CELL-TYPEP` corruption. Use `open Clozure CL64.app` instead.
+- **Also:** `DECLARE` must be at the head of a function body (not after forms inside `LET*`) or IDE fasl rebakes fail to compile (`file-dialogs.lisp`).

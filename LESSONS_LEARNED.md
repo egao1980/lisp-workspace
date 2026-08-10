@@ -403,3 +403,30 @@ Require OBJC-SUPPORT still SIGBUS/SIGSEGV flaky (~30%) — separate issue.
 - **Cause (modeline string):** not missing HFA packing for `#/drawAtPoint:` (mini-apps 14/15 + HFA arg smoke green). Under Listener `#/display`, `(apply #'concatenate 'string (mapcar … field-fn …))` SIGBUSes / `INVALID-MEMORY-ACCESS`; same field funcalls joined via `with-output-to-string` survive. Constant-string APPLY also OK — hazard is APPLY of `&rest` during ObjC callback with live results. Same family as “never APPLY onto ObjC send GFs.”
 - **Also:** nested `nextEventMatchingMask` inside `call-in-initial-process` (while `#/run` is suspended for the interrupt) false-deadlocks/corrupts. Hemlock Listener startup can `process-reset` the batch tty listener mid-form — keep ensure+pings+marker in **one** top-level form; probe with `%interrupt-event-process` wait=T, not nested run-loop pump. Full `compile-file`+`load` of `cocoa-editor` after Cocoa is up hits `class_addIvar` — redefine only methods / load a patch file.
 - **Fix:** `draw-modeline-string` joins with `with-output-to-string`; re-enable from `#/drawRect:`. Mini-app 17 (`DRAWRECT_FIELD_MODE=stream-concat` vs `apply-concat`); IDE smoke `tools/ide-modeline-stream-concat-alive.lisp`. Branch: `egao1980/ccl` `cursor/darwinarm64-drawrect-cons-bca7`.
+
+## New Listener closes immediately (darwinarm64)
+
+- **Symptom:** File → New Listener opens then vanishes; menus otherwise work. Arm64 skips untitled-on-launch so New Listener is often the first Cocoa Listener.
+- **Mechanism:** Listener `initial-function` hits read-loop EOF; with `CCL::*BATCH-FLAG*` true (`--batch` smokes) that calls `exit-interactive-process` → `process-kill` → cleanup `cocoa-close`s the document. Even with a no-op exit method, repeated EOFs bump `*consecutive-eof-limit*` toward `#_exit`. Interactive IDE usually takes the transient-EOF/`abort-break` path, but `execute-in-gui` for `ui-object-note-package` during create (menu/event thread still in `#/newListener:`) nests `waitUntilDone` and corrupts (BOGUS macptr).
+- **Package trap:** `*BATCH-FLAG*` is **not** exported from `CCL` (always `:INTERNAL`). Unqualified `*batch-flag*` in `GUI` interns a useless `GUI::*BATCH-FLAG*`. Must bind `ccl::*batch-flag*` (contrast: `*quit-on-eof*` is `:EXTERNAL` and works unqualified).
+- **Fix:** `cocoa-listener.lisp` — `exit-interactive-process` on `cocoa-listener-process` clears input and does not kill; Listener init binds `ccl::*batch-flag*` / `ccl::*quit-on-eof*` nil; `ui-object-note-package` uses `queue-for-gui`. Smoke: `tools/ide-new-listener-persist.lisp` (separate top-level forms; mid-form tty `process-reset` is expected). Rebuild IDE fasls via `load-ide` **without** `start-cocoa-ide` (`*cocoa-ide-install-altconsole*` etc. bound). Do not clear `*batch-flag*` before `(require "COCOA")` — wedges AppKit/Initial.
+- **Branch:** `egao1980/ccl` `cursor/darwin-arm64-8969` (PR #1).
+
+## Clozure CL64.app won't start (REPL image clobber)
+
+- **Symptom:** double-click Clozure CL64.app does nothing / flashes / exits; terminal launch of `MacOS/darm64cl` prints the tty greeting and drops to `?` (or exits with closed stdin).
+- **Cause:** `tools/run-darwin-ide-smoke.sh` copied workspace `darm64cl.image` (`LISP-DEVELOPMENT-SYSTEM`) over `Clozure CL64.app/Contents/Resources/ccl/darm64cl.image` (standalone Cocoa IDE heap). With `CFProcessPath`/bundle layout the kernel loads `Resources/ccl/<kernel>.image`.
+- **Fix:** restore IDE heap (e.g. `darm64cl.image.pre-rebuild`); smokes use `-I $CCL_DIR/darm64cl.image` and must not overwrite the bundle image.
+
+## Hemlock BOGUS object on Clozure CL64 launch
+
+- **Symptom:** IDE runs but Hemlock error sheet / console about `#<BOGUS object …>` / `can't determine class of #<BOGUS …>`.
+- **Cause:** bundle `Resources/ccl/darm64cl.image` was an old cocoa-ide heap (or REPL clobber). Modeline `#/drawRect:` still used `APPLY #'concatenate` and/or Listener note-package used nested `execute-in-gui` → heap corruption; Hemlock surfaces it via `report-hemlock-error`.
+- **Fix:** rebuild tip IDE heap: `./darm64cl --no-init --batch < tools/rebuild-clozure-cl64-ide.lisp`, then `codesign --force -s - Clozure\ CL64.app` (and MacOS/darm64cl). Tip sources already use stream-concat modeline + `ccl::*batch-flag*` Listener bind.
+
+## Hemlock "not of the expected type REAL" / BOGUS in modeline (2026-08-10)
+
+- **Symptom:** Sheet "Error in Hemlock command processing" — `The value #<BOGUS object @ …> is not of the expected type REAL`. Button "The sky is falling…".
+- **Cause:** `modeline-view` `#/drawRect:` did `(float (ns:ns-rect-width (#/bounds self)) …)`. `ns:ns-rect-width` expands to `(float (pref …) +cgfloat-zero+)`. Under Hemlock redisplay, a bad/corrupt `#/bounds` NSRect made the width look like a BOGUS lisp object → `float` type-error. Redisplay runs inside Hemlock's command `handler-bind`, so it becomes that sheet (not a silent AppKit failure). Related: `*log-callback-errors* :backtrace` walking BOGUS stack slots → earlier "can't determine class of #<BOGUS>" sheets.
+- **Fix (tip `f6a57c79`):** entire modeline `#/drawRect:` in `ignore-errors`; `realp` before `float` on width/height; arm64 default `*log-callback-errors*` → `t` (not `:backtrace`). Rebake `Clozure CL64.app` IDE heap after source change. Quit/reopen the app — a process started before the bake still has the old methods.
+- **Note:** forced `#/display` of modeline on tip ABI often returns sane bounds (e.g. 570×15) even with naked `float`; the sheet is intermittent/corruption-coupled. Guard stays as belt-and-suspenders until HFA/`#/bounds` during callbacks is fully trusted.

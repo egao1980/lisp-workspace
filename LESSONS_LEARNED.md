@@ -467,3 +467,9 @@ Require OBJC-SUPPORT still SIGBUS/SIGSEGV flaky (~30%) — separate issue.
 - **Symptom:** Inspect a function (e.g. from xapropos) → `Undefined function DISASSEMBLE-LINES` in `INSPECTOR::COMPUTE-DISASSEMBLY-LINES`.
 - **Cause:** arm64 had `arm64-xdisassemble` for the REPL `DISASSEMBLE` but never implemented the inspector’s `CCL::DISASSEMBLE-LINES` (x86/ppc have it; 32-bit ARM stubs with an error).
 - **Fix:** `compiler/ARM64/arm64-disassemble.lisp` — build lines from the existing DI vector. Smoke: `tools/darwin-disassemble-lines-smoke.lisp`. Rebake IDE so `bin/arm64-disassemble` is in the heap.
+
+## Search Files Browse / file dialog hang (2026-08-10)
+
+- **Symptom:** Tools → Search Files → Browse (folder chooser) never returns; IDE wedged. Same class can hit Open/Save if they still call the deprecated API.
+- **Cause:** `cocoa-ide/file-dialogs.lisp` used `#/runModalForDirectory:file:types:` / `#/runModalForDirectory:file:` (deprecated since 10.6). On modern macOS the panel is out-of-process (`openAndSavePanelservice`); those entry points can hang the app.
+- **Fix:** `#/setDirectoryURL:` + `#/runModal`; read selection from `#/URL` / path. Search `#/doBrowse:` already calls `cocoa-choose-directory-dialog`. Smoke: `tools/ide-file-dialog-smoke.lisp`. Load tip `file-dialogs.lisp` into the IDE or rebake (`file-dialogs` fasl).

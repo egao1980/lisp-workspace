@@ -436,3 +436,12 @@ Require OBJC-SUPPORT still SIGBUS/SIGSEGV flaky (~30%) — separate issue.
 - **Symptom:** Hemlock sheet on New Listener / greeting flush: `not of the expected type REAL` with `#<BOGUS>` datum, or `can't determine class of #<BOGUS>`. Stack: `INSERT-STRING` → `<-2` BOGUS while appending `"? "`.
 - **Cause:** `%symptr-binding-address` (arm64) returned **raw** `symbol.vcell` byte offset `9` as a Lisp value. Tag bits make `#<BOGUS @ #x9>`. `atomic-incf`/`atomic-decf` of specials (Hemlock `*cache-modification-tick*` via `next-cache-modification-tick`) then returned/stored garbage into the open-line cache → `insert-string` type-errors. PPC LAP uses `(li arg_y '#.symbol.vcell)` which boxes a fixnum; arm64 used `(mov … (:$ 9))` without boxing.
 - **Fix:** `level-0/ARM64/arm64-symbol.lisp` — `(mov arg_y (:$ (ash symbol.vcell fixnumshift)))`. Recompile LAP, bake into IDE image. Instrumentation (`/tmp/ccl-hemlock-err.log`) was what found the real stack (not modeline `#/bounds`).
+
+## Listener BOGUS MACPTR / BUFFER-SELECTION-INFO (2026-08-10)
+
+- **Symptom:** After vcell/atomic-decf fix: Listener break `BOGUS not MACPTR` in `%WAIT-ON-SEMAPHORE-PTR`; AltConsole `BOGUS not STRUCTURE-OBJECT` in `HI::BUFFER-SELECTION-INFO`. W^X fixup spam often precedes.
+- **Not the cause:** semaphore mach-port macptrs themselves (small addresses like `#xDA33` are normal); tip `%symptr-binding-address` is boxed (`mov #72`). REPL+cocoa probe of Listener qs/ts/dob semaphores + `buffer-selection-info` is clean.
+- **Likely trigger:** `ui-object-choose-listener-for-selection` used `performSelectorOnMainThread:waitUntilDone:YES`. Hemlock eval-selection runs on the event thread → nested waitUntilDone → darwinarm64 heap corruption (same family as note-package).
+- **Fix:** `execute-in-gui` around `#/ensureListener:` (`egao1980/ccl` `e18c9ec8`). Rebake `Clozure CL64.app`. Quit/reopen.
+- **Do not:** auto `#/newListener:` via `queue-for-gui` from `applicationDidFinishLaunching` — still wedges like untitled-during-launch. Keep File → New Listener after activate.
+- **Bake hygiene:** never `compile-file` cocoa sources into fasls *after* Cocoa is up (corrupt fasl / UUO 0 on load). Delete bad fasl, let `load-ide` / `rebuild-clozure-cl64-ide.lisp` recompile. Don't leave shell `HOME` stuck on `mktemp` from IDE probes.

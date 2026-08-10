@@ -454,3 +454,10 @@ Require OBJC-SUPPORT still SIGBUS/SIGSEGV flaky (~30%) — separate issue.
 - **Blanket fix:** mirror outbound `expand-ff-call` / x8664 callbacks in `lib/ffi-linuxarm64.lisp` (Darwin reexports): `:memory` keeps prepend `:address`; `:gpr`/`:hfa` allocate a local `rlet` and copy out to CBF `x0`/`x1` or `d0`..`dN`. `.SPcallback` exit reloads **d0–d7** (was only `d0`). Recompile cocoa-editor (etc.) *after* loading tip generators so IMPs re-expand. Smoke: `tools/darwin-callback-struct-return-smoke.lisp`.
 - **Still open:** trampoline stamps callback index into `x8` (real sret pointer lost) — no cocoa-ide IMP uses `:memory` yet.
 - **Do not:** whack individual IMPs; fix the callback generator once.
+
+## xapropos All-symbols + AltConsole W^X spam (2026-08-10)
+
+- **Symptom:** Experiments → xapropos → All symbols → `EXC_BAD_ACCESS` in `freeGCptrs` (wild `far`); AltConsole pops with `[darwinarm64] W^X fixup #N RW…`.
+- **W^X AltConsole:** successful MAP_JIT/purify fixups were `fprintf(dbgout)` — dbgout is AltConsole in the IDE. Looks like a crash; it is not. Gated behind `CCL_DEBUG_WX=1`.
+- **All-symbols crash class:** `apropos-search` ran `do-all-symbols` + `sort` of ~37k symbols *inside* an ObjC IMP on the event thread (TCR valence=foreign). GC → `freeGCptrs` with a corrupted gcable-macptr list. Not an xapropos-specific FFI bug.
+- **Fix:** run the package walk on a lisp worker (`process-run-function`); `queue-for-gui` only the table reload. Stale searches dropped via `search-generation`. Smoke: `tools/ide-xapropos-all-symbols-smoke.lisp`.

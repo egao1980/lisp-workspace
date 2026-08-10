@@ -387,6 +387,15 @@ Require OBJC-SUPPORT still SIGBUS/SIGSEGV flaky (~30%) — separate issue.
 - **Cause:** HI package htab can hold symbol-tagged cells whose `pname` is already dead; `%resize-htab` / probe assumed every `symbolp` entry has a string pname. Separately, modern AppKit leaves `NS*KeyMask` / `FLT_MAX` as unlinkable statics so `#$` fails.
 - **Fix:** harden `%get-hashed-htab-symbol` / `%resize-htab` with `simple-string-p` on pname; rehash HI before `echo`; CDB inject aliases (`inject-objc-bool-constants.lisp`). Smoke: `tools/darwin-require-cocoa-smoke.lisp`. Branch: `egao1980/ccl` `cursor/darwinarm64-cocoa-finish-bca7`.
 
+## CCL darwinarm64 IDE Listener closes immediately (2026-08-10)
+
+- **Symptom:** File → New Listener (or `#/newListener:`) flashes a window then it vanishes. Menus still work.
+- **Mechanism:** `new-cocoa-listener-process` cleanup `cocoa-close`s the document when the Listener process exits. Process dies almost immediately after entering `listener-function` / `toplevel-loop`.
+- **Differential (mini-app init modes):** `sleep` / `format+force-output` / `read-char` / `read` on cocoa streams → process stays alive. `toplevel-loop` / stock `listener-function` → process exits → window closes.
+- **Batch smoke aggravation:** `--batch` sets `*batch-flag*`; `read-loop` then treats cocoa transient EOF as `exit-interactive-process` → `process-kill`. Interactive IDE has `*batch-flag*` nil, but smokes need the cocoa Listener to bind `*batch-flag*`/`*quit-on-eof*` nil.
+- **Also:** `ui-object-note-package` used `execute-in-gui` (waitUntilDone) during create while the event thread is still in `#/newListener:` / CIP — nest hazard on darwinarm64; switch to `queue-for-gui`.
+- **Fix:** `exit-interactive-process` on `cocoa-listener-process` clears input and returns (never kills); wrap Listener init with `*batch-flag*`/`*quit-on-eof*` nil; async package note. Smoke: `tools/ide-new-listener-persist.lisp` + `tools/ide-listener-persist-patch.lisp`. Branch: `egao1980/ccl` `cursor/darwin-arm64-8969`.
+
 ## CCL darwinarm64 IDE Listener beachball / modeline drawRect (2026-08-10)
 
 - **Symptom:** after Listener show, AppKit event thread wedges (beachball); samples show CA commit → `_NSViewDrawRect` → Lisp spinning (`SPspecrefcheck` / later `CLASS-CELL-TYPEP` @ `#x30000000015BF4`).

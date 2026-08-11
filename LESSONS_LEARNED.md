@@ -478,8 +478,21 @@ Require OBJC-SUPPORT still SIGBUS/SIGSEGV flaky (~30%) — separate issue.
 
 - **Symptom:** Listener shows garbled banner (`DArwinAkMo4o4`) and `%WAIT-ON-SEMAPHORE-PTR` with `#<SIMPLE-VECTOR 2>` not MACPTR. Same family as heap corruption / stale ABI, not a semaphore API bug.
 - **Fix:** Hard-quit the app; rebake IDE heap with tip callback ABI (`ccl/tools/safe-rebake-ide.sh`). Do not trust that session.
-- **Symptom:** `save-application` under `--batch` leaves a **0-byte** `darm64cl.image` and hangs.
-- **Cause:** `open-dumplisp-file` truncates first; then `process-interrupt` of `*initial-process*` never runs (Initial stuck in `nanosleep` via housekeeping), so dump never writes.
-- **Fix:** On `#+darwinarm64-target`, `lib/dumplisp.lisp` dumps via `%save-application-internal` on the **current** (TTY listener) process. Rebake: `./tools/safe-rebake-ide.sh`.
+- **Symptom:** `save-application` under `--batch` leaves a **0-byte** `darm64cl.image` and hangs; `process-interrupt` appears delivered (`uuo_interrupt_now`) but lisp `(cmain)` never runs.
+- **Cause (root):** Heap callback trampolines still stamped the index into **x8**; tip `_SPcallback` reads **x9** (x8 = AAPCS64 sret). `xcmain` / `%xerr-disp` never entered → deferred interrupts stay queued; type UUOs SEGV. (Interim dump-from-listener was a workaround, not the cure.)
+- **Fix:** `fix-arm64-callback-trampolines-for-x9` (boot + `*restore-lisp-functions*` + safe-rebake); `make-callback-trampoline` already emits x9. Rebake: `./tools/safe-rebake-ide.sh`.
 - **Also:** Do not smoke-test a `cocoa-ide` image with `--batch --eval` — Initial runs IDE toplevel and looks like `CLASS-CELL-TYPEP` corruption. Use `open Clozure CL64.app` instead.
 - **Also:** `DECLARE` must be at the head of a function body (not after forms inside `LET*`) or IDE fasl rebakes fail to compile (`file-dialogs.lisp`).
+
+## 2026-08-10 — Listener `(+ 1 2)` Ctrl+Enter → GC corrupt uvector
+
+- **Symptom:** After listener-dump IDE rebake, file dialogs OK but Listener eval → `GC: … corrupt uvector header?` → kernel debugger.
+- **Cause:** Same x8/x9 trampoline mismatch → broken interrupts → bad dump path / latent heap damage. Not a GC bug in `(+ 1 2)` itself.
+- **Fix:** Patch trampolines to x9, restore Initial `process-interrupt` save-application, safe-rebake IDE. Verify remote `process-interrupt` runs thunks and `(quit)` exits before trusting a new heap.
+
+## 2026-08-11 — IDE Listener typing dies after tip-FFI cocoa recompile
+
+- **Symptom:** After `safe-rebake-ide` (delete cocoa fasls + tip FFI generators + `load-ide` + dump), cannot finish typing `(+ 1` in Listener → alloc → GC → `mark_tstack_area` → `Bug` / `lisp_Debugger`. Pre-rebake image (`darm64cl.image.pre-safe-rebake`) types fine on the same tip kernel.
+- **Cause:** Tip-FFI force-recompile of cocoa-editor/listener (not the x9 trampoline patch). That heap already had all trampolines at Rd=x9; `process-interrupt` from Listener `ccl-init` works. Soft rebake *without* tip FFI breaks HFA/modeline (`%ARM64-OBJC-CALLBACK-ERROR-RETURN-TRAMPOLINE`).
+- **Fix:** Restore `pre-safe-rebake` as live app image. Do **not** delete/recompile cocoa fasls for trampoline-only work — use `tools/patch-tramps-only-dump-ide.lisp` or runtime `fix-arm64-callback-trampolines-for-x9`. `safe-rebake-ide.lisp` now skips tip-FFI recompile unless `CCL_SAFE_REBAKE_RECOMPILE=1`.
+- **Also:** New Listener is **Cmd+Shift+N** (`keyEquivalent "N"`), not Cmd+L. Cocoa IDE ignores `-e` / `--load` (`parse-application-arguments` → nil); use first-Listener `home:ccl-init` or GUI Load File.

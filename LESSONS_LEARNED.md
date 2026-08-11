@@ -502,3 +502,9 @@ Require OBJC-SUPPORT still SIGBUS/SIGSEGV flaky (~30%) — separate issue.
 - **Symptom:** Contextual menu Trace on a selected form `(+ 1 2)` beachballs / wedges.
 - **Cause:** `symbol-at-point` returns the selection string; `find-symbol-in-buffer-packages` `read`s it as the list `(+ 1 2)`; Trace enqueues `(trace (+ 1 2))` → `%trace-0` does `(trace-function '+ 1 2)` → keyword error. Listener error output hits `NSTextStorage endEditing` while the lisp thread is suspend/resumed → event-thread deadlock on darwinarm64.
 - **Fix:** `traceable-selection` takes the operator from a cons; Trace beeps if nothing usable. Harden `find-symbol-in-buffer-packages` when buffer package is NIL. Live patch: `tools/ide-trace-selection-fix.lisp`.
+
+## 2026-08-11 — IDE Source of `(+ 1 2)` → cocoa-edit type error / hang
+
+- **Symptom:** Contextual "Source of (+ 1 2)" → `The value (+ 1 2) is not of the expected type … VALID-FUNCTION-NAME-P` in `GUI::COCOA-EDIT`. Or after fixing the name, `(ed '+)` from Listener semaphore-deadlocks.
+- **Cause:** Same selection→list bug as Trace. `sourceForSelection` enqueued `(ed '(+ 1 2))`. Eval-in-listener `(ed '+)` then waits on `execute-in-gui` from Listener while GUI work needs the Listener / nested waits.
+- **Fix:** `selection-function-name`; Source calls `hemlock:edit-definition` on the event thread (menu action) with `handler-case`, not via Listener. Patch: `tools/ide-trace-selection-fix.lisp`.

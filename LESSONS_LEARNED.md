@@ -496,3 +496,9 @@ Require OBJC-SUPPORT still SIGBUS/SIGSEGV flaky (~30%) — separate issue.
 - **Cause:** Tip-FFI force-recompile of cocoa-editor/listener (not the x9 trampoline patch). That heap already had all trampolines at Rd=x9; `process-interrupt` from Listener `ccl-init` works. Soft rebake *without* tip FFI breaks HFA/modeline (`%ARM64-OBJC-CALLBACK-ERROR-RETURN-TRAMPOLINE`).
 - **Fix:** Restore `pre-safe-rebake` as live app image. Do **not** delete/recompile cocoa fasls for trampoline-only work — use `tools/patch-tramps-only-dump-ide.lisp` or runtime `fix-arm64-callback-trampolines-for-x9`. `safe-rebake-ide.lisp` now skips tip-FFI recompile unless `CCL_SAFE_REBAKE_RECOMPILE=1`.
 - **Also:** New Listener is **Cmd+Shift+N** (`keyEquivalent "N"`), not Cmd+L. Cocoa IDE ignores `-e` / `--load` (`parse-application-arguments` → nil); use first-Listener `home:ccl-init` or GUI Load File.
+
+## 2026-08-11 — IDE Trace on `(+ 1 2)` hangs
+
+- **Symptom:** Contextual menu Trace on a selected form `(+ 1 2)` beachballs / wedges.
+- **Cause:** `symbol-at-point` returns the selection string; `find-symbol-in-buffer-packages` `read`s it as the list `(+ 1 2)`; Trace enqueues `(trace (+ 1 2))` → `%trace-0` does `(trace-function '+ 1 2)` → keyword error. Listener error output hits `NSTextStorage endEditing` while the lisp thread is suspend/resumed → event-thread deadlock on darwinarm64.
+- **Fix:** `traceable-selection` takes the operator from a cons; Trace beeps if nothing usable. Harden `find-symbol-in-buffer-packages` when buffer package is NIL. Live patch: `tools/ide-trace-selection-fix.lisp`.

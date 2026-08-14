@@ -56,7 +56,7 @@ Need to ship a Lisp system to ghcr.io/egao1980/cl-systems?
 | Piece | Value |
 |-------|--------|
 | Client image | `ghcr.io/egao1980/cl-repository/cl-repository-client` — CI uses **`CL_REPOSITORY_CLIENT_VERSION: latest`** (resolve system-name `:latest` anchor → annotated semver → `oras pull`) |
-| Packager image | `ghcr.io/egao1980/cl-repository/cl-repository-packager:**0.12.0**` |
+| Packager image | `ghcr.io/egao1980/cl-repository/cl-repository-packager:**0.15.0**` |
 | Registry / namespace | `ghcr.io` / `egao1980/cl-systems` |
 | oras (Actions) | `1.2.3` |
 | SBCL (typical CI) | `2.6.7` via Roswell (`sbcl-bin`) |

@@ -44,6 +44,7 @@
 - **Source:** dexador OCI `depends-on` had `cl+ssl` but not `winhttp`; Windows `setup-client` had to hardcode the pull.
 - **Proposed change:** `cl-stack-systems/scripts/publish-import.lisp` must not filter `(:feature EXPR DEP)` against the publish-host `*features*`. Packager 0.16.0 already keeps feature deps as metadata; the import script’s `normalize-dep*` override was a leftover 0.8.0 workaround that dropped `:windows` on Linux CI. After changing it, republish `dexador` (`workflow_dispatch -f import=dexador`), not the full matrix.
 - **Why:** Linux publish host → `(:feature :windows "winhttp")` vanished; consumers loading dexador on Windows died before ci-install.
+- **Status:** code landed — cl-stack-systems#31 merged; `dexador:0.9.16` now lists `winhttp,flexi-streams,cl+ssl`. Skill text still pending. Follow-up: drop the setup-client MINGW `pull_system_tree winhttp` hardcode (cl-repository#21); `pull_system_tree` now walks the annotation on every OS.
 
 ### 2026-08-14 — setup-client Windows (CRLF, cygpath, ASDF `;`)
 

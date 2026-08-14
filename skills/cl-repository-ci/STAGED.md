@@ -39,6 +39,12 @@
 - **Status:** applied — MEMORY + SKILL: first-party publish from owning repo; cl-stack-systems = third-party only. ACL grant to cl-stack-systems not required for owned packages.
 - **Follow-up (optional):** drop obsolete first-party dirs under `cl-stack-systems/imports/` (http-protocol, backends, cl-stack-*, …) so nobody dispatches them there by habit.
 
+### 2026-08-14 — setup-client Windows (CRLF, cygpath, ASDF `;`)
+
+- **Source:** consumer `windows-latest` after cl-repository#18/#19: `cl-repository-client` not found / `:0.16.0` missing / `tar -C D:\…`.
+- **Proposed change:** Gold notes for `setup-client`: Git Bash Python emits CRLF (strip CR); `tar -C` needs `cygpath -u`; export `D:/` via `cygpath -m`; **Windows `CL_SOURCE_REGISTRY` uses `;`** (`D:/ws//;D:/dest//;`) because `:` splits drive letters. Consumer `run:` steps need `shell: bash`. `highest_tag` must `fullmatch` semver so SHA `677cabae…` does not beat `cffi:0.24.1`. Cover `windows-latest` in the action’s own job; smoke-load from extract dest only (checkout asd hides registry bugs).
+- **Why:** Unix consumer CI was green; Windows failed until cl-repository#19+#20.
+
 ### 2026-08-14 — setup-roswell reuses test.yml Lisp steps
 
 - **Source:** user: "reuse test.yaml steps" while migrating native `publish-oci.yml`.

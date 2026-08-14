@@ -39,6 +39,12 @@
 - **Status:** applied — MEMORY + SKILL: first-party publish from owning repo; cl-stack-systems = third-party only. ACL grant to cl-stack-systems not required for owned packages.
 - **Follow-up (optional):** drop obsolete first-party dirs under `cl-stack-systems/imports/` (http-protocol, backends, cl-stack-*, …) so nobody dispatches them there by habit.
 
+### 2026-08-14 — import publish must not drop :feature deps
+
+- **Source:** dexador OCI `depends-on` had `cl+ssl` but not `winhttp`; Windows `setup-client` had to hardcode the pull.
+- **Proposed change:** `cl-stack-systems/scripts/publish-import.lisp` must not filter `(:feature EXPR DEP)` against the publish-host `*features*`. Packager 0.16.0 already keeps feature deps as metadata; the import script’s `normalize-dep*` override was a leftover 0.8.0 workaround that dropped `:windows` on Linux CI. After changing it, republish `dexador` (`workflow_dispatch -f import=dexador`), not the full matrix.
+- **Why:** Linux publish host → `(:feature :windows "winhttp")` vanished; consumers loading dexador on Windows died before ci-install.
+
 ### 2026-08-14 — setup-client Windows (CRLF, cygpath, ASDF `;`)
 
 - **Source:** consumer `windows-latest` after cl-repository#18/#19: `cl-repository-client` not found / `:0.16.0` missing / `tar -C D:\…`.

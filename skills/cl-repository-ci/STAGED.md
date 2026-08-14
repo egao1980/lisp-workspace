@@ -39,6 +39,12 @@
 - **Status:** applied — MEMORY + SKILL: first-party publish from owning repo; cl-stack-systems = third-party only. ACL grant to cl-stack-systems not required for owned packages.
 - **Follow-up (optional):** drop obsolete first-party dirs under `cl-stack-systems/imports/` (http-protocol, backends, cl-stack-*, …) so nobody dispatches them there by habit.
 
+### 2026-08-14 — setup-roswell reuses test.yml Lisp steps
+
+- **Source:** user: "reuse test.yaml steps" while migrating native `publish-oci.yml`.
+- **Proposed change:** Gold workflow shape is `setup-client` + `setup-roswell` + `ros -l scripts/ci-install.lisp` + `ci-test.lisp`. Native publish uses the same three steps (not `CI_INSTALL_DEPS_ONLY` / QL client bootstrap). ECL/CCL jobs: `setup-roswell` with `install-sbcl: false`.
+- **Why:** Roswell/SBCL YAML was copy-pasted in every consumer `test.yml` and diverged in `publish-oci.yml`.
+
 ### 2026-08-07 — multi-impl ECL smoke row
 
 - **Source:** cl-stack#42 kickoff (local ECL 26.5.5 green for crypto/secrets).

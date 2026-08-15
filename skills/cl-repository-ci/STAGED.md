@@ -63,3 +63,9 @@
 - **Source:** cl-stack#42 kickoff (local ECL 26.5.5 green for crypto/secrets).
 - **Proposed change:** Extend workflow shape: keep SBCL×OS job; add separate `test-ecl` on `ubuntu-latest` (`ros install ecl`, 90m timeout, C toolchain apt pkgs). Link `cl-stack/docs/multi-impl.md`. Warn: never JSON commas in `:sources` quoted lists; ECL needs `--nodebug` + quit hook.
 - **Why:** README claims ECL/ABCL; SBCL-only CI is the gap.
+
+### 2026-08-07 — multi-impl CCL smoke row
+
+- **Source:** cl-stack#42 continuation (local CCL 1.13 Rosetta green for crypto/secrets).
+- **Proposed change:** Add `test-ccl` on `ubuntu-latest`: `ros install ccl-bin` (not `ccl`; no arm64). Document no Apple Silicon CCL — darwin local = Rosetta or skip. Link `cl-stack/docs/multi-impl.md`.
+- **Why:** CCL is “strongly recommended” in #42; linux binary smoke is cheap once Roswell matrix exists.

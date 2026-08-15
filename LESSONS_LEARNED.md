@@ -319,6 +319,18 @@ Implemented the per-library `cffi-libraries` metadata the spec always described 
 - **Fix:** `--load` scripts; `(require :asdf)` first; `ecl --norc --nodebug -q`; `*debugger-hook*` → `si:quit`. Crypto/secrets Rove suites pass on ECL 26.5.5 with QL + `load-asd`.
 - **Also:** `'(("x" :ql), ("y" :ql))` → `Comma not inside a backquote` — strip commas from `:sources` (same footgun as crypto CI earlier).
 
+## 2026-08 — CCL local smoke (multi-impl #42)
+
+- **Symptom:** `ros install ccl` / `ros install ccl-bin` fail or refuse on Apple Silicon.
+- **Cause:** Roswell target is **`ccl-bin`** (not `ccl`). Install script hard-errors on `uname-m = arm64`. Upstream CCL 1.13 has **no darwin/arm64** port.
+- **Fix:** Local probe = Clozure `ccl-1.13-darwinx86.tar.gz` under Rosetta (`arch -x86_64 ./dx86cl64 --no-init --batch`). CI = `ros install ccl-bin` on **ubuntu-latest (amd64)** only. Crypto/secrets Rove suites pass on CCL 1.13; PBKDF2 is very slow under Rosetta (~2 min/verify).
+
+## 2026-08 — CLISP MT unusable on clean Ubuntu (multi-impl #42)
+
+- **Symptom:** Cannot smoke Ironclad/crypto on CLISP in CI-shaped Linux.
+- **Cause:** (1) Ubuntu/Homebrew CLISP ship without `:mt` → bordeaux-threads rejects. (2) Building 2.49.92 with `--with-threads=POSIX_THREADS` in clean `ubuntu:24.04`: **arm64** `interpreted.mem` bootstrap **hangs** (0% CPU); **amd64** bootstrap **SIGSEGV** in GC (`Fault address = 0xa8`). Configure help: threads “highly experimental”. Wrong flag `POSIX` (need `POSIX_THREADS`); aarch64 also needs `-DNO_GENERATIONAL_GC` (no fast spinlocks) before you even reach the hang.
+- **Fix / policy:** No `test-clisp` job. Track in `cl-stack/docs/multi-impl.md`. Do not `continue-on-error` apt clisp.
+
 ## 2026-08-13 — Stack review: default branches, jzon vectors, CRLF, publish version stamping
 
 - **GitHub default branch left on a merged `cursor/*` branch is a time bomb.** `sql-query` default sat on `cursor/sql-query-dsl-3a7a` (33 behind main) after the PR merged; every `actions/checkout` without `ref:` (sql-orm `_deps`), publish-checkout matrix entries, and "browse the repo" views got stale code — sql-orm main went red with `no class named DROP-TYPE-STATEMENT`. After merging a PR from a branch that is the repo default, reset the default to `main` before deleting anything. Same cleanup found ~330 stale merged `cursor/*` branches across the stack (squash-merged branches show "ahead" in compare — check merged PRs by head ref, not just `compare.ahead_by`).

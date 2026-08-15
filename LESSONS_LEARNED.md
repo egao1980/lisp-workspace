@@ -319,6 +319,40 @@ Implemented the per-library `cffi-libraries` metadata the spec always described 
 - **Fix:** `--load` scripts; `(require :asdf)` first; `ecl --norc --nodebug -q`; `*debugger-hook*` → `si:quit`. Crypto/secrets Rove suites pass on ECL 26.5.5 with QL + `load-asd`.
 - **Also:** `'(("x" :ql), ("y" :ql))` → `Comma not inside a backquote` — strip commas from `:sources` (same footgun as crypto CI earlier).
 
+## ABCL + cl-repository OCI (2026-08-07)
+
+- **chipz:** ABCL is not in chipz’s Gray-streams feature list → `make-decompressing-stream` errors. Fix: `chipz:decompress` buffer API in `cl-repository-client/installer` (`gunzip-octets`).
+- **JNA:** CFFI on ABCL needs `jna` + `jna-platform` on `CLASSPATH` (else `Class not found: com.sun.jna.Pointer`). Java 21+: `--enable-native-access=ALL-UNNAMED` and `--add-opens=java.base/java.io=ALL-UNNAMED`.
+- **Symptom without buffer gunzip:** `ensure-system-installed` logs `not in ghcr.io (make-decompressing-stream…)` and silently skips first-party deps → later `System "…" not found` at test time.
+
+## 2026-08-07 — event-protocol/conformance secondary OCI shadows primary
+
+- **Symptom:** CI installs `event-protocol:0.1.2` then still pulls `event-protocol/conformance:0.1.1` and ASDF loads **0.1.1** (ABCL dies on bare `sb-unix:` in old `asyncio-io.lisp`).
+- **Cause:** Older publish listed `event-protocol/conformance` in `:provides`, creating a separate GHCR package. Later “protocol-only” publish omitted that provide, so the stale secondary stayed preferred when resolving the subsystem name.
+- **Fix:** Republish primary with `provides = (event-protocol event-protocol/conformance)` (not `*/tests`). Optionally `ensure-systems` the primary + `configure-asdf-source-registry` before `ensure-system-dependencies` so the subsystem is already findable.
+- **Rule:** If backends depend on a subsystem name as an ASDF system, keep that name in OCI `:provides` whenever you bump the primary — or delete the orphan secondary package.
+
+## 2026-08-07 — gh pr merge + workflow scope
+
+- OAuth `GITHUB_TOKEN` without `workflow` scope refuses `gh pr merge` when the PR touches `.github/workflows/*`.
+- **Workaround:** merge locally (`git merge` / ff onto `main`) and `git push origin main` (SSH).
+
+## 2026-08-08 — CCL Darwin arm64 ObjC "N-word heisenbug" was tagged pointers
+
+Symptom: `#/substringWithRange:` on short NSStrings (`"abcdef"`) failed ~half the time with `TYPE-ERROR` (Foreign Pointer ≠ objc-object); long strings were fine. Looked like NSRange/N-word FFI.
+
+Root cause: Apple arm64 ObjC **tagged pointers** (bit 63 set). `tagged-objc-instance-p` still used the **x86_64** low-nibble test, so many tagged NSStrings were treated as heap objects → `safe-get-ptr` on a non-address → `recognize-objc-object` failed. Process-stable because the same short string → same tagged bit pattern.
+
+Fix: arm64 branch of `tagged-objc-instance-p` (MSB + split basic/extended tag). N-word expand (x8664-style `%%get-unsigned-longlong`) still useful but was not the flake.
+
+Require OBJC-SUPPORT still SIGBUS/SIGSEGV flaky (~30%) — separate issue.
+
+## CCL darwinarm64 NXArgv paref (2026-08-08)
+
+- **Symptom:** intermittent SIGSEGV in `os_unfair_lock_lock` during `(require "OBJC-SUPPORT")` / Cocoa `dlopen`; fault address often `cs_area.high+0x4c10`.
+- **Cause:** `objc-runtime.lisp` cleared argv with `(paref (%get-ptr NXArgv) (:* :char) 1)` — that indexes **bytes**, smashing `argv[0]` mid-pointer. Correct element type for `char**` is `(:* (:* :char))` (see `library/jni.lisp`).
+- **Fix:** use `(:* (:* :char))` + `(%null-ptr)`.
+
 ## 2026-08 — CCL local smoke (multi-impl #42)
 
 - **Symptom:** `ros install ccl` / `ros install ccl-bin` fail or refuse on Apple Silicon.

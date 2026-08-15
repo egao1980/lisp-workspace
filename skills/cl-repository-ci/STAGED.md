@@ -1,5 +1,10 @@
 ## Pending
 
+### 2026-08-07 — CFFI natives auto-load on ASDF load
+- **Source:** user standing instruction (cl-stack-icu).
+- **Proposed change:** Document that first-party native/CFFI packages must `load-foreign-library` at system load (`eval-when (:load-toplevel :execute)`); consumers must not need `load-*` / `ensure-*`. Absolute preload preferred; no LD_LIBRARY_PATH.
+
+
 ### 2026-08-04 — first-party source-only migration landed
 
 - **Source:** agent migration (cl-stack-systems#5 + drop-source-publish PRs across stack).
@@ -69,3 +74,7 @@
 - **Source:** cl-stack#42 continuation (local CCL 1.13 Rosetta green for crypto/secrets).
 - **Proposed change:** Add `test-ccl` on `ubuntu-latest`: `ros install ccl-bin` (not `ccl`; no arm64). Document no Apple Silicon CCL — darwin local = Rosetta or skip. Link `cl-stack/docs/multi-impl.md`.
 - **Why:** CCL is “strongly recommended” in #42; linux binary smoke is cheap once Roswell matrix exists.
+
+### 2026-08-07 — ABCL OCI extract (source: multi-impl #42 / crypto-backend test-abcl)
+- Document that client installer must use `chipz:decompress` (not Gray `make-decompressing-stream`) for ABCL.
+- ABCL CI needs JNA jars on `CLASSPATH` whenever CFFI/dexador is on the path.

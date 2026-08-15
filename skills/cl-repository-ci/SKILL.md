@@ -56,7 +56,7 @@ Need to ship a Lisp system to ghcr.io/egao1980/cl-systems?
 | Piece | Value |
 |-------|--------|
 | Client image | `ghcr.io/egao1980/cl-repository/cl-repository-client` — CI uses **`CL_REPOSITORY_CLIENT_VERSION: latest`** (resolve system-name `:latest` anchor → annotated semver → `oras pull`) |
-| Packager image | `ghcr.io/egao1980/cl-repository/cl-repository-packager:**0.12.0**` |
+| Packager image | `ghcr.io/egao1980/cl-repository/cl-repository-packager:**0.16.0**` |
 | Registry / namespace | `ghcr.io` / `egao1980/cl-systems` |
 | oras (Actions) | `1.2.3` |
 | SBCL (typical CI) | `2.6.7` via Roswell (`sbcl-bin`) |
@@ -151,8 +151,8 @@ New first-party repos: **cl-repo CI from day one**. No `qlfile` as the install s
 ### Non-negotiable
 
 1. `actions/checkout` → **only** the repo under test.
-2. Bootstrap **`cl-repository-client` from OCI** (`CL_REPOSITORY_CLIENT_VERSION: latest` → resolve `:latest` anchor → `oras pull …:<semver>`). Do **not** git-checkout `cl-repository` in consumer CI.
-3. Deps from `ghcr.io/egao1980/cl-systems` via `cl-repo:ensure-system-dependencies` (OCI → QL). QL also for *client* bootstrap deps only.
+2. Bootstrap **`cl-repository-client` from OCI** via composite action `egao1980/cl-repository/.github/actions/setup-client@main` (default `version: latest` — system-name anchor → semver; **do not pin a git tag of cl-repository**). Client Lisp deps also from `ghcr.io/egao1980/cl-systems` (highest version tag when no `:latest` anchor). **No QL bootstrap.** Do **not** git-checkout `cl-repository` in consumer CI.
+3. Project deps from `ghcr.io/egao1980/cl-systems` via `cl-repo:ensure-system-dependencies`.
 4. Ship `scripts/ci-install.lisp` + `scripts/ci-test.lisp` (phase split: install must not ASDF-load cffi/cl+ssl mid-flight before overlays are ready).
 
 ### Workflow shape (canonical)
@@ -160,14 +160,21 @@ New first-party repos: **cl-repo CI from day one**. No `qlfile` as the install s
 Mirror [`cl-stack-http/.github/workflows/test.yml`](https://github.com/egao1980/cl-stack-http/blob/main/.github/workflows/test.yml) /
 [`http-backend-winhttp`](https://github.com/egao1980/http-backend-winhttp):
 
-1. checkout self  
-2. `oras-project/setup-oras@v2` (`1.2.3`)  
-3. Roswell + `sbcl-bin/$SBCL_VERSION`  
-4. `oras login` + pull client image → extract under `.cl-repository` / find `cl-oci-*`  
-5. QL **client deps only** (yason, ironclad, babel, dexador, …)  
-6. `CL_SOURCE_REGISTRY="$(pwd)//:${CLIENT_DIR}//:"`  
-7. `ros -l scripts/ci-install.lisp -q` then `ros -l scripts/ci-test.lisp -q`  
-8. Matrix: `ubuntu-latest`, `macos-latest`, `windows-latest` when the package claims Windows
+```yaml
+permissions:
+  contents: read
+  packages: read
+steps:
+  - uses: actions/checkout@v5
+  - uses: egao1980/cl-repository/.github/actions/setup-client@main
+  # Roswell + sbcl-bin/$SBCL_VERSION (Unix/Windows as today)
+  - run: ros -l scripts/ci-install.lisp -q
+  - run: ros -l scripts/ci-test.lisp -q
+```
+
+The action writes `CL_SOURCE_REGISTRY` / `CL_REPOSITORY_CLIENT_DIR`. Call it in **every job** that needs the client (runner disks are not shared).
+
+Matrix: `ubuntu-latest`, `macos-latest`, `windows-latest` when the package claims Windows.
 
 ### `ci-install.lisp` / `ci-test.lisp` conventions
 
@@ -196,6 +203,7 @@ Env often used: `GITHUB_TOKEN`, `CL_SOURCE_REGISTRY`, `HTTP_ASYNC_EVENT_BACKEND`
 ### CI anti-patterns
 
 - ❌ Second `actions/checkout` of `cl-repository` / `http-protocol` / event backends  
+- ❌ Copy-pasted `oras pull` + QL client-bootstrap (use `setup-client`)  
 - ❌ Hand-maintained `ci-fetch` / `ci-ql` inventories of every package  
 - ❌ qlot/`qlfile` as the primary CI install for new packages  
 - ❌ Hand `oras pull` of natives + `LD_LIBRARY_PATH` as the *dep install* path (staging overlay libs for the test process is OK)  

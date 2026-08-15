@@ -352,3 +352,24 @@ Require OBJC-SUPPORT still SIGBUS/SIGSEGV flaky (~30%) — separate issue.
 - **Symptom:** intermittent SIGSEGV in `os_unfair_lock_lock` during `(require "OBJC-SUPPORT")` / Cocoa `dlopen`; fault address often `cs_area.high+0x4c10`.
 - **Cause:** `objc-runtime.lisp` cleared argv with `(paref (%get-ptr NXArgv) (:* :char) 1)` — that indexes **bytes**, smashing `argv[0]` mid-pointer. Correct element type for `char**` is `(:* (:* :char))` (see `library/jni.lisp`).
 - **Fix:** use `(:* (:* :char))` + `(%null-ptr)`.
+
+## 2026-08 — CCL local smoke (multi-impl #42)
+
+- **Symptom:** `ros install ccl` / `ros install ccl-bin` fail or refuse on Apple Silicon.
+- **Cause:** Roswell target is **`ccl-bin`** (not `ccl`). Install script hard-errors on `uname-m = arm64`. Upstream CCL 1.13 has **no darwin/arm64** port.
+- **Fix:** Local probe = Clozure `ccl-1.13-darwinx86.tar.gz` under Rosetta (`arch -x86_64 ./dx86cl64 --no-init --batch`). CI = `ros install ccl-bin` on **ubuntu-latest (amd64)** only. Crypto/secrets Rove suites pass on CCL 1.13; PBKDF2 is very slow under Rosetta (~2 min/verify).
+
+## 2026-08 — CLISP MT unusable on clean Ubuntu (multi-impl #42)
+
+- **Symptom:** Cannot smoke Ironclad/crypto on CLISP in CI-shaped Linux.
+- **Cause:** (1) Ubuntu/Homebrew CLISP ship without `:mt` → bordeaux-threads rejects. (2) Building 2.49.92 with `--with-threads=POSIX_THREADS` in clean `ubuntu:24.04`: **arm64** `interpreted.mem` bootstrap **hangs** (0% CPU); **amd64** bootstrap **SIGSEGV** in GC (`Fault address = 0xa8`). Configure help: threads “highly experimental”. Wrong flag `POSIX` (need `POSIX_THREADS`); aarch64 also needs `-DNO_GENERATIONAL_GC` (no fast spinlocks) before you even reach the hang.
+- **Fix / policy:** No `test-clisp` job. Track in `cl-stack/docs/multi-impl.md`. Do not `continue-on-error` apt clisp.
+
+## 2026-08-13 — Stack review: default branches, jzon vectors, CRLF, publish version stamping
+
+- **GitHub default branch left on a merged `cursor/*` branch is a time bomb.** `sql-query` default sat on `cursor/sql-query-dsl-3a7a` (33 behind main) after the PR merged; every `actions/checkout` without `ref:` (sql-orm `_deps`), publish-checkout matrix entries, and "browse the repo" views got stale code — sql-orm main went red with `no class named DROP-TYPE-STATEMENT`. After merging a PR from a branch that is the repo default, reset the default to `main` before deleting anything. Same cleanup found ~330 stale merged `cursor/*` branches across the stack (squash-merged branches show "ahead" in compare — check merged PRs by head ref, not just `compare.ahead_by`).
+- **json-protocol arrays are vectors — consumers written in the yason era break via `:latest`.** cl-stack-http 0.1.8 switched `response-json` to json-protocol/jzon (arrays → vectors, `:null`); http-parity's demo `mapcar` TYPE-ERRORed only when CI moved to client `:latest` and silently picked up the new stack. Use sequence ops (`map 'list …`) on parsed JSON arrays; grep for `mapcar`/`dolist` over `response-json` results when migrating.
+- **`read-line` keeps the `#\Return` of CRLF records.** sql-query-csv keywordized a header as `:|CITY^M|` on Windows (git autocrlf) — right-trim `#\Return` at the record level per RFC 4180; don't rely on `.gitattributes`.
+- **Rove `:perform (test-op … (symbol-call :rove :run c))` swallows failures.** `rove:run` returns a boolean; without `(unless … (error …))` failing tests keep `asdf:test-system` (and CI) green. cl-stack-pathlib/brotli/zstd all had this.
+- **Publish version overrides must land before `build-package`.** cl-stack-systems `imports/<name>/version` was applied to the spec *after* the packager built the tarball/config/annotations — `cl-unicode:0.1.7` shipped a `cl-unicode-0.1.6/` tarball with `version: 0.1.6` annotations (tag was the only 0.1.7). The client still extracts (strip prefix comes from the config blob) but installs under the wrong version dir and `:latest`-anchor reads the stale annotation. Fixed by building the spec, forcing the version, then `build-package` (cl-stack-systems#24/#25); packager-side `:version` parameter proposed in cl-stack#174.
+- **QL cl-unicode is also too old for IDNA.** The Quicklisp dist predates edicl/cl-unicode#22, so `("cl-unicode" :ql)` pins never provided `idna-mapping` — they only worked where a sibling checkout shadowed them. OCI `cl-unicode:0.1.7` (edicl master) is the fix; pins removed from http-protocol, http-encoding-*, cl-stack-demos.

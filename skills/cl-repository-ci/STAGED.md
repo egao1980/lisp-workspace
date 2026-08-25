@@ -81,6 +81,11 @@
 
 ## Applied
 
+### 2026-08-25 — publish-source.yml verified + GH uses:/read traps
+- **Source:** schema-protocol canary after cl-repository#24/#25/#26.
+- **Applied:** SKILL/MEMORY/REQUIREMENTS/LESSONS: `publish-source.yml@main` published `schema-protocol:0.1.0`. `uses:` refs must be literal `@main`. `run.lisp` must not contain packager/oci-client package-qualified symbols (they belong in `publish.lisp`).
+- **Follow-up:** finish migrating remaining copied `ci-*.lisp` consumers (first wave PRs opened 2026-08-25). Extra-impl / event-backend-hook / dialect-publish repos stay composed, not the thin reusable.
+
 ### 2026-08-25 — canned GH Actions, not copied CI Lisp
 - **Source:** user: original cl-repo idea is `.asd` conventions + canned GH Action; hooks only if needed.
 - **Applied:** SKILL/MEMORY/REQUIREMENTS: gold path is `test-system.yml` / `publish-source.yml` / `ci` action. `:cl-repo :ci` for extras. No new `ci-install.lisp` / `publish-checkout.lisp`. Existing copied scripts = migrate-away.

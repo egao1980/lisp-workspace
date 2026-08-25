@@ -373,3 +373,13 @@ Require OBJC-SUPPORT still SIGBUS/SIGSEGV flaky (~30%) — separate issue.
 - **Rove `:perform (test-op … (symbol-call :rove :run c))` swallows failures.** `rove:run` returns a boolean; without `(unless … (error …))` failing tests keep `asdf:test-system` (and CI) green. cl-stack-pathlib/brotli/zstd all had this.
 - **Publish version overrides must land before `build-package`.** cl-stack-systems `imports/<name>/version` was applied to the spec *after* the packager built the tarball/config/annotations — `cl-unicode:0.1.7` shipped a `cl-unicode-0.1.6/` tarball with `version: 0.1.6` annotations (tag was the only 0.1.7). The client still extracts (strip prefix comes from the config blob) but installs under the wrong version dir and `:latest`-anchor reads the stale annotation. Fixed by building the spec, forcing the version, then `build-package` (cl-stack-systems#24/#25); packager-side `:version` parameter proposed in cl-stack#174.
 - **QL cl-unicode is also too old for IDNA.** The Quicklisp dist predates edicl/cl-unicode#22, so `("cl-unicode" :ql)` pins never provided `idna-mapping` — they only worked where a sibling checkout shadowed them. OCI `cl-unicode:0.1.7` (edicl master) is the fix; pins removed from http-protocol, http-encoding-*, cl-stack-demos.
+
+## 2026-08-25 — canned CI reusable workflows (`uses:` + `run.lisp` read)
+
+- **Symptom:** first consumer of `publish-source.yml@main` (schema-protocol) 422'd at dispatch: `Unrecognized named-value: 'inputs'` on `uses: …@${{ inputs.actions-ref }}`.
+- **Cause:** GitHub evaluates `uses:` at parse time and does not allow `inputs` or `github` contexts in the action ref (same for `github.action_ref`).
+- **Fix:** hardcode composite actions at `@main` (cl-repository#25). Callers pin by changing `test-system.yml@main` / `publish-source.yml@main`, not an `actions-ref` input.
+
+- **Symptom:** after the parse fix, install+test+publish all died in `ros -l run.lisp`: `Package CL-REPOSITORY-PACKAGER/ASDF-PLUGIN does not exist`.
+- **Cause:** `LOAD` reads the whole file. `%run-publish` mentioned packager/oci-client package-qualified symbols before `%ensure-packager` ran, so even `phase: install` never started.
+- **Fix:** keep those symbols in `publish.lisp`, loaded only after the packager (cl-repository#26). Regression: `run.lisp` must not contain `cl-repository-packager/…:` or `cl-oci-client/…:` tokens. Canary then green: test ×3 OS + `schema-protocol:0.1.0` republished.

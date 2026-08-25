@@ -62,6 +62,13 @@ Need to ship a Lisp system to ghcr.io/egao1980/cl-systems?
 | Registry / namespace | `ghcr.io` / `egao1980/cl-systems` |
 | oras (Actions) | `1.2.3` |
 | SBCL (typical CI) | `2.6.7` via Roswell (`sbcl-bin`) |
+| Reusable workflows | `egao1980/cl-repository/.github/workflows/{test-system,publish-source}.yml@main` |
+
+**Verified (2026-08-25):** `publish-source.yml@main` republished `ghcr.io/egao1980/cl-systems/schema-protocol:0.1.0` from `egao1980/schema-protocol` #4. Test-system.yml green on ubuntu/macos/windows.
+
+**GitHub `uses:` cannot interpolate.** Do not write `uses: …@${{ inputs.anything }}` or `@${{ github.action_ref }}` — parse-time `Unrecognized named-value`. Composite actions in the reusable workflows are hardcoded `@main` (cl-repository#25). Pin a SHA only by editing those `uses:` lines.
+
+**`run.lisp` is one `ros -l`.** The reader interned `cl-repository-packager/…:` and `cl-oci-client/…:` before `%ensure-packager` and killed install+test (schema-protocol canary). Those symbols live in `publish.lisp`, loaded after the packager (cl-repository#26). Do not add package-qualified packager/oci-client forms to `run.lisp`.
 
 Bump client when `ensure-*` APIs change; packager independently when packaging changes.
 

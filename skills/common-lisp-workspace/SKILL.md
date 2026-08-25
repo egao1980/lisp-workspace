@@ -11,7 +11,7 @@ description: >-
 ## Stack
 
 - **ASDF:** `~/.config/common-lisp/source-registry.conf.d/50-lisp-workspace-*.conf` from add-cl-project.
-- **Deps / CI / publish:** skill **[cl-repository-ci](../cl-repository-ci/SKILL.md)** — OCI-bootstrap client, `ci-install`/`ci-test`, **source-only publish via cl-stack-systems** (no per-repo `publish-source.lisp`). Qlot = legacy migrate-away.
+- **Deps / CI / publish:** skill **[cl-repository-ci](../cl-repository-ci/SKILL.md)** — canned GH Actions (`test-system.yml` / `publish-source.yml`), `.asd` `:cl-repo`, no copied `ci-*.lisp`. Qlot = legacy migrate-away.
 - **Impl:** **Roswell** (`ros`) typical.
 - **Tests:** **Rove** — **[cl-unit-testing](../cl-unit-testing/SKILL.md)**.
 

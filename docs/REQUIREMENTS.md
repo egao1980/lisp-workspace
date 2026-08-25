@@ -17,13 +17,13 @@ Coordinate multiple **Common Lisp** codebases (ASDF systems) that depend on each
 - **Install path = cl-repository.** Project deps come from **`ghcr.io/egao1980/cl-systems`** via `cl-repository-client`.
 - **Bootstrap client from OCI.** Prefer `oras pull ghcr.io/egao1980/cl-repository/cl-repository-client:<ver>` (+ QL for the client’s own deps). Packager: `ghcr.io/egao1980/cl-repository/cl-repository-packager`. Do **not** git-checkout `cl-repository` in consumer CI (git clone only when developing that repo).
 - **No sibling checkouts for deps.** Consumer CI may `actions/checkout` **only** the repo under test. Do **not** checkout `cl-repository`, `http-protocol`, `event-protocol`, … as sibling paths to satisfy ASDF. Local multi-repo clones are for editing; CI/install must not depend on them.
-- **New first-party repos:** ship `scripts/ci-install.lisp` + `scripts/ci-test.lisp` and cl-repo CI from day one. Do not add `qlfile` as the project install story (qlot = legacy on unmigrated checkouts).
-- **Publish metadata = `.asd`.** Packaging is `auto-package-spec` from ASDF (`:version` / `:depends-on` / `:properties (:cl-repo …)`). Do **not** maintain a parallel `package-spec` in publish scripts. **Source-only → cl-stack-systems** (`imports/<name>/qlfile` is only a clone pin). Natives → cl-repository reusable native publish, still from `.asd` `:cl-repo` overlays. Skill: **[cl-repository-ci](../skills/cl-repository-ci/SKILL.md)**.
+- **New first-party repos:** canned `test-system.yml` / `publish-source.yml` from day one. Do not copy `ci-install.lisp` / `ci-test.lisp` / `publish-checkout.lisp`. CI extras in `.asd` `:cl-repo :ci`; hooks in `scripts/ci/` only if needed. Do not add `qlfile` as the project install story (qlot = legacy on unmigrated checkouts).
+- **Publish metadata = `.asd`.** Packaging is `auto-package-spec` from ASDF (`:version` / `:depends-on` / `:properties (:cl-repo …)`). Do **not** maintain a parallel `package-spec` in publish scripts. First-party source-only → owning-repo `publish-source.yml`. Third-party → cl-stack-systems import. Natives → cl-repository reusable native publish, still from `.asd` `:cl-repo` overlays. Skill: **[cl-repository-ci](../skills/cl-repository-ci/SKILL.md)**.
 
 ## Tooling
 
 - **ASDF:** per-project `50-lisp-workspace-<name>.conf` under `~/.config/common-lisp/source-registry.conf.d/` (from `.lisp-workspace/scripts/add-cl-project.sh`).
-- **Qlot:** legacy on unmigrated checkouts; prefer cl-repository CI scripts for new work. Use `qlot exec ros …` only where a project still has qlot.
+- **Qlot:** legacy on unmigrated checkouts; prefer canned cl-repository GH Actions for new work. Use `qlot exec ros …` only where a project still has qlot.
 - **Quicklisp `local-projects`:** optional; use `add-cl-project.sh --quicklisp` only when you want global `ql:quickload` without qlot.
 
 ## Testing

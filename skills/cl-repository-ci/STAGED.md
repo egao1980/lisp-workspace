@@ -78,3 +78,10 @@
 ### 2026-08-07 — ABCL OCI extract (source: multi-impl #42 / crypto-backend test-abcl)
 - Document that client installer must use `chipz:decompress` (not Gray `make-decompressing-stream`) for ABCL.
 - ABCL CI needs JNA jars on `CLASSPATH` whenever CFFI/dexador is on the path.
+
+## Applied
+
+### 2026-08-25 — canned GH Actions, not copied CI Lisp
+- **Source:** user: original cl-repo idea is `.asd` conventions + canned GH Action; hooks only if needed.
+- **Applied:** SKILL/MEMORY/REQUIREMENTS: gold path is `test-system.yml` / `publish-source.yml` / `ci` action. `:cl-repo :ci` for extras. No new `ci-install.lisp` / `publish-checkout.lisp`. Existing copied scripts = migrate-away.
+- **Supersedes:** pending notes that still say “ship `scripts/ci-install.lisp`” as gold.

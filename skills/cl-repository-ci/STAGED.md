@@ -1,5 +1,10 @@
 ## Pending
 
+### 2026-08-26 — do not `:sources (("rove" :ql))`
+- **Source:** user standing instruction (log-protocol split).
+- **Proposed change:** Drop the gold-shape example `:sources (("rove" :ql))`. Rove is OCI (`ghcr.io/egao1980/cl-systems/rove`, egao1980/rove import). Same rule as log4cl: QL pin loses to / fights OCI. New asds: `:depends-on ("rove")` on `/tests` only; no `:ci :sources` for rove.
+- **Why:** agents keep copying the skill example onto every new first-party `.asd`.
+
 ### 2026-08-07 — CFFI natives auto-load on ASDF load
 - **Source:** user standing instruction (cl-stack-icu).
 - **Proposed change:** Document that first-party native/CFFI packages must `load-foreign-library` at system load (`eval-when (:load-toplevel :execute)`); consumers must not need `load-*` / `ensure-*`. Absolute preload preferred; no LD_LIBRARY_PATH.

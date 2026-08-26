@@ -38,7 +38,7 @@ Keep entries **short and actionable**. Remove or supersede items that go stale.
 - **Native overlays:** resolve via `cffi:*foreign-library-directories*` + absolute preload (`cl-repo-init.lisp` / `ensure-*`). **Never** require `LD_LIBRARY_PATH` / `DYLD_LIBRARY_PATH` for correctness (Linux ignores mid-process `setenv`; see cl-repository `docs/requirements/native-deps.md`).
 - **CFFI natives auto-load on ASDF load:** first-party native packages (`cl-stack-icu`, `cl-stack-zstd`, …) must `load-foreign-library` (absolute preload preferred) at system load — typically `(eval-when (:load-toplevel :execute) …)` at the end of the FFI file. **No** consumer `load-*` / `ensure-*` calls required to use the API. Idempotent internal helpers OK; do not export “you must call this first” as part of the DX.
 - **cffi OCI:** `ghcr.io/egao1980/cl-systems/cffi:0.24.1` (cl-stack-systems import; upstream asd has no `:version` — publish forces qlfile pin).
-- **log4cl OCI:** `ghcr.io/egao1980/cl-systems/log4cl:1.1.4` (cl-stack-systems import of sharplispers `fe3da517`; `v1.1.2` package-locks on SBCL 2.6.7). Consumers can drop `:sources (("log4cl" :ql))` once 1.1.4 is published.
+- **log4cl OCI:** `ghcr.io/egao1980/cl-systems/log4cl:1.1.4` (cl-stack-systems import of sharplispers `fe3da517`; `v1.1.2` package-locks on SBCL 2.6.7). Do **not** `:sources (("log4cl" :ql))` — OCI wins.
 
 - Plan before acting on new projects or massive changes; use git to preserve initial state and track in a branch.
 - Run tests before declaring done.

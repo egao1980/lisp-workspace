@@ -18,6 +18,7 @@ Keep entries **short and actionable**. Remove or supersede items that go stale.
 - **Python touchpoints:** uv + ruff; line length 120; no black; modern typing (3.12+); optimize imports. **Not for CL repo scripts.**
 - **CL project scripts = CL.** First-party CL repos dogfood cl-stack (`cl-stack-http` × `http-backend-async` × `event-backend-libuv`, pathlib, …). No Python/Node refresh/CI helpers for work the stack already covers. If a gold library exists only in another language, Lisp drives the sexp; freeze that dump rather than adding a second-language script.
 - **Documentation:** terse; no verbose boilerplate.
+- **CL errors = conditions + restarts.** First-party cl-stack uses CLHS 9 (not status-code returns, not Java exceptions). Standard restart names first; reuse Alexandria/UIOP/usocket/dexador/lparallel; pathlib `invoke-*` is sugar. Skill **cl-stack-conditions**.
 - **CL MCP:** use [cl-ai-project/cl-mcp](https://github.com/cl-ai-project/cl-mcp), not the quasi/cl-mcp stack.
 - **GitHub repos:** always use full `owner/repo` — never bare repo name when multiple owners share a name.
 

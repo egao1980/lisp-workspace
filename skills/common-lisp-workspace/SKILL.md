@@ -14,6 +14,7 @@ description: >-
 - **Deps / CI / publish:** skill **[cl-repository-ci](../cl-repository-ci/SKILL.md)** — canned GH Actions (`test-system.yml` / `publish-source.yml`), `.asd` `:cl-repo`, no copied `ci-*.lisp`. Qlot = legacy migrate-away.
 - **Impl:** **Roswell** (`ros`) typical.
 - **Tests:** **Rove** — **[cl-unit-testing](../cl-unit-testing/SKILL.md)**.
+- **Errors:** conditions + restarts (CLHS 9) — **[cl-stack-conditions](../cl-stack-conditions/SKILL.md)**.
 
 ## Git
 

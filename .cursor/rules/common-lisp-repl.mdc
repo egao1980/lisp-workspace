@@ -67,6 +67,7 @@ Call **`fs-set-project-root`** at session start (or rely on `MCP_PROJECT_ROOT` e
 - Macros for real abstraction/DSLs only
 - Docstrings on public functions and classes
 - **Rove** for new tests unless the subproject uses another runner
+- First-party cl-stack: conditions + restarts (CLHS 9) — skill **cl-stack-conditions**
 
 ## Skill staging
 

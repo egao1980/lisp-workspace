@@ -389,3 +389,13 @@ Require OBJC-SUPPORT still SIGBUS/SIGSEGV flaky (~30%) — separate issue.
 - **Symptom:** `stack-schema:parse` of official AG-UI JSON `{"type":"RUN_STARTED","threadId":"…","runId":"…"}` raised `thread-id required`; dump emitted `thread-id` not `threadId`. JSON Schema emit (`oneOf` + discriminator `type`) still looked correct.
 - **Cause:** `schema-class` `key-style` initform is `:downcase`. Parent `ag-ui-event` can set `(:key-style :camel)`, but subclasses do not inherit it. `effective-key` then styles inherited slots (`thread-id`) with the **child** style → kebab/`thread-id`. Tag resolution still works (`:key "type"` is explicit).
 - **Fix:** repeat `(:key-style :camel)` on every event subclass (`ag-ui-protocol` 0.2.0). Slot name cannot be `type` (SBCL package-locks `CL:TYPE`) — use `event-type` + `:key "type"`. Longer-term: inherit `key-style` like `:extra` already does.
+
+## 2026-08-26 — restart-case keyword body after :report
+
+- **Symptom:** `COMPILE-FILE` `unmatched close parenthesis` in `restart-case` after adding `:report` strings.
+- **Cause:** SBCL treats a keyword immediately after `:report` / `:interactive` / `:test` as another restart-case option. `(skip-tool () :report "…" :skip)` makes `:skip` an option whose value is the next clause, so later `)` no longer match.
+- **Fix:** wrap keyword results: `(progn :skip)`. Do not use a bare keyword as the restart body after those options.
+
+- **Symptom:** `(invoke-restart 'provide-input …)` / `(invoke-restart 'skip)` in Rove tests → `No restart MCP-PROTOCOL/TESTS::PROVIDE-INPUT` or `No restart ROVE/CORE/ASSERTION:SKIP`.
+- **Cause:** Domain restart names are interned in the protocol package. Unqualified `'skip` in a Rove test package is `rove:skip`.
+- **Fix:** Call CLHS functions for standard names (`use-value`). For domain names use the protocol `invoke-*` helper or `protocol::name`.

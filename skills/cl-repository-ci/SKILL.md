@@ -199,7 +199,8 @@ Default matrix (reusable workflow): `ubuntu-latest`, `macos-latest`, `windows-la
 :properties
 (:cl-repo
  (:ci (:with ("dissect" "cl-stack-ssl")     ; not in :depends-on
-       :sources (("rove" :ql))              ; optional policy pins
+       ;; no :sources (("…" :ql)) — that forces QL and bypasses OCI.
+       ;; unpublished dep → cl-stack-systems import (or owning-repo publish), then OCI.
        :also-tests t
        :load-before-test ("cl-stack-ssl")
        :record-versions (("cl-stack-ssl" . "CL_STACK_SSL_VERSION")))))
@@ -224,6 +225,7 @@ If present, loaded after the client:
 - ❌ Second `actions/checkout` of `cl-repository` / sibling deps  
 - ❌ Copy-pasted `oras pull` + QL client-bootstrap (use `setup-client`)  
 - ❌ Hand-maintained `ci-fetch` / `ci-ql` inventories  
+- ❌ `:sources (("foo" :ql))` — publish `foo` to `cl-systems`, then drop the pin
 - ❌ qlot/`qlfile` as the primary CI install for new packages  
 - ❌ Hand `oras pull` of natives + `LD_LIBRARY_PATH` as the *dep install* path  
 - ❌ Sibling path hacks in `CL_SOURCE_REGISTRY` for deps  

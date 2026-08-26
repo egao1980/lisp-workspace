@@ -383,3 +383,9 @@ Require OBJC-SUPPORT still SIGBUS/SIGSEGV flaky (~30%) — separate issue.
 - **Symptom:** after the parse fix, install+test+publish all died in `ros -l run.lisp`: `Package CL-REPOSITORY-PACKAGER/ASDF-PLUGIN does not exist`.
 - **Cause:** `LOAD` reads the whole file. `%run-publish` mentioned packager/oci-client package-qualified symbols before `%ensure-packager` ran, so even `phase: install` never started.
 - **Fix:** keep those symbols in `publish.lisp`, loaded only after the packager (cl-repository#26). Regression: `run.lisp` must not contain `cl-repository-packager/…:` or `cl-oci-client/…:` tokens. Canary then green: test ×3 OS + `schema-protocol:0.1.0` republished.
+
+## 2026-08-26 — schema-protocol `:key-style` does not inherit
+
+- **Symptom:** `stack-schema:parse` of official AG-UI JSON `{"type":"RUN_STARTED","threadId":"…","runId":"…"}` raised `thread-id required`; dump emitted `thread-id` not `threadId`. JSON Schema emit (`oneOf` + discriminator `type`) still looked correct.
+- **Cause:** `schema-class` `key-style` initform is `:downcase`. Parent `ag-ui-event` can set `(:key-style :camel)`, but subclasses do not inherit it. `effective-key` then styles inherited slots (`thread-id`) with the **child** style → kebab/`thread-id`. Tag resolution still works (`:key "type"` is explicit).
+- **Fix:** repeat `(:key-style :camel)` on every event subclass (`ag-ui-protocol` 0.2.0). Slot name cannot be `type` (SBCL package-locks `CL:TYPE`) — use `event-type` + `:key "type"`. Longer-term: inherit `key-style` like `:extra` already does.

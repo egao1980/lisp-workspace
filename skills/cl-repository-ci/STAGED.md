@@ -1,5 +1,11 @@
 ## Pending
 
+### 2026-08-26 — do not `:sources (("rove" :ql))`
+- **Source:** user standing instruction (log-protocol split; then “any `:ql` pin is a mistake”).
+- **Proposed change:** Drop the gold-shape example `:sources (("rove" :ql))`. **Any** `:sources (("foo" :ql))` is forbidden — publish `foo` to `cl-systems` (import or owning repo), then rely on OCI-then-QL. `:depends-on ("rove")` on `/tests` is enough.
+- **Why:** agents keep copying the skill example onto every new first-party `.asd`.
+- **Status:** applied to SKILL.md gold example + MEMORY (2026-08-26).
+
 ### 2026-08-07 — CFFI natives auto-load on ASDF load
 - **Source:** user standing instruction (cl-stack-icu).
 - **Proposed change:** Document that first-party native/CFFI packages must `load-foreign-library` at system load (`eval-when (:load-toplevel :execute)`); consumers must not need `load-*` / `ensure-*`. Absolute preload preferred; no LD_LIBRARY_PATH.

@@ -10,7 +10,11 @@ Pending corrections, additions, and refinements discovered during use.
 
 - [2026-08-26] domain restart names are package-qualified
   - Source: agent observation (`No restart MCP-PROTOCOL/TESTS::PROVIDE-INPUT`; Rove `SKIP` vs domain `skip`)
-  - Proposed change: Tests section — CLHS functions (`use-value`, `continue`, `abort`) are package-independent. Domain restarts (`skip`, `provide-input`, `approve`, `retry`) are interned in the protocol package; from a test package use `invoke-*` sugar or `protocol::name`. Never `(invoke-restart 'skip)` under Rove (hits `rove:skip`).
+    - Proposed change: Tests section — CLHS functions (`use-value`, `continue`, `abort`) are package-independent. Domain restarts (`skip`, `provide-input`, `approve`, `retry`) are interned in the protocol package; from a test package use `invoke-*` sugar or `protocol::name`. Never `(invoke-restart 'skip)` under Rove (hits `rove:skip`).
+
+- [2026-08-27] worker-thread policy is not drain-thread `handler-bind`
+  - Source: agent observation (blackboard-protocol `second-workspace-interleaves` / `run-ksar-handler`)
+  - Proposed change: Handlers section — a `handler-bind` around `drain-agenda` / `run` does **not** see conditions signaled on KSAR/worker threads. Establish `continue`/`retry` at the worker site; install default policy in `spawn-*` (`handler-bind` `#'continue`). `handler-case` `serious-condition` that records a string and keeps going makes mid-pipeline death look like successful idle. Wrap foreign/handler failures with `:cause`; do not mop up.
 
 ## Applied
 

@@ -399,3 +399,9 @@ Require OBJC-SUPPORT still SIGBUS/SIGSEGV flaky (~30%) — separate issue.
 - **Symptom:** `(invoke-restart 'provide-input …)` / `(invoke-restart 'skip)` in Rove tests → `No restart MCP-PROTOCOL/TESTS::PROVIDE-INPUT` or `No restart ROVE/CORE/ASSERTION:SKIP`.
 - **Cause:** Domain restart names are interned in the protocol package. Unqualified `'skip` in a Rove test package is `rove:skip`.
 - **Fix:** Call CLHS functions for standard names (`use-value`). For domain names use the protocol `invoke-*` helper or `protocol::name`.
+
+## 2026-08-27 — blackboard `(:EDIT)` is not a drain/join flake
+
+- **Symptom:** macOS `second-workspace-interleaves` left one COW board at `(:EDIT)` while drain returned (idle, not timeout). `839cdd3` joined workers before idle and blamed `requeue-ksar` racing `active-count=0`.
+- **Cause:** `requeue` already runs *before* `release-ksar-slot`. Join cannot observe a still-running requeue. Idle is empty-agenda ∧ `active-count=0`; continuation was a handler side-effect. `run-ksar-handler` `handler-case`d `serious-condition` and left the workspace `:active`. Caps are root-global — two workspaces shared an unlocked mock hash table; SBCL concurrent `gethash` can signal, get swallowed, and look like a dropped requeue.
+- **Fix:** Stash `ksar-continuation` on the running KSAR; publish it in `release-ksar-slot` under the agenda lock. Wrap handler failures as `ksar-handler-error` (`:cause`) with `continue`/`retry`; worker policy is `handler-bind` `continue` (workspace `:failed`). Lock shared mocks. Do not “fix” this with another join.

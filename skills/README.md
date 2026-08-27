@@ -70,6 +70,7 @@ Pending corrections, additions, and refinements discovered during use.
 | [egao1980-devcontainers](egao1980-devcontainers/SKILL.md) | **`features/`** — GHCR features for Roswell / Lem |
 | [qlot](qlot/SKILL.md) | qlfile, `qlot exec`, project-local deps |
 | [cl-repository-ci](cl-repository-ci/SKILL.md) | cl-repo CI + cl-stack-systems publish (no custom publish scripts) |
+| [cl-stack-conditions](cl-stack-conditions/SKILL.md) | CLHS 9 conditions + restarts for first-party cl-stack |
 | [cl-unit-testing](cl-unit-testing/SKILL.md) | Rove default, `deftest-parametrize`, pins |
 | [rove](rove/SKILL.md) | Rove quick ref → cl-unit-testing |
 | [roswell](roswell/SKILL.md) | `ros` CLI, implementations, scripting |

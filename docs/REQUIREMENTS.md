@@ -30,6 +30,10 @@ Coordinate multiple **Common Lisp** codebases (ASDF systems) that depend on each
 
 - Prefer **Rove** for **new** test code unless a subproject already mandates another framework.
 
+## Common Lisp style
+
+- First-party cl-stack error handling is **conditions + restarts** ([CLHS 9](http://www.lispworks.com/documentation/HyperSpec/Body/09_.htm)), not status-code returns or Java-style exception wrapping. Prefer standard restart names and well-known library conditions (Alexandria, UIOP, usocket, dexador, lparallel). Skill: **[cl-stack-conditions](../skills/cl-stack-conditions/SKILL.md)**.
+
 ## Specs
 
 - **Global** goals and constraints live in this file; **per-repo** specs stay in each repository.

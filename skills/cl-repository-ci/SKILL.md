@@ -58,7 +58,7 @@ Need to ship a Lisp system to ghcr.io/egao1980/cl-systems?
 | Piece | Value |
 |-------|--------|
 | Client image | `ghcr.io/egao1980/cl-repository/cl-repository-client` — CI uses **`CL_REPOSITORY_CLIENT_VERSION: latest`** (resolve system-name `:latest` anchor → annotated semver → `oras pull`) |
-| Packager image | `ghcr.io/egao1980/cl-repository/cl-repository-packager:**0.16.0**` |
+| Packager image | `ghcr.io/egao1980/cl-repository/cl-repository-packager:**latest`** (`v0.18.0` — PIS walk + skip-catalog writes `:latest`) |
 | Registry / namespace | `ghcr.io` / `egao1980/cl-systems` |
 | oras (Actions) | `1.2.3` |
 | SBCL (typical CI) | `2.6.7` via Roswell (`sbcl-bin`) |
@@ -255,4 +255,4 @@ Before adding CI or publish to a package:
 - [ ] Natives? → reusable native workflow in the **owning** repo, same `.asd`  
 - [ ] Consumer CI: self-only checkout + `test-system.yml` or `setup-client` + `ci` — **no copied Lisp**  
 - [ ] CI extras in `.asd` `:cl-repo :ci` (or `scripts/ci/` hook)  
-- [ ] Packager **0.16.0**; QUICKSTART pins updated if user-facing  
+- [ ] Packager **latest** (`publish-source.yml` default); QUICKSTART pins updated if user-facing  

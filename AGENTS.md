@@ -29,6 +29,7 @@ Cursor commands live in **`.cursor/commands/`**:
 - Use thoughtful **type annotations** where they clarify intent (`declaim`, `declare`, `check-type`, `typed` style when the project already uses them).
 - Use **macros** when they remove real duplication or encode a DSL — not for one-off cleverness.
 - **Default test stack for new tests: [Rove](https://github.com/fukamachi/rove)** (pin [`egao1980/rove`](https://github.com/egao1980/rove) for `deftest-parametrize`) unless the subproject already standardizes on another runner (FiveAM, Parachute, lisp-unit, etc.) — match the existing project. Skill: **[cl-unit-testing](skills/cl-unit-testing/SKILL.md)**.
+- **Errors = conditions + restarts** ([CLHS 9](http://www.lispworks.com/documentation/HyperSpec/Body/09_.htm), PCL ch.19). Standard restart names (`use-value`, `store-value`, `continue`, `abort`, `muffle-warning`; `retry` = ASDF). Reuse Alexandria / UIOP / usocket / dexador / lparallel types. Skill: **[cl-stack-conditions](skills/cl-stack-conditions/SKILL.md)**.
 - **Respect each subproject’s** naming, ASDF layout, formatting, and qlot/ASDF conventions; do not impose alien style from other repos in the tree.
 
 ## Git and GitHub

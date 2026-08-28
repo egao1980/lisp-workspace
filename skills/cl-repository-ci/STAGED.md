@@ -1,9 +1,35 @@
 ## Pending
 
+### 2026-08-27 — canned publish.lisp must not colon-qualify unpublished packager symbols
+- **Source:** blackboard/telemetry/mcp/a2a/ag-ui publish runs 33119141595+ died `INPUT-ERROR-IN-LOAD` / `Symbol "FILTER-PUBLISH-PROVIDES" not found` after cl-repository#30.
+- **Proposed change:** Document that `publish.lisp` is still a `LOAD`/`READ`. Colon-qualify only symbols that exist in the **pinned packager** (`0.16.0`). New helpers → `find-symbol` + fallback. `#30` added `filter-publish-provides` in source and called it from canned CI `@main` before that function shipped in `cl-oci-0.16.0`.
+- **Why:** canned `@main` + packager pin 0.16.0 is the consumer publish path; source-only packager asd is still `0.1.0` and is not what CI pulls.
+
+### 2026-08-27 — slash secondaries are SAT/OCI names, not demo remaps
+- **Source:** user: "don't hack around" (cl-stack-llm-demo `ai-agent-protocol/mcp`).
+- **Proposed change:** Document that ASDF `foo/bar` is **not** a GHCR repo. Client `oci-package-name` maps slash → primary and `+` → `-plus-`. Publish keeps `auto-package-spec` provides (drop tests only); publisher skips extra repos for `/` names. Do **not** remap `foo/bar` → `foo` in consumer `install.lisp`. After this client ships, `:ci :with ("llm-protocol/capability")` is valid (installs `llm-protocol` / `capability-protocol` primary as appropriate).
+- **Why:** canned `publish.lisp` used to wipe provides to `(list system)`, and SAT listed `ns/foo/bar`. Demo-side `%oci-name` was papering over the resolver.
+
+### 2026-08-27 — consumer CI heap for fat native overlays
+- **Source:** llm-protocol-vllm-cpp#1 run 33040261654. Ubuntu install OOM: `Heap exhausted … 816087040 bytes available, 1605702608 requested` while chipz-decompressing `vllm-cpp:0.1.1` linux/amd64 CUDA overlay. macOS/Windows install survived (CPU/MLX overlays) then test died on `Component "capability-protocol" not found` because `:ci :with ("llm-protocol/capability")` is a secondary system, not an OCI package.
+- **Proposed change:** (1) `:ci :with` names **registry packages** (`capability-protocol`), not `foo/secondary`. (2) Client `gunzip-octets` must stream on SBCL (`chipz:make-decompressing-stream`) — buffer `chipz:decompress` doubles 2GiB→4GiB while holding the gzip blob and OOMs an 8GB heap (`4294967312 requested`). Heap bump alone is not enough. Until the client ships that, consumers use `scripts/ci/pre-install.lisp` to redefine `extract-layer*`. Do not start another CUDA compile.
+- **Why:** publish heap input exists only on `publish-native-package.yml`. Consumer `ros -l` still uses default ~1GB heap.
+
+### 2026-08-27 — native publish SBCL heap
+- **Source:** vllm-cpp reuse publish 33032941212. Packager 0.10.0 got past `ql:quickload`, then `HEAP-EXHAUSTED-ERROR` in salza2 while gzipping `lib/linux-amd64` CUDA overlays (~1.3GB artifact). Apt SBCL default heap ~1GB. Follow-up 33034565305: `sbcl --noinform --dynamic-space-size` dies (`C runtime option --dynamic-space-size in the middle of Lisp options`).
+- **Proposed change:** Document `publish-native-package.yml` input `sbcl-dynamic-space-mb` (default 8192). `--dynamic-space-size` must precede `--noinform`/`--load`. Do not put `#` comments inside `VAR=val \\` continuations (bash applies env to a no-op; SBCL `ensure-directory-pathname` of NIL). Use `export`. Callers with fat CUDA overlays should pass 8192–16384. Do not copy the reusable workflow.
+- **Why:** source-only packager 0.16.0 is a different failure (`http-protocol` missing); natives that actually gzip large `.so`s die on heap first.
+
+### 2026-08-27 — `:sources` does not add install roots
+- **Source:** sql-protocol#7 postgres still `Component "cl-postgres" not found` after `:sources (("cl-postgres" :oci) ("dbd-postgres" :oci))`.
+- **Proposed change:** Document that `:ci :sources` only pins origin for systems already in the install set. `ensure-system-dependencies` will not pull a SAT-missed transitive (e.g. `dbi` OCI tarball `provides` `dbd-postgres` via symlink and never walks `dbd-postgres.asd` → `cl-postgres`). Put those names in `:ci :with` (and/or workflow `with:`) as extra roots. Do not invent `:ql` pins.
+- **Why:** pin-drop of `:ql` sources left postgres CI red; `:oci` pins alone were a no-op.
+
 ### 2026-08-26 — do not `:sources (("rove" :ql))`
-- **Source:** user standing instruction (log-protocol split).
-- **Proposed change:** Drop the gold-shape example `:sources (("rove" :ql))`. Rove is OCI (`ghcr.io/egao1980/cl-systems/rove`, egao1980/rove import). Same rule as log4cl: QL pin loses to / fights OCI. New asds: `:depends-on ("rove")` on `/tests` only; no `:ci :sources` for rove.
+- **Source:** user standing instruction (log-protocol split; then “any `:ql` pin is a mistake”).
+- **Proposed change:** Drop the gold-shape example `:sources (("rove" :ql))`. **Any** `:sources (("foo" :ql))` is forbidden — publish `foo` to `cl-systems` (import or owning repo), then rely on OCI-then-QL. `:depends-on ("rove")` on `/tests` is enough.
 - **Why:** agents keep copying the skill example onto every new first-party `.asd`.
+- **Status:** applied to SKILL.md gold example + MEMORY (2026-08-26).
 
 ### 2026-08-07 — CFFI natives auto-load on ASDF load
 - **Source:** user standing instruction (cl-stack-icu).

@@ -395,3 +395,25 @@ Require OBJC-SUPPORT still SIGBUS/SIGSEGV flaky (~30%) — separate issue.
 - **Symptom:** loading `capability-protocol` failed with unbound `*capability-catalogues*` while compiling `domains.lisp`.
 - **Cause:** `defcatalogue` expanded into a compile-time `setf` of the interned table, but `protocol.lisp` (where the `defvar` lives) had not been loaded into the compile environment.
 - **Fix:** intern at load/execute only (plain `progn` in the macro). Vocabulary is data; query/register is CLOS on a live `make-catalogue` or blackboard.
+
+## 2026-08-26 — restart-case keyword body after :report
+
+- **Symptom:** `COMPILE-FILE` `unmatched close parenthesis` in `restart-case` after adding `:report` strings.
+- **Cause:** SBCL treats a keyword immediately after `:report` / `:interactive` / `:test` as another restart-case option. `(skip-tool () :report "…" :skip)` makes `:skip` an option whose value is the next clause, so later `)` no longer match.
+- **Fix:** wrap keyword results: `(progn :skip)`. Do not use a bare keyword as the restart body after those options.
+
+- **Symptom:** `(invoke-restart 'provide-input …)` / `(invoke-restart 'skip)` in Rove tests → `No restart MCP-PROTOCOL/TESTS::PROVIDE-INPUT` or `No restart ROVE/CORE/ASSERTION:SKIP`.
+- **Cause:** Domain restart names are interned in the protocol package. Unqualified `'skip` in a Rove test package is `rove:skip`.
+- **Fix:** Call CLHS functions for standard names (`use-value`). For domain names use the protocol `invoke-*` helper or `protocol::name`.
+
+## 2026-08-27 — blackboard `(:EDIT)` is not a drain/join flake
+
+- **Symptom:** macOS `second-workspace-interleaves` left one COW board at `(:EDIT)` while drain returned (idle, not timeout). `839cdd3` joined workers before idle and blamed `requeue-ksar` racing `active-count=0`.
+- **Cause:** `requeue` already runs *before* `release-ksar-slot`. Join cannot observe a still-running requeue. Idle is empty-agenda ∧ `active-count=0`; continuation was a handler side-effect. `run-ksar-handler` `handler-case`d `serious-condition` and left the workspace `:active`. Caps are root-global — two workspaces shared an unlocked mock hash table; SBCL concurrent `gethash` can signal, get swallowed, and look like a dropped requeue.
+- **Fix:** Stash `ksar-continuation` on the running KSAR; publish it in `release-ksar-slot` under the agenda lock. Wrap handler failures as `ksar-handler-error` (`:cause`) with `continue`/`retry`; worker policy is `handler-bind` `continue` (workspace `:failed`). Lock shared mocks. Do not “fix” this with another join.
+
+## 2026-08-27 — canned publish.lisp vs packager 0.16.0 (`FILTER-PUBLISH-PROVIDES`)
+
+- **Symptom:** every first-party `publish-checkout.yml` after cl-repository#30 died in `phase: publish` with `SB-C::INPUT-ERROR-IN-LOAD` / `Symbol "FILTER-PUBLISH-PROVIDES" not found in the CL-REPOSITORY-PACKAGER/ASDF-PLUGIN package` (blackboard-protocol 33119141595 and siblings). Earlier same-day publishes (a2a-backend-httpjson / cl-stack-demos) succeeded.
+- **Cause:** `#30` called `cl-repository-packager/asdf-plugin:filter-publish-provides` from canned `publish.lisp` (`@main`). Consumer CI still loads packager `cl-oci-0.16.0`, which never exported that symbol. `LOAD` is a `READ` — colon-qualify dies before the form runs. Not YASON.
+- **Fix:** resolve the helper with `find-symbol` and fall back to drop-tests / keep-slash-secondaries using `test-system-name-p` when present. Do not colon-qualify packager symbols that the pinned 0.16.0 image does not intern. Ship the new function in a packager bump before calling it with `:`.

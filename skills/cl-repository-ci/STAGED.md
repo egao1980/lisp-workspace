@@ -1,5 +1,10 @@
 ## Pending
 
+### 2026-08-28 — packager `:latest` is a system-name alias (empty layers)
+- **Source:** cl-stack-systems tuition import publishes 33218803414+ failed at “Pull cl-repository-packager”: `oras pull …:latest` wrote nothing (`Skipped pulling layers without file name in org.opencontainers.image.title`). Manifest is `application/vnd.common-lisp.system-name.v1` with `"layers":[]` and `dev.common-lisp.alias-for=cl-oci-client`. Semver `0.18.0` still has the titled tarball.
+- **Proposed change:** Pins table: packager **`oras pull` must use a semver tag** (`0.18.0`), not `:latest`. Consumer *client* `:latest` is fine (client resolves the name-alias → annotated semver). `cl-stack-systems` `publish.yml` `PACKAGER_TAG` stays `"0.18.0"` until extract uses alias-resolve or `oras copy --to-oci-layout` plus a real layer. Do not treat “untitled layers” as the only failure — the alias artifact has no layer at all.
+- **Why:** PIS walk + skip-catalog now writes `:latest` as a name-alias stub. Raw `oras pull` of that tag cannot seed ASDF.
+
 ### 2026-08-27 — canned publish.lisp must not colon-qualify unpublished packager symbols
 - **Source:** blackboard/telemetry/mcp/a2a/ag-ui publish runs 33119141595+ died `INPUT-ERROR-IN-LOAD` / `Symbol "FILTER-PUBLISH-PROVIDES" not found` after cl-repository#30.
 - **Proposed change:** Document that `publish.lisp` is still a `LOAD`/`READ`. Colon-qualify only symbols that exist in the **pinned packager** (`0.16.0`). New helpers → `find-symbol` + fallback. `#30` added `filter-publish-provides` in source and called it from canned CI `@main` before that function shipped in `cl-oci-0.16.0`.

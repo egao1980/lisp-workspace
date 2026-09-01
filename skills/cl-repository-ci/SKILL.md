@@ -143,16 +143,29 @@ Optional `imports/<name>/system` when ASDF name ≠ directory (e.g. `cl+ssl`).
 
 Reuse `egao1980/cl-repository/.github/workflows/publish-native-package.yml`.
 It must still honor `.asd` `:cl-repo` overlays — not a parallel YAML-only inventory.
+
+**Lisp load path = source publish.** `setup-lisp` + `cl-repo:ensure-systems` of
+packager / oci-client (same as canned `ci` `phase: publish`). Native binaries
+stay in `native-<os>-<arch>` artifacts → `lib/<os>-<arch>/`. Do **not**
+apt-install SBCL, bootstrap Quicklisp, or raw-`oras pull` the packager tarball.
+`packager-tag` defaults to `latest` (client resolves it). Do not pin `0.10.0` /
+`0.12.0` to dodge a missing `http-protocol` — that was the old QL path.
+
 Grovel at overlay build time; consumers load without a C toolchain.
 Resolve natives via `cffi:*foreign-library-directories*` + absolute preload —
 **never** require `LD_LIBRARY_PATH` / `DYLD_LIBRARY_PATH` for correctness.
+
+Odd one out: `cl-protobufs` still has a repo-local publish script (needs
+`generated-source` overlays). It must still load packager via `setup-lisp` +
+`ensure-systems`, not QL.
 
 ### Anti-patterns (publish)
 
 - ❌ `make-instance 'package-spec` (or equivalent) in repo scripts — use `.asd` + `auto-package-spec`
 - ❌ New `scripts/publish-source.lisp` / copy-pasted source `publish-oci.yml`
 - ❌ Divergent depends-on/version between `.asd` and a publish helper
-- ❌ Packager tag `0.8.0` on new work
+- ❌ Packager tag `0.8.0` / `0.10.0` as a QL-workaround on new work
+- ❌ apt SBCL + Quicklisp bootstrap + raw `oras pull` of the packager in native publish
 - ❌ Import upstream **and** keep a workspace fork of that upstream
 ## CI install / test (consumer repos)
 
@@ -255,4 +268,4 @@ Before adding CI or publish to a package:
 - [ ] Natives? → reusable native workflow in the **owning** repo, same `.asd`  
 - [ ] Consumer CI: self-only checkout + `test-system.yml` or `setup-client` + `ci` — **no copied Lisp**  
 - [ ] CI extras in `.asd` `:cl-repo :ci` (or `scripts/ci/` hook)  
-- [ ] Packager **latest** (`publish-source.yml` default); QUICKSTART pins updated if user-facing  
+- [ ] Packager **latest** (`publish-source.yml` / native `packager-tag`); QUICKSTART pins updated if user-facing  

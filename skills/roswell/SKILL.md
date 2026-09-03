@@ -1,9 +1,8 @@
 ---
 name: roswell
 description: >-
-  Roswell (ros): Common Lisp implementation manager, launcher, Quicklisp integration, and scripting.
-  Use when installing SBCL/CCL, running `ros run`, `ros install`, Roswell scripts (.ros), CI setup, or debugging
-  PATH / ~/.roswell issues.
+  Roswell (`ros`): install SBCL/CCL, `ros run` / `ros install`, .ros scripts.
+  Use when debugging PATH / ~/.roswell or non-interactive debugger hangs.
 ---
 
 # Roswell

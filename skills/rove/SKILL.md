@@ -1,8 +1,7 @@
 ---
 name: rove
 description: >-
-  Rove: Common Lisp testing library (assertions, reporting, ASDF integration). Use when writing or running
-  Rove tests specifically. For workspace policy, parametrize, and runner choice, prefer skill cl-unit-testing.
+  Rove quick ref (ok / signals / deftest-parametrize). For policy and runner choice use cl-unit-testing.
 ---
 
 # Rove

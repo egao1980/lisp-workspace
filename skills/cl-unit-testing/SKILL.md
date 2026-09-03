@@ -1,9 +1,8 @@
 ---
 name: cl-unit-testing
 description: >-
-  Common Lisp unit testing in this workspace: Rove by default, ASDF test-op, deftest-parametrize
-  (data-driven / corpus tables), egao1980/rove pin via cl-stack-systems. Use when writing or running
-  tests, adding a test system, parametrizing cases, or choosing a runner (Rove vs FiveAM/Parachute).
+  CL tests: Rove default, ASDF test-op, deftest-parametrize, egao1980/rove pin.
+  Use when writing/running tests or choosing Rove vs FiveAM/Parachute.
 ---
 
 # CL unit testing
@@ -108,11 +107,10 @@ Bump the import SHA when the fork tip moves.
 
 - After substantive edits: run the project’s test system (ASDF `test-op` or `scripts/ci-test.lisp`).
 - cl-mcp: `/load-and-test` or `run-tests` when the MCP server is available.
-- Long compiles: log to a temp file; only tail on failure ([AGENTS.md](../../AGENTS.md)).
+- Long compiles: log to a temp file; only tail on failure (always-on rule).
 
 ## Anti-patterns
 
 - New FiveAM/Parachute in a greenfield egao1980 package without a reason
 - Slurping huge corpora into one `deftest` instead of `deftest-parametrize`
 - Pinning Quicklisp `rove` while using `deftest-parametrize` (symbol missing)
-- Editing `SKILL.md` mid-unrelated task — stage in `STAGED.md` instead ([skills/README.md](../README.md))

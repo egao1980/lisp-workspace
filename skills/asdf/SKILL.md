@@ -1,9 +1,8 @@
 ---
 name: asdf
 description: >-
-  ASDF 3: Common Lisp system definitions (defsystem), loading systems, operations (compile, load, test-system),
-  and source registry configuration. Use when editing .asd files, fixing "component not found", CL_SOURCE_REGISTRY,
-  or ASDF operations in CI.
+  ASDF 3: defsystem, load/test-system, source registry. Use when editing .asd,
+  "component not found", or CL_SOURCE_REGISTRY.
 ---
 
 # ASDF (Another System Definition Facility)

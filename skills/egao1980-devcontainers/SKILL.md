@@ -1,9 +1,8 @@
 ---
 name: egao1980-devcontainers
 description: >-
-  Dev Container Features for Common Lisp: Roswell, Lem, qlot/Ultralisp options from egao1980/features. Use when
-  authoring .devcontainer.json for CL projects, GHCR feature refs ghcr.io/egao1980/features/*, or working in this
-  workspace’s features/ checkout.
+  egao1980/features Dev Container Features (Roswell, Lem). Use when authoring CL
+  .devcontainer.json or editing features/.
 ---
 
 # egao1980 Common Lisp Dev Container Features

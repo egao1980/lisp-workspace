@@ -55,7 +55,8 @@ Requires `gh auth` with repo admin (or pass `-Token`). Installs under `C:\action
 | File | Role |
 |------|------|
 | [AGENTS.md](AGENTS.md) | Expectations for AI/human contributors |
-| [MEMORY.md](MEMORY.md) | Durable user preferences and standing instructions (agents read/update) |
+| [MEMORY.md](MEMORY.md) | Durable prefs + index |
+| [memory/](memory/) | On-demand stack notes (http, agent-wire, data, runtime, CI pins) |
 | [skills/](skills/) | Cursor **project skills** (`SKILL.md` per folder); **`.lisp-workspace/.cursor/skills` → `../skills`** |
 | [skills/README.md](skills/README.md) | Skill index + **staging mechanism** for iterative improvement |
 | [docs/REQUIREMENTS.md](docs/REQUIREMENTS.md) | Workspace requirements and Git policy |

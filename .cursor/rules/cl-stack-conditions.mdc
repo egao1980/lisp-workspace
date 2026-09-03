@@ -6,16 +6,10 @@ alwaysApply: false
 
 # cl-stack conditions & restarts
 
-First-party cl-stack only (`*-protocol`, `*-backend-*`, `cl-stack-*`). Not third-party forks.
+First-party only (`*-protocol`, `*-backend-*`, `cl-stack-*`). Language = [CLHS 9](http://www.lispworks.com/documentation/HyperSpec/Body/09_.htm). Full skill: **cl-stack-conditions**.
 
-The language is [CLHS 9](http://www.lispworks.com/documentation/HyperSpec/Body/09_.htm). Do not invent a second error dialect.
-
-- **Three parts** (PCL ch.19): signal at detection; restarts at the lowest site that can recover; policy in `handler-bind` above.
-- **Standard names first:** `abort`, `continue`, `muffle-warning`, `store-value`, `use-value` — invoke via the [CLHS functions](http://clhs.lisp.se/Body/f_abortc.htm), not a private `invoke-*` unless the name is not standard (`retry` = ASDF convention → `invoke-restart`).
-- **Domain restart** (`create-parents`, `skip`, `provide-input`) only when the recovery is a distinct API — not `use-value` with a magic payload (PCL `skip-log-entry`).
-- `handler-bind` to invoke restarts (stack live). `handler-case` only to unwind/translate. No `ignore-errors` / catch-all `error` in library code.
-- `error` / `cerror` / `signal` / `warn` / `check-type` / `assert` — use the construct that already establishes the right restart (`cerror` → `continue`; `check-type`/`assert` → `store-value`).
-- Typed `foo-error` tree + slots + `:report`. Protocol owns types; backends signal them. Wire codes are slots, not the handler key.
-- Reuse well-known conditions (`usocket:*`, dexador errors, UIOP `parameter-error`, Alexandria `required-argument`). Wrap into protocol types if needed; keep `:cause`. `lparallel:task-handler-bind` across worker threads.
-
-Skill: **cl-stack-conditions**.
+- Signal at detection; restarts at the lowest recoverable site; policy in `handler-bind` above.
+- Standard names first: `abort`, `continue`, `muffle-warning`, `store-value`, `use-value`. Domain names only when the recovery is its own API. `retry` = ASDF → `invoke-restart`.
+- `handler-bind` to invoke restarts. `handler-case` only to unwind/translate. No `ignore-errors` / catch-all `error` in library code.
+- Typed `foo-error` tree + slots + `:report`. Protocol owns types; backends signal them. Wire codes are slots.
+- Reuse usocket / dexador / UIOP / Alexandria / lparallel types; wrap with `:cause` if needed.

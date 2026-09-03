@@ -1,21 +1,12 @@
 ---
-description: Lisp workspace layout, skills, git policy, docs — always active
+description: Lisp workspace layout and always-on ops — details in AGENTS.md / MEMORY.md
 alwaysApply: true
 ---
 
 # Lisp workspace (egao1980)
 
-- **Layout:** Versioned copy of Cursor project config is **`.lisp-workspace/.cursor/`**. Repo root **`.cursor`** → symlink to that dir. **`.lisp-workspace/.cursor/skills`** → **`../skills`** (same tree as `.lisp-workspace/skills/`).
-- **Skills:** `.lisp-workspace/skills/<name>/SKILL.md` (also **`.cursor/skills/...`** via symlinks). Read the skill whose `description` matches the current task **before** doing specialized work.
-- **MCP:** **cl-mcp** MCP server configured in `.cursor/mcp.json`; checkout at **`cl-mcp/`** ([cl-ai-project/cl-mcp](https://github.com/cl-ai-project/cl-mcp)). See `common-lisp-repl` rule for tool usage when editing `.lisp`/`.asd`.
-- **Commands:** `.cursor/commands/` — `/load-and-test`, `/review-skill-improvements`.
-- **Git:** prefer **`github.com/egao1980/`** remotes; fork third-party via `gh`; set **upstream**. Feature branches; small milestone commits. **Undo with git** — never from memory.
-- **Deps = cl-repository OCI (no sibling CI checkouts):** Project deps resolve via **`cl-repository-client`** → `ghcr.io/egao1980/cl-systems`. Consumer CI: canned `test-system.yml` / `publish-source.yml` / `ci` action (reads `.asd`; `uses:` refs literal `@main`). Never git-checkout `cl-repository` or sibling deps for install/test. Do **not** copy `ci-install.lisp`. See **MEMORY.md**.
-- **Unforked deps → cl-stack-systems:** If we depend on a third-party CL library and are **not** forking/patching it, add an import under **`egao1980/cl-stack-systems`** (`imports/<name>/qlfile`, usually one `github`/`git` pin) so CI publishes it into **`ghcr.io/egao1980/cl-systems`**. Do **not** clone/fork into the workspace just to consume source. Fork only when patching, owning CI, or shipping native overlays.
-- **Fork ↔ import exclusivity:** A library is either a workspace fork **or** a `cl-stack-systems` import — never both. **On fork:** delete `cl-stack-systems/imports/<name>/` (and any OCI republish of the unmodified upstream for that pin). **On import:** do not fork/clone it into the workspace; if a fork already exists and you’re switching to import-only, remove the checkout/fork from the workspace workflow.
-- **ASDF:** `.lisp-workspace/scripts/add-cl-project.sh` writes snippets under `~/.config/common-lisp/source-registry.conf.d/`. Use **qlot** per subproject when present (legacy only).
-- **CFFI natives:** load foreign libs **automatically on ASDF system load** (absolute preload into overlay `native/` / `lib/<os>-<arch>/`). Consumers must **not** need extra `load-*` / `ensure-*` statements — `(asdf:load-system "…")` is enough to call the API.
-- **CL errors:** conditions + restarts (CLHS 9). Skill **cl-stack-conditions**. Not status-code returns; not Java exceptions. Standard restart names; reuse well-known library conditions.
-- **Docs:** update `.lisp-workspace/docs/REQUIREMENTS.md` for policy; append `.lisp-workspace/LESSONS_LEARNED.md` for fixes. Read/update **`.lisp-workspace/MEMORY.md`** for durable user preferences.
-- **Skill staging:** when you learn something new about a tool/workflow, append to the relevant `skills/<name>/STAGED.md`. See `skills/README.md` for format.
-- **Long-running commands:** redirect stdout/stderr of builds, installs, and compilations to a temp file. Only read the tail on failure. This avoids burning tokens on verbose progress output (ANSI escapes, progress bars, compilation notes). Pattern: `cmd > /tmp/out.log 2>&1 || { tail -50 /tmp/out.log; exit 1; }`. Use `| tail -N` for quick status checks.
+Canonical always-on policy: **AGENTS.md**. Prefs + stack index: **MEMORY.md**. Do not restate those here.
+
+- **Layout:** versioned Cursor config = `.lisp-workspace/.cursor/` (root `.cursor` should symlink here). Skills = `.lisp-workspace/skills/` (`.cursor/skills` → `../skills`).
+- **CFFI natives:** `load-foreign-library` at ASDF load (absolute preload). Consumers: `(asdf:load-system "…")` is enough — no `load-*` / `ensure-*`.
+- **Long-running commands:** `cmd > /tmp/out.log 2>&1 || { tail -50 /tmp/out.log; exit 1; }`. Do not ingest full compile/install progress.

@@ -1,5 +1,33 @@
 ## Pending
 
+### 2026-09-01 — native publish loads packager via setup-lisp, not QL
+- **Source:** user: native publish ships non-Lisp binaries; Lisp (packager/client) loads like other Lisp. cl-stack-snappy #33454477509 (`latest` oras untitled layers) and #33454938426 (`0.18.0` then `ql:quickload` → `http-protocol` missing).
+- **Proposed change:** `publish-native-package.yml` = `setup-lisp` + `cl-repo:ensure-systems` (same as `publish-source.yml` / `ci` `phase: publish`). Drop apt SBCL, Quicklisp bootstrap, and raw `oras pull` of the packager tarball. `packager-tag` defaults to `latest` (client resolves). Do **not** pin `0.10.0`/`0.12.0` as a workaround. Callers that still pin those (zstd/brotli/ssl/libuv/libev/icu/llama-cpp/vllm-cpp/snappy) drop the pin after this workflow is on `@main`. `cl-protobufs` cannot use the reusable workflow yet (`generated-source` overlays) but must use the same load path.
+- **Why:** the QL path only extracted the packager tarball; current packager depends on GHCR systems (`http-protocol`, …). Pinning a pre-http-protocol packager papers over that.
+- **Status:** applied to SKILL.md + MEMORY (2026-09-01). Supersedes the “pin packager-tag 0.10.0” draft.
+
+### 2026-09-01 — REJECTED: native publish must pin packager-tag, not latest
+- **Source:** cl-stack-snappy publish-oci #33454477509 / #33454938426.
+- **Proposed change:** Native callers must set `packager-tag` to a **pre-http-protocol** packager (`0.10.0` / `0.12.0`). Do not pass `latest`/`0.18.0`.
+- **Why rejected:** workaround. Gold is fix the reusable workflow load path (item above). We do not use QL.
+
+### 2026-08-29 — composed CI uses setup-lisp, not setup-client + setup-roswell
+- **Source:** after cl-repository#37 client-cache + ci-base.
+- **Proposed change:** Gold compose example should be `setup-lisp@main` (not `setup-client` then `setup-roswell`). Extra-impl: `install-sbcl: false`. Ubuntu SBCL without sudo/peers/native toolchain can set `container: ci-base` + `defaults.run.shell: bash`. Repos already on `test-system.yml@main` inherit both automatically.
+- **Why:** skill still shows the pre-cache two-step; that's the Windows oras-walk path.
+
+### 2026-08-29 — setup-lisp caches the client tree on resolved semver
+- **Source:** json-patch warm Windows (`#33274454875`): `~/.roswell` cache hit still re-unzipped Roswell and oras-pulled the entire client tree (yason/ironclad/dexador). `setup-client.sh` `rm -rf` dest, so a restored `.cl-repository` would be wiped. `:latest` is a moving alias — must not be the cache key.
+- **Proposed change:** Gold VM path (`setup-lisp` without ci-base): resolve `:latest` → semver (`oras manifest fetch`) *before* `actions/cache` of `inputs.dest`. Hit + valid asd → skip `setup-client`, export `CL_*` only. Roswell/SBCL cache key stays independent of the client tag. Document that Windows has no job containers; this cache is the remaining Windows win.
+- **Why:** client pull dominated warm Windows; SBCL cache alone did not skip oras.
+
+### 2026-08-29 — Ubuntu CI is a job container, not a Docker action
+- **Source:** user: cache ros/sbcl/client in a base image; small library CI must be short.
+- **Proposed change:** Gold Ubuntu path is `jobs.<id>.container: ghcr.io/egao1980/cl-repository/ci-base` + `setup-lisp` (wire env only). Document that a Docker *action* (`runs.using: docker`) is the wrong tool — isolated sibling, only workspace persists, SBCL does not survive into `ci`. Job containers are Linux-only (official workflow syntax note). macOS/Windows stay on `setup-lisp` install + `actions/cache` of `~/.roswell`. Job-container default shell is `sh` — keep `shell: bash`. Image rebuild: `publish-ci-base.yml`.
+- **Why:** every consumer was paying `install-for-ci.sh` + `ros install sbcl-bin` + oras client pull. Cache is per-repo / 7-day eviction and does not share across the small-library fleet.
+
+
+
 ### 2026-08-27 — canned publish.lisp must not colon-qualify unpublished packager symbols
 - **Source:** blackboard/telemetry/mcp/a2a/ag-ui publish runs 33119141595+ died `INPUT-ERROR-IN-LOAD` / `Symbol "FILTER-PUBLISH-PROVIDES" not found` after cl-repository#30.
 - **Proposed change:** Document that `publish.lisp` is still a `LOAD`/`READ`. Colon-qualify only symbols that exist in the **pinned packager** (`0.16.0`). New helpers → `find-symbol` + fallback. `#30` added `filter-publish-provides` in source and called it from canned CI `@main` before that function shipped in `cl-oci-0.16.0`.

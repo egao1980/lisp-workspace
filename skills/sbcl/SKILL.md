@@ -1,8 +1,8 @@
 ---
 name: sbcl
 description: >-
-  SBCL (Steel Bank Common Lisp): the primary CL implementation in this workspace. Use when running SBCL directly,
-  debugging compiler warnings/errors, performance tuning, or encountering hangs from the interactive debugger.
+  SBCL: --disable-debugger, heap flags, compiler notes. Use when running SBCL
+  directly or a process looks hung in the debugger.
 ---
 
 # SBCL

@@ -1,10 +1,8 @@
 ---
 name: cl-stack-conditions
 description: >-
-  Idiomatic Common Lisp conditions and restarts for first-party cl-stack (protocol, backend,
-  facade). Use when defining errors, signaling, adding recoveries, writing handler-bind /
-  handler-case / restart-case, wrapping usocket/dexador/lparallel, or reviewing error
-  handling in *.lisp. CLHS 9 + PCL; do not invent a private error dialect.
+  CLHS 9 conditions + restarts for first-party cl-stack. Use when defining errors,
+  handler-bind / restart-case, or wrapping usocket/dexador/lparallel. No private error dialect.
 ---
 
 # cl-stack conditions & restarts

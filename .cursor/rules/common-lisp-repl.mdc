@@ -5,70 +5,31 @@ globs: ["**/*.lisp", "**/*.asd", "**/*.cl", "**/*.lsp", "**/*.ros"]
 
 # Common Lisp REPL-driven development
 
-When the **cl-mcp** MCP server is connected, prefer its tools over shell for all Lisp code operations. Full reference: **`cl-mcp/prompts/repl-driven-development.md`**.
-
-## The loop
+When **cl-mcp** is connected, prefer its tools over shell for Lisp. Full ref: `cl-mcp/prompts/repl-driven-development.md`.
 
 ```
-EXPLORE → EXPERIMENT → PERSIST → VERIFY
-   ↑                              ↓
-   └──────────── REFINE ──────────┘
+EXPLORE → EXPERIMENT → PERSIST → VERIFY → REFINE
 ```
 
-- **EXPLORE**: `clgrep-search`, `lisp-read-file` (collapsed), `code-describe`
-- **EXPERIMENT**: `repl-eval` — iterate until correct; keep forms small
-- **PERSIST**: `lisp-edit-form` — **NEVER** overwrite existing `.lisp` with `fs-write-file`
-- **VERIFY**: `repl-eval` or `run-tests`; loop back if issues
+| Task | Tool |
+|------|------|
+| Search | `clgrep-search` |
+| Read `.lisp`/`.asd` | `lisp-read-file` (`collapsed=true`, then `name_pattern`) |
+| Other files | `fs-read-file` |
+| Load/reload | `load-system` (not `ql:quickload` via eval) |
+| Eval | `repl-eval` (`package`, `timeout_seconds`) |
+| Inspect | `inspect-object` (`result_object_id`) |
+| Edit existing `.lisp` | `lisp-edit-form` — **never** `fs-write-file` overwrite |
+| Small patch | `lisp-patch-form` |
+| New file | `fs-write-file` skeleton, then `lisp-edit-form` |
+| Parens | `lisp-check-parens` |
+| Symbol / xref | `code-find`, `code-describe`, `code-find-references` (`project_only`) |
+| CLHS | `clhs-lookup` |
+| Tests | `run-tests` |
 
-## Tool selection
+Shell is OK for `git`, `rove` CLI, user-requested commands.
 
-| Task | Tool | Note |
-|------|------|------|
-| Search project | `clgrep-search` | Works without loading; Lisp-aware |
-| Read `.lisp`/`.asd` | `lisp-read-file` | `collapsed=true` first, then `name_pattern` |
-| Read other files | `fs-read-file` | README, JSON, YAML, config |
-| Load/reload system | `load-system` | **Prefer** over `ql:quickload` via `repl-eval` |
-| Eval / test expr | `repl-eval` | Specify `package`; use `timeout_seconds` |
-| Inspect complex result | `inspect-object` | Use `result_object_id` from `repl-eval` |
-| Edit existing code | `lisp-edit-form` | **Always** for existing `.lisp`; `dry_run: true` to preview |
-| Small patch in form | `lisp-patch-form` | Token-efficient; exact `old_text` → `new_text` |
-| New file | `fs-write-file` | Minimal skeleton, then grow with `lisp-edit-form` |
-| Check parens | `lisp-check-parens` | After creating or before editing |
-| Symbol info | `code-find`, `code-describe` | Requires loaded system |
-| Cross-references | `code-find-references` | `project_only: true` |
-| CL spec | `clhs-lookup` | Symbol name or section number |
-| Run tests | `run-tests` | Structured pass/fail; single test with `test` param |
-
-**Shell is OK for:** `git`, `rove` (CLI), user-requested commands.
-
-## Editing rules
-
-- **Existing `.lisp`**: always `lisp-edit-form` (operations: `replace`, `insert_before`, `insert_after`).
-- **`defmethod`**: include specializers in `form_name`, e.g. `"print-object (my-class t)"`.
-- **New files**: `fs-write-file` with minimal `(in-package …)` + stub, then `lisp-edit-form` to build up.
-- **Dry run**: pass `dry_run: true` when unsure the matcher will hit the right form.
-
-## Reading rules
-
-1. `lisp-read-file` with `collapsed=true` — scan all top-level forms
-2. `name_pattern="^my-function$"` — expand only what you need
-3. `collapsed=false` with `offset`/`limit` — only if necessary
-
-`.asd` files are Lisp source — read with `lisp-read-file`, not `fs-read-file`.
-
-## Session setup
-
-Call **`fs-set-project-root`** at session start (or rely on `MCP_PROJECT_ROOT` env var). Then `load-system` for the system you're working on.
-
-## Style
-
-- 2-space indent; `lower-case-lisp-case` for functions; `-p` predicates; `+constants+`; `*specials*`
-- Types/declarations where they clarify intent
-- Macros for real abstraction/DSLs only
-- Docstrings on public functions and classes
-- **Rove** for new tests unless the subproject uses another runner
-- First-party cl-stack: conditions + restarts (CLHS 9) — skill **cl-stack-conditions**
-
-## Skill staging
-
-When you learn something new about a tool or workflow while using it — a correction, a gotcha, a better pattern — append it to the relevant skill's **`STAGED.md`** (e.g. `skills/cl-mcp-tooling/STAGED.md`). See **`.lisp-workspace/skills/README.md`** for the staging format.
+- **`defmethod`:** specializers in `form_name`, e.g. `"print-object (my-class t)"`.
+- **Dry run:** `dry_run: true` when the matcher is uncertain.
+- Session: `fs-set-project-root` (or `MCP_PROJECT_ROOT`), then `load-system`.
+- Style: 2-space; `lower-case-lisp-case`; `-p` predicates; `+constants+`; `*specials*`; docstrings on public API. Tests/errors: skills **cl-unit-testing** / **cl-stack-conditions**.

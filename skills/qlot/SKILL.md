@@ -1,9 +1,8 @@
 ---
 name: qlot
 description: >-
-  Qlot: project-local Common Lisp dependency installer (qlfile, lockfile, isolated Quicklisp dist under .qlot/).
-  Use when adding deps without polluting global Quicklisp, running commands in a locked environment, CI with qlot,
-  or debugging .qlot paths.
+  Qlot: qlfile, .qlot/, `qlot exec`. Use on legacy locked checkouts — new first-party
+  CI is cl-repository, not qlot.
 ---
 
 # Qlot

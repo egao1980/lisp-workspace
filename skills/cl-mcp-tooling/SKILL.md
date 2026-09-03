@@ -1,9 +1,8 @@
 ---
 name: cl-mcp-tooling
 description: >-
-  cl-mcp (cl-ai-project): MCP server for Common Lisp — repl-eval, inspect-object, load-system, fs-*, lisp-edit-form,
-  code-find, run-tests, stdio/TCP/HTTP, MCP_PROJECT_ROOT, optional worker pool. Use when wiring MCP for Cursor/Claude,
-  debugging MCP, running MCP Inspector, or editing MCP-related Lisp in workspace checkout cl-mcp/.
+  cl-mcp (cl-ai-project): repl-eval, inspect-object, load-system, lisp-edit-form, run-tests,
+  MCP_PROJECT_ROOT. Use when wiring/debugging MCP or editing cl-mcp/.
 ---
 
 # cl-mcp (cl-ai-project)

@@ -1,6 +1,8 @@
 # Lessons learned
 
-Append-only log of **symptom → cause → fix** for this workspace.
+Append-only log of **symptom → cause → fix**. Open the matching `##` heading — do not read this file end-to-end.
+
+**Index:** fork/`owner/repo` · MCP/eclector · GHA Windows runner · ASDF registry · devcontainer/`act`/ShellCheck · OCI/cl-repository/natives · HTTP/Windows/libev · multi-impl (ECL/CCL/CLISP/ABCL) · schema/blackboard/restarts · canned `uses:`/`run.lisp`
 
 ## 2026-03 — `cl-protobufs` bootstrap and `egao1980` fork
 

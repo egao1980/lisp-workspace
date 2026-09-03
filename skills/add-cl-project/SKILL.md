@@ -1,10 +1,8 @@
 ---
 name: add-cl-project
 description: >-
-  Registers a GitHub Common Lisp repo in this workspace using .lisp-workspace/scripts/add-cl-project.sh
-  (gh fork into egao1980 when needed, clone, upstream remote, ASDF source-registry snippet, optional qlot
-  or Quicklisp local-projects). Use when adding a new CL dependency repo, cloning a fork, wiring ASDF for
-  a sibling project, or onboarding libraries next to cl-repository/grpc.
+  add-cl-project.sh: gh fork into egao1980, clone, ASDF registry. Use when adding a CL
+  checkout (not for unmodified source-only — that is a cl-stack-systems import).
 ---
 
 # Add a CL project to the workspace

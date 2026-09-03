@@ -1,9 +1,8 @@
 ---
 name: docker-devcontainers
 description: >-
-  Docker images, Dockerfiles, Compose, and Dev Containers (devcontainer.json, Features, lifecycle). Use when
-  containerizing apps, authoring .devcontainer.json, debugging mount/network issues, or comparing community skill
-  patterns — not Lisp-specific by itself.
+  Docker / Compose / Dev Containers spec. Use when authoring Dockerfiles or
+  .devcontainer.json, or debugging mounts — not Lisp-specific.
 ---
 
 # Docker and Dev Containers

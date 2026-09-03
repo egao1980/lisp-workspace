@@ -1,50 +1,37 @@
 # Workspace skills (Cursor)
 
-Each subdirectory is a **skill**: a `SKILL.md` with YAML frontmatter (`name`, `description`) plus instructions. Cursor loads **project** skills from **`.cursor/skills/`**. Skills live only under **`.lisp-workspace/skills/`**; **`.lisp-workspace/.cursor/skills`** is a symlink **`../skills`** so there is a single tree (no duplicate or broken chain when root **`.cursor`** points here).
+Each subdirectory is a **skill**: `SKILL.md` with YAML frontmatter (`name`, `description`) plus instructions.
+Cursor loads project skills from **`.cursor/skills/`**. Skills live only under **`.lisp-workspace/skills/`**;
+**`.lisp-workspace/.cursor/skills`** → **`../skills`**.
 
-## Adding a skill
+## Adding
 
-1. Create `my-skill-name/SKILL.md` with `name` and `description` in frontmatter (same idea as `~/.cursor/skills-cursor/create-skill/SKILL.md` on your machine).
-2. Put **what** and **when** in `description` so the agent can match tasks to skills.
+1. `my-skill-name/SKILL.md` with `name` + `description` (what **and** when).
+2. Keep `SKILL.md` short; put examples in `reference.md` / `examples.md` (one level deep).
 3. Commit under `.lisp-workspace/`.
 
-Personal skills (all projects): `~/.cursor/skills/`. Do **not** put project skills in `~/.cursor/skills-cursor/` (reserved).
+Personal: `~/.cursor/skills/`. Never `~/.cursor/skills-cursor/` (reserved).
 
-## Cursor discovery
+## Discovery
 
-From the **workspace root** (the directory that contains `.lisp-workspace/`):
+From the **workspace root**:
 
 ```bash
 ln -sfn .lisp-workspace/.cursor .cursor
 ```
 
-**`.lisp-workspace/.cursor/skills` → `../skills`** is committed in this repo — do not replace it with a direct `.cursor/skills` → `.lisp-workspace/skills` link at the root (that would skip the bundled rules/commands/mcp.json).
+Do **not** replace `.lisp-workspace/.cursor/skills` with a root-level shortcut that skips rules/commands/mcp.json.
+Recreate the root `.cursor` symlink after clone if Cursor misses project rules/skills.
 
-Recreate the root **`.cursor`** symlink after clone if Cursor does not see project rules/skills.
+## Staging
 
-## Skill improvement staging
+Mid-task correction → append `skills/<name>/STAGED.md` under `## Pending` (do not edit `SKILL.md` in-flight).
+Review with `/review-skill-improvements`. Applied → `## Applied`; rejected → `## Rejected`.
 
-Skills improve over time. When an agent (or user) discovers a correction, a better pattern, or a missing detail while using a skill, it should be **staged** rather than editing the `SKILL.md` directly in the middle of unrelated work.
-
-### How it works
-
-1. **Append** to `skills/<skill-name>/STAGED.md` with an entry under `## Pending`:
-   ```markdown
-   - [2026-03-21] Brief description of the improvement
-     - Source: user correction / lesson learned / agent observation
-     - Proposed change: what to add or change in SKILL.md
-   ```
-2. **Review** periodically via the `/review-skill-improvements` command (`.cursor/commands/`). The review reads each `STAGED.md` alongside its `SKILL.md` and proposes apply/reject for each item.
-3. **Applied** items move to `## Applied` with date; **rejected** items move to `## Rejected` with reason.
-
-### Creating a STAGED.md
-
-If the file doesn't exist yet, create it with this template:
+New `STAGED.md`:
 
 ```markdown
 # Staged improvements for <skill-name>
-
-Pending corrections, additions, and refinements discovered during use.
 
 ## Pending
 
@@ -53,24 +40,33 @@ Pending corrections, additions, and refinements discovered during use.
 ## Rejected
 ```
 
-### When to stage vs. edit directly
+Entry shape:
 
-- **Stage** when you notice an issue mid-task but the task is about something else.
-- **Edit directly** when the user explicitly asks to update the skill, or you're doing a dedicated skill maintenance pass.
+```markdown
+- [YYYY-MM-DD] Brief description
+  - Source: user correction / lesson learned / agent observation
+  - Proposed change: what to add or change in SKILL.md
+```
 
-## Skill index (this workspace)
+**Stage** mid-unrelated-task. **Edit directly** when the user asks or this is a dedicated skill pass.
+
+## Index
 
 | Skill | Focus |
 |-------|--------|
-| [add-cl-project](add-cl-project/SKILL.md) | Clone + fork + ASDF wiring script |
-| [asdf](asdf/SKILL.md) | ASDF systems, source registry, operations |
-| [cl-mcp-tooling](cl-mcp-tooling/SKILL.md) | **`cl-mcp/`** — cl-ai-project MCP server; Inspector |
-| [common-lisp-workspace](common-lisp-workspace/SKILL.md) | Whole-tree conventions |
-| [docker-devcontainers](docker-devcontainers/SKILL.md) | Docker + Dev Containers spec and credible refs |
-| [egao1980-devcontainers](egao1980-devcontainers/SKILL.md) | **`features/`** — GHCR features for Roswell / Lem |
-| [qlot](qlot/SKILL.md) | qlfile, `qlot exec`, project-local deps |
-| [cl-repository-ci](cl-repository-ci/SKILL.md) | cl-repo CI + cl-stack-systems publish (no custom publish scripts) |
-| [cl-stack-conditions](cl-stack-conditions/SKILL.md) | CLHS 9 conditions + restarts for first-party cl-stack |
-| [cl-unit-testing](cl-unit-testing/SKILL.md) | Rove default, `deftest-parametrize`, pins |
+| [act-github-actions](act-github-actions/SKILL.md) | Local GH Actions via Docker |
+| [add-cl-project](add-cl-project/SKILL.md) | Clone + fork + ASDF wiring |
+| [asdf](asdf/SKILL.md) | ASDF systems, source registry |
+| [bash-defensive-patterns](bash-defensive-patterns/SKILL.md) | Production Bash / install.sh |
+| [cl-mcp-tooling](cl-mcp-tooling/SKILL.md) | `cl-mcp/` MCP server + Inspector |
+| [cl-repository-ci](cl-repository-ci/SKILL.md) | cl-repo CI + cl-stack-systems publish |
+| [cl-stack-conditions](cl-stack-conditions/SKILL.md) | CLHS 9 conditions + restarts |
+| [cl-unit-testing](cl-unit-testing/SKILL.md) | Rove default, `deftest-parametrize` |
+| [common-lisp-workspace](common-lisp-workspace/SKILL.md) | Tree conventions (router) |
+| [docker-devcontainers](docker-devcontainers/SKILL.md) | Docker + Dev Containers spec |
+| [egao1980-devcontainers](egao1980-devcontainers/SKILL.md) | `features/` GHCR Roswell / Lem |
+| [qlot](qlot/SKILL.md) | qlfile, `qlot exec` (legacy) |
 | [rove](rove/SKILL.md) | Rove quick ref → cl-unit-testing |
-| [roswell](roswell/SKILL.md) | `ros` CLI, implementations, scripting |
+| [roswell](roswell/SKILL.md) | `ros` CLI, implementations |
+| [sbcl](sbcl/SKILL.md) | SBCL debugger / flags |
+| [shellcheck-configuration](shellcheck-configuration/SKILL.md) | Lint `install.sh` / CI shell |

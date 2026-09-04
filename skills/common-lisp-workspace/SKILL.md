@@ -14,6 +14,7 @@ Router — do not duplicate AGENTS / MEMORY / other skills here.
 | Always-on policy | [AGENTS.md](../../AGENTS.md) |
 | Prefs + stack index | [MEMORY.md](../../MEMORY.md) |
 | CI / publish | [cl-repository-ci](../cl-repository-ci/SKILL.md) |
+| Merge when green | [pr-merge-publish](../pr-merge-publish/SKILL.md) |
 | Tests | [cl-unit-testing](../cl-unit-testing/SKILL.md) |
 | Errors | [cl-stack-conditions](../cl-stack-conditions/SKILL.md) |
 | MCP | [cl-mcp-tooling](../cl-mcp-tooling/SKILL.md) |

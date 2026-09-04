@@ -65,6 +65,7 @@ Entry shape:
 | [common-lisp-workspace](common-lisp-workspace/SKILL.md) | Tree conventions (router) |
 | [docker-devcontainers](docker-devcontainers/SKILL.md) | Docker + Dev Containers spec |
 | [egao1980-devcontainers](egao1980-devcontainers/SKILL.md) | `features/` GHCR Roswell / Lem |
+| [pr-merge-publish](pr-merge-publish/SKILL.md) | Merge when CI green; then OCI publish |
 | [qlot](qlot/SKILL.md) | qlfile, `qlot exec` (legacy) |
 | [rove](rove/SKILL.md) | Rove quick ref → cl-unit-testing |
 | [roswell](roswell/SKILL.md) | `ros` CLI, implementations |

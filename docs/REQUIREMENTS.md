@@ -9,6 +9,7 @@ Coordinate multiple **Common Lisp** ASDF systems: reproducible deps, **Roswell**
 - **Patched / overlays / owned CI:** fork into `egao1980`, clone, set **`upstream`**. `gh repo fork` uses `--org` only when `egao1980` is a GitHub org; if it matches `gh api user`, fork without `--org`.
 - **Fork ↔ import exclusivity:** never both. Fork ⇒ delete `imports/<name>/`. Import ⇒ no workspace fork.
 - Original `egao1980` projects: clone directly.
+- **PRs are tracking/staging, not a human review gate.** Merge when required CI is green, then publish OCI from the owning repo. Skill **[pr-merge-publish](../skills/pr-merge-publish/SKILL.md)**.
 
 ## Deps / CI
 

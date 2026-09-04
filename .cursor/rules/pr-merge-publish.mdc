@@ -1,0 +1,12 @@
+---
+description: No human PR review — merge and publish when CI is green
+alwaysApply: true
+---
+
+# PRs = tracking / staging
+
+No human review gate on `egao1980/*`. Open a PR to track and stage. When required CI is green (or there is no CI and the PR is mergeable): **merge immediately**, then **publish** if the change ships an OCI package.
+
+Skill **pr-merge-publish**. How to publish: **cl-repository-ci**.
+
+Still: no silent closes; no upstream PRs without ask; never `--delete-branch` on a head of an open upstream PR; never push/PR `CommonLispNext/cl-repository`.

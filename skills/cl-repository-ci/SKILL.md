@@ -82,6 +82,8 @@ Phase 1 = install (no ASDF-load of overlays). Phase 2 = test (`configure-asdf-so
 
 Update [`cl-stack/docs/QUICKSTART.md`](https://github.com/egao1980/cl-stack/blob/main/docs/QUICKSTART.md) pins in the **same** change set that publishes a user-facing feature.
 
+After a green PR: merge then trigger publish — skill **[pr-merge-publish](../pr-merge-publish/SKILL.md)**. No human review wait.
+
 ## Checklist
 
 - [ ] `.asd` honest `:version` / `:depends-on` / `:cl-repo` (overlays if native)

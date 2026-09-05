@@ -56,7 +56,7 @@ Entry shape:
 |-------|--------|
 | [act-github-actions](act-github-actions/SKILL.md) | Local GH Actions via Docker |
 | [add-cl-project](add-cl-project/SKILL.md) | Clone + fork + ASDF wiring |
-| [asdf](asdf/SKILL.md) | ASDF systems, source registry |
+| [asdf](asdf/SKILL.md) | New `.asd` shape, ASDF registry |
 | [bash-defensive-patterns](bash-defensive-patterns/SKILL.md) | Production Bash / install.sh |
 | [cl-mcp-tooling](cl-mcp-tooling/SKILL.md) | `cl-mcp/` MCP server + Inspector |
 | [cl-repository-ci](cl-repository-ci/SKILL.md) | cl-repo CI + cl-stack-systems publish |

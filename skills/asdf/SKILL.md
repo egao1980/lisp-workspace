@@ -1,13 +1,28 @@
 ---
 name: asdf
 description: >-
-  ASDF 3: defsystem, load/test-system, source registry. Use when editing .asd,
-  "component not found", or CL_SOURCE_REGISTRY.
+  ASDF 3: defsystem, new first-party .asd shape, load/test-system, source
+  registry. Use when writing a new system, editing :depends-on / :cl-repo /
+  :sources, "component not found", or CL_SOURCE_REGISTRY.
 ---
 
 # ASDF (Another System Definition Facility)
 
 Manual: [asdf.common-lisp.dev](https://asdf.common-lisp.dev/asdf.html) (ASDF 3.x).
+
+## New first-party system
+
+`:oci` is the implied source for `:depends-on`. Do **not** write `:sources`.
+
+```lisp
+(defsystem "foo"
+  :version "0.1.0"
+  :depends-on ("bar" "baz")
+  ;; no :properties (:cl-repo …) — source-only
+  :in-order-to ((test-op (test-op "foo/tests"))))
+```
+
+Add `:properties (:cl-repo …)` **only** for native overlays (`:overlays` / `:cffi-libraries`). Never `:sources (("bar" :oci))`. Tests: **cl-unit-testing**. Publish: **cl-repository-ci**.
 
 ## Core concepts
 

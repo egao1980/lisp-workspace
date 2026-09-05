@@ -20,7 +20,7 @@ Read [SKILL.md](SKILL.md) first.
   :author "egao1980"
   :license "MIT"
   :depends-on ("http-protocol" "cl-stack-pathlib" …)
-  ;; optional: :properties (:cl-repo (:provides ("cl-stack-http")))
+  ;; no :cl-repo — source-only, honest depends-on, no overlays
   …)
 ```
 

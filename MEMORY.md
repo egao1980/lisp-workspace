@@ -21,6 +21,7 @@ Stack design / pins live in **`memory/*.md`** — open **only** the file that ma
 - **CCL diagnostics/smoke:** poll every 10–30s (do not block indefinitely) — runs hang or die quickly. FFI/port notes → [memory/runtime.md](memory/runtime.md).
 - **No upstream PRs without explicit ask.** Fork/push to `egao1980/*` is fine; do **not** open PRs against third-party upstreams (e.g. `Clozure/ccl`) unless the user says to.
 - **Living quickstart:** [`cl-stack/docs/QUICKSTART.md`](https://github.com/egao1980/cl-stack/blob/main/docs/QUICKSTART.md) — pin table + snippets in the **same PR** that publishes a user-facing feature.
+- **New first-party `.asd`:** skill **[asdf](skills/asdf/SKILL.md)**. `:oci` is the implied dep source; omit `:cl-repo` unless overlays. Never `:sources (("foo" :oci))`.
 - **CI / publish / OCI:** skill **[cl-repository-ci](skills/cl-repository-ci/SKILL.md)**. Pins, GHCR ACL, overlay keys → [memory/ci.md](memory/ci.md). Never `:ql` source pins; never sibling CI checkouts; never copy `ci-*.lisp`.
 - Plan before new projects / massive changes; git branch first. Run tests before declaring done. Feature branches in subproject repos.
 - **Before deleting "dead" code** (unused params/vars/functions), check it isn't scaffolding for a planned-but-unimplemented feature — grep TODO/docs/requirements + `git log -S`. If planned: keep it and document the reserved intent (e.g. `;; TODO(<area>)`).

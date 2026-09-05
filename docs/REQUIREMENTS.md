@@ -18,7 +18,7 @@ Skill **[cl-repository-ci](../skills/cl-repository-ci/SKILL.md)**. Pins / ACL ex
 - Install path = `cl-repository-client` → `ghcr.io/egao1980/cl-systems`.
 - Bootstrap client from OCI. Do **not** git-checkout `cl-repository` in consumer CI.
 - Consumer CI may `actions/checkout` **only** the repo under test.
-- New first-party: canned `test-system.yml` / `publish-source.yml` from day one (`uses:` literal `@main`). No copied `ci-*.lisp`. No `qlfile` as the install story. CI extras in `.asd` `:cl-repo :ci`.
+- New first-party: canned `test-system.yml` / `publish-source.yml` from day one (`uses:` literal `@main`). No copied `ci-*.lisp`. No `qlfile` as the install story. CI extras in `.asd` `:cl-repo :ci`. New `.asd` shape: skill **asdf** (`:oci` implied; no `:cl-repo` unless overlays).
 - Publish metadata = `.asd` + `auto-package-spec`. First-party → owning-repo. Third-party → cl-stack-systems. Natives → reusable native workflow.
 
 ## Tooling

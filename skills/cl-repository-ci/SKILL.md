@@ -17,6 +17,8 @@ Examples / YAML / `.asd` snippets: [reference.md](reference.md).
 `ci-test.lisp` / `publish-checkout.lisp`. Hooks in `scripts/ci/` only when
 canned cannot express the step.
 
+New system shape (no `:cl-repo` unless overlays; `:oci` implied) → skill **asdf**.
+
 Upstream: [cl-repository examples/06-asd-embedded-config](https://github.com/egao1980/cl-repository/tree/main/examples/06-asd-embedded-config).
 
 ## Decision tree

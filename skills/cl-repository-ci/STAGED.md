@@ -2,7 +2,7 @@
 
 ### 2026-09-06 — canned CI must not load the client through the checkout
 - **Source:** wave 3 `http-encoding-chipz` 0.1.1. Install/publish died in `run.lisp` `(asdf:load-system "cl-repository-client")` with `Component "compression-protocol" not found`. `CL_SOURCE_REGISTRY` is checkout-first (`activate.sh` / `setup-client`). Client graph is `cl-oci-client/http` → `http-backend-dexador` → `http-encoding-chipz`, so the checkout asd shadows the bundled 0.1.0.
-- **Proposed change:** `%load-client` initializes ASDF from `CL_REPOSITORY_DEST` only, loads the client, re-reads the env registry, `clear-checkout-systems`. Do **not** vendor `compression-protocol` into encoding repos or pin a pre-protocol chipz asd. Same trap for any checkout that is also a hard client dep (`http-protocol`, `http-encoding-chipz`, `quri`, …).
+- **Proposed change:** `%load-client` drops the checkout from the existing `CL_SOURCE_REGISTRY` (setup-lisp already wrote it), loads the client, re-reads the env registry, `clear-checkout-systems`. No `CL_REPOSITORY_DEST` / sibling registry. Encoding repos already use `test-system.yml@main`; leftover old bit is `packager_version` default `0.16.0`. Soft-dep `http-encoding-chipz` from `http-backend-dexador` so the client graph stops hard-requiring it.
 - **Why:** pre-publish hooks never run — the process dies during client load. GHCR already had `compression-protocol:0.1.1`.
 - **Status:** applied in `egao1980/cl-repository` `cursor/unshadow-client-load-fe7c` (`run.lisp` / `ci-lib.lisp`). Promote to SKILL/MEMORY after merge.
 

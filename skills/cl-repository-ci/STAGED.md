@@ -1,5 +1,11 @@
 ## Pending
 
+### 2026-09-06 — canned CI must not load the client through the checkout
+- **Source:** wave 3 `http-encoding-chipz` 0.1.1. Install/publish died in `run.lisp` `(asdf:load-system "cl-repository-client")` with `Component "compression-protocol" not found`. `CL_SOURCE_REGISTRY` is checkout-first (`activate.sh` / `setup-client`). Client graph is `cl-oci-client/http` → `http-backend-dexador` → `http-encoding-chipz`, so the checkout asd shadows the bundled 0.1.0.
+- **Proposed change:** `%load-client` initializes ASDF from `CL_REPOSITORY_DEST` only, loads the client, re-reads the env registry, `clear-checkout-systems`. Do **not** vendor `compression-protocol` into encoding repos or pin a pre-protocol chipz asd. Same trap for any checkout that is also a hard client dep (`http-protocol`, `http-encoding-chipz`, `quri`, …).
+- **Why:** pre-publish hooks never run — the process dies during client load. GHCR already had `compression-protocol:0.1.1`.
+- **Status:** applied in `egao1980/cl-repository` `cursor/unshadow-client-load-fe7c` (`run.lisp` / `ci-lib.lisp`). Promote to SKILL/MEMORY after merge.
+
 ### 2026-09-01 — native publish loads packager via setup-lisp, not QL
 - **Source:** user: native publish ships non-Lisp binaries; Lisp (packager/client) loads like other Lisp. cl-stack-snappy #33454477509 (`latest` oras untitled layers) and #33454938426 (`0.18.0` then `ql:quickload` → `http-protocol` missing).
 - **Proposed change:** `publish-native-package.yml` = `setup-lisp` + `cl-repo:ensure-systems` (same as `publish-source.yml` / `ci` `phase: publish`). Drop apt SBCL, Quicklisp bootstrap, and raw `oras pull` of the packager tarball. `packager-tag` defaults to `latest` (client resolves). Do **not** pin `0.10.0`/`0.12.0` as a workaround. Callers that still pin those (zstd/brotli/ssl/libuv/libev/icu/llama-cpp/vllm-cpp/snappy) drop the pin after this workflow is on `@main`. `cl-protobufs` cannot use the reusable workflow yet (`generated-source` overlays) but must use the same load path.

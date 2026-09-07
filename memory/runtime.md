@@ -18,10 +18,7 @@
 - **Sockets:** prefer portable **usocket** over SBCL `sb-bsd-sockets`; skip **iolib** for Windows-primary code (Unix-only).
 - **Platform matrix:** **Windows is a primary target** (with linux/darwin) — not “later / stretch”. Overlay Done-when bars include `windows/amd64` (see `cl-stack/docs/overlays.md` Required row). Prefer `libuv` for anything that must run on Windows; libev/Woo/`lev` stay Unix-only second backends.
 - **CFFI grovel policy:** Grovel **at overlay build time** (CI / Windows builder), ship `cffi-grovel-output` → `grovel-cache/`. Main packages may declare `grovel-file` for local-dev fallback, but consumers with cl-repository overlays must load **without** a C toolchain. Do not treat “no grovel on Windows” as a goal — treat “no grovel on consumer machines” as the goal.
-<<<<<<< HEAD
-=======
 - **http2 (zellerin) fork:** [`egao1980/http2`](https://github.com/egao1980/http2) **2.1.1**, published via `cl-stack-systems` import (`imports/http2`, pin `827bfc7`) → `ghcr.io/egao1980/cl-systems/http2:2.1.1`. `http2/server` / `http2/server/threaded` no longer depend on `http2/openssl` (Homebrew-only grovel + `poll.h`). Threaded TLS uses cl+ssl + ALPN select. Poll/openssl stay opt-in. **Package** name is `http2`; runtime loads `http2/client` (async H2 client) or `http2/server/threaded` (Lisp accept) — not the umbrella. CI `:with` / `with:` is `http2`, never `http2/client`.
->>>>>>> e0e0c12 (Note http2 2.1.1 is a cl-stack-systems import.)
 
 ## Workspace / demos / tests
 

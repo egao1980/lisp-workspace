@@ -27,7 +27,7 @@ Stack design / pins live in **`memory/*.md`** — open **only** the file that ma
 - **Before deleting "dead" code** (unused params/vars/functions), check it isn't scaffolding for a planned-but-unimplemented feature — grep TODO/docs/requirements + `git log -S`. If planned: keep it and document the reserved intent (e.g. `;; TODO(<area>)`).
 - Skill wrong mid-task → append `skills/<name>/STAGED.md`; do not edit `SKILL.md` in-flight.
 - **PRs = tracking / staging, not review.** No human review on `egao1980/*`. When CI is green (or no CI + mergeable): **merge immediately**, then **publish** if the repo ships OCI. Skill **pr-merge-publish**. Do **not** close open PRs silently (conflicts / “superseded”) — fix and merge. Close only if the user explicitly says to close/abandon, or the PR author asks to.
-- **Upstream PR branches:** never `gh pr merge --delete-branch` (or otherwise delete) a branch that is the head of an **open upstream PR** (e.g. `egao1980/rove` `cursor/parametrize-3a7a` → fukamachi/rove#76). Delete only after upstream merges or the upstream PR is intentionally abandoned.
+- **Upstream PR branches:** never `gh pr merge --delete-branch` (or otherwise delete) a branch that is the head of an **open upstream PR**. Current Rove heads: `cursor/parametrize-3a7a` → fukamachi/rove#76; `cursor/upstream-marks-timeout-1979` → #77; `cursor/upstream-diffs-junit-1979` → #78; `cursor/upstream-fixtures-1979` → #79. Delete only after upstream merges or the upstream PR is intentionally abandoned.
 - **Never push or create PRs to `CommonLispNext/cl-repository`** — all work stays in **`egao1980/cl-repository`**. Rebase/merge against upstream locally; push only to the fork.
 
 ## Project notes (open one)

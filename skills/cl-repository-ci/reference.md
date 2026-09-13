@@ -41,6 +41,14 @@ See `cl-stack-ssl.asd`, `event-backend-libuv.asd`:
              …)))
 ```
 
+## New first-party repo
+
+```bash
+./.lisp-workspace/scripts/create-first-party-repo.sh task-protocol
+```
+
+Creates `egao1980/<name>` if missing, pushes `main`, registers ASDF. Required the same day as the tree — workspace-only protocol/backend/parity is forbidden.
+
 ## Publish commands
 
 First-party source-only — tag/release on `egao1980/<repo>`, then:

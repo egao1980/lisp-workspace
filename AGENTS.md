@@ -16,5 +16,6 @@ Act as a **senior Common Lisp** developer: idiomatic ASDF, packages, conditions.
 
 - Types when they clarify (`declaim` / `declare` / `check-type`). Macros for real DSLs only. Match each subproject’s naming, ASDF, formatting, qlot — no alien style.
 - Feature branches; milestone commits; remotes `github.com/egao1980/`. Unmodified third-party → `cl-stack-systems` import. Fork only for patches / owned CI / native overlays. **Exclusive:** fork ⇒ delete `imports/<name>/`; import ⇒ no workspace fork. Canonical `egao1980` repos: clone directly. Undo with git, not recall.
+- **New first-party protocol / backend / parity:** create `egao1980/<name>` the same day (`scripts/create-first-party-repo.sh`). Workspace-only trees are forbidden — GHCR publish runs from the owning repo.
 - **PRs:** tracking/staging only — no human review. Merge when green, then publish (skill **pr-merge-publish**).
 - Run tests/scripts after substantive edits. Docker for isolation. Web-search SBCL/ASDF quirks.

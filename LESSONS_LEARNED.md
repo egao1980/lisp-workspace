@@ -425,3 +425,9 @@ Require OBJC-SUPPORT still SIGBUS/SIGSEGV flaky (~30%) — separate issue.
 - **Symptom:** `event-backend-libuv` `publish-oci.yml` Windows “Stage grovel” died with `Component "cl-repository-client" not found`. Unix matrix jobs were green.
 - **Cause:** setup-client 0.18.0 exports `CL_REPOSITORY_CLIENT_DIR` as an absolute `D:/…/cl-oci-0.18.0` on Windows. The workflow did `$(pwd)/${CL_REPOSITORY_CLIENT_DIR}` (msys pwd + drive path) and joined entries with `:`. ASDF on Windows splits on `;`; `:` splits `D:` so the client tree is never a registry entry. `stage-grovel.sh` then prepended more `:` paths and inherited the broken value.
 - **Fix:** Windows registry = `cygpath -m` paths joined by `;`. Do not prefix `pwd` onto an already-absolute `CL_REPOSITORY_CLIENT_DIR`. `stage-grovel.sh` rebuilds the Windows registry (`ROOT//;ROOT/.cl-repository//;`) and does not inherit a colon-joined GITHUB_ENV. Same footgun as cl-stack-icu / cl-repository-ci STAGED notes.
+
+## 2026-09-13 — workspace-only protocol/backend never reaches GHCR
+
+- **Symptom:** `ai-agent-protocol/durability` could not go on default CI: `oras` “name unknown” for `ghcr.io/egao1980/cl-systems/task-protocol`. Same for the rest of the wave-1 trees (`eval-protocol`, `mq-protocol`, `cache-protocol`, …).
+- **Cause:** trees lived only in `cl-workspace`. No `egao1980/<name>` ⇒ no owning-repo `publish-checkout.yml` ⇒ never published. Workflows in the tree do not run until they have a GitHub repo.
+- **Fix:** first-party `*-protocol` / `*-backend-*` / `*-parity` get `egao1980/<name>` the same day (`create-first-party-repo.sh`). Do not treat a workspace directory as landed.

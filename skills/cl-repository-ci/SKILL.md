@@ -26,6 +26,10 @@ Upstream: [cl-repository examples/06-asd-embedded-config](https://github.com/ega
 ```text
 Need to ship a Lisp system to ghcr.io/egao1980/cl-systems?
 │
+├─ New first-party protocol / backend / parity?
+│     Create egao1980/<name> NOW (`create-first-party-repo.sh`).
+│     Workspace-only trees are not a system — no repo ⇒ never on GHCR.
+│
 ├─ Packaging truth = .asd (:version :depends-on :properties :cl-repo …)
 │     auto-package-spec is enough — no custom package-spec
 │
@@ -89,6 +93,7 @@ After a green PR: merge then trigger publish — skill **[pr-merge-publish](../p
 ## Checklist
 
 - [ ] `.asd` honest `:version` / `:depends-on` / `:cl-repo` (overlays if native)
+- [ ] First-party protocol/backend/parity → `egao1980/<name>` exists (never workspace-only)
 - [ ] First-party source-only → owning-repo `publish-source.yml`
 - [ ] Third-party → cl-stack-systems `imports/`
 - [ ] Natives → reusable native workflow in the **owning** repo

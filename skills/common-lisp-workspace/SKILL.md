@@ -14,6 +14,7 @@ Router — do not duplicate AGENTS / MEMORY / other skills here.
 | Always-on policy | [AGENTS.md](../../AGENTS.md) |
 | Prefs + stack index | [MEMORY.md](../../MEMORY.md) |
 | New `.asd` / system | [asdf](../asdf/SKILL.md) |
+| New first-party repo | [add-cl-project](../add-cl-project/SKILL.md) (`create-first-party-repo.sh`) |
 | CI / publish | [cl-repository-ci](../cl-repository-ci/SKILL.md) |
 | Merge when green | [pr-merge-publish](../pr-merge-publish/SKILL.md) |
 | Tests | [cl-unit-testing](../cl-unit-testing/SKILL.md) |

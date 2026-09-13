@@ -24,6 +24,8 @@ Manual: [asdf.common-lisp.dev](https://asdf.common-lisp.dev/asdf.html) (ASDF 3.x
 
 Add `:properties (:cl-repo …)` **only** for native overlays (`:overlays` / `:cffi-libraries`). Never `:sources (("bar" :oci))`. Tests: **cl-unit-testing**. Publish: **cl-repository-ci**.
 
+Then **create `egao1980/<name>` the same day** (`../../scripts/create-first-party-repo.sh`). No owning repo ⇒ never on GHCR. Workspace-only protocol/backend trees are forbidden.
+
 ## Core concepts
 
 - **System** — defined with **`defsystem`** in a `.asd` file; **`asdf:load-system`** / **`asdf:find-system`**.

@@ -13,7 +13,9 @@ Quint = TLA+ semantics, typed programmer syntax. Docs: [quint.sh/docs/lang](http
 
 Lisp never writes `.qnt` by hand in first-party repos — `defspec` emits it (skill **spec-dsl**). Hand-written `.qnt` is for scratch validation under `/tmp` only.
 
-## Install (never global)
+## Install
+
+This box: Homebrew `quint` 0.32.0 on PATH (`/opt/homebrew/bin/quint`). Elsewhere, project-local:
 
 ```bash
 mkdir -p /tmp/quint-tool && npm install --prefix /tmp/quint-tool @informalsystems/quint
@@ -98,7 +100,10 @@ Gotchas (verified on quint 0.32.0):
 - `quint test` default `--match` is `.*Test`: name runs `…Test` or pass `--match "^(a|b)$"`. `--match ".*"` "tests" every definition and fails.
 - `--seed` forces `--max-samples 1`; with `--n-traces N > 1` pass `--max-samples` explicitly.
 - ITF variable names are namespaced through instances (`BankTest::Bank::balances`); map by the last `::` segment.
-- `verify --backend tlc` runs Apalache's bundled TLC, not the Toolbox jar; unbounded ints (counters, balances) never terminate — TLC only for finite models, Apalache (`--max-steps`) otherwise. Apalache 0.56.1 lands in `~/.quint/` on first `verify` (~1.5 s per bounded check afterwards; a `server --port 8822` JVM lingers — kill it in CI-like scripts).
+- `verify --backend tlc` runs Apalache's bundled TLC, not the Toolbox jar; unbounded ints (counters, balances) never terminate — TLC only for finite models, Apalache (`--max-steps`) otherwise. Apalache 0.56.1 lands in `~/.quint/` on first `verify` (~1.5 s per bounded check afterwards; a `server --port 8822` JVM lingers — `pkill -f "apalache.jar server"` in scripts).
+- `compile --target tlaplus` also goes through Apalache (Java), prints a `#`-log preamble before `---- MODULE`, and writes `_apalache-out/` into the **cwd** — run it from a scratch directory (the backend does).
+- Every action must assign every var (`QNT502 Variable y not set`); `if (c) x' = 1 else x' = x` is the idiom. The DSL emitter adds these frame conditions for you.
+- Annotated parameters require an annotated return type (`def f(a: int): bool = …`).
 
 ## ITF trace shape
 

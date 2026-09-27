@@ -67,7 +67,10 @@ Entry shape:
 | [egao1980-devcontainers](egao1980-devcontainers/SKILL.md) | `features/` GHCR Roswell / Lem |
 | [pr-merge-publish](pr-merge-publish/SKILL.md) | Merge when CI green; then OCI publish |
 | [qlot](qlot/SKILL.md) | qlfile, `qlot exec` (legacy) |
+| [quint-modeling](quint-modeling/SKILL.md) | Quint language + CLI, invariants, ITF, local TLC |
 | [rove](rove/SKILL.md) | Rove quick ref → cl-unit-testing |
 | [roswell](roswell/SKILL.md) | `ros` CLI, implementations |
 | [sbcl](sbcl/SKILL.md) | SBCL debugger / flags |
 | [shellcheck-configuration](shellcheck-configuration/SKILL.md) | Lint `install.sh` / CI shell |
+| [spec-dsl](spec-dsl/SKILL.md) | `defspec` → Quint/TLA+ (`spec-protocol` + `spec-backend-quint`) |
+| [spec-mbt-conformance](spec-mbt-conformance/SKILL.md) | Replay ITF traces against CLOS impls (`mbt-driver`) |

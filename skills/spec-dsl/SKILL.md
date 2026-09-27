@@ -9,7 +9,9 @@ description: >-
 
 # spec-dsl (`spec-protocol` + `spec-backend-quint`)
 
-Protocol/backend split like the rest of cl-stack: `spec-protocol` (nickname `stack-spec`) owns the AST, `defspec`, conditions, driver generics, ITF and MBT; `spec-backend-quint` emits `.qnt` and shells out to `quint` via `process-protocol`. TLA+ text comes from `(compile-spec m :target :tlaplus)`; a native TLC backend is future work.
+**One `defspec` = CLOS protocol + formal spec.** The form expands to a class (vars = slots, consts = initargs), generics + methods (actions), `deftype`s (sum types), `check-invariants`, **and** registers the AST that `spec-backend-quint` emits as `.qnt`. Do not write a model beside the code; the model is the code's core.
+
+Protocol/backend split like the rest of cl-stack: `spec-protocol` (nickname `stack-spec`) owns the DSL, AST, CLOS projection (`spec-protocol/clos`, `spec-protocol/runtime`), conditions, driver generics, ITF and MBT; `spec-backend-quint` emits `.qnt` and shells out to `quint` via `process-protocol`. TLA+ text comes from `(compile-spec m :target :tlaplus)`; a native TLC backend is future work.
 
 ```lisp
 (asdf:load-system "spec-backend-quint")          ; also sets *spec-backend*
@@ -37,6 +39,14 @@ Protocol/backend split like the rest of cl-stack: `spec-protocol` (nickname `sta
 ```
 
 Decl heads: `const var type import pure-val pure-def val def action temporal invariant run assume`. `invariant` = `val` tagged so drivers can enumerate it. `:as "Literal"` on any decl overrides the emitted name.
+
+## CLOS projection
+
+- Action body: non-`assign` forms are guards → `spec-action-disabled` (`continue` = no-op) when false; `assign`s are **simultaneous** (all RHS in pre-state, then `setf`). `*check-invariants*` runs `check-invariants` after each action (on in tests) → `spec-invariant-violation`.
+- Values: nullary variant = keyword, payload = `(label . value)`; record = keyword plist; tuple = list; list = vector; set = `spec-set`; map = `equal` hash-table. Ops from `spec-protocol/runtime` (`map-get`, `map-put`, `set-in-p`, …) — same names the emitter maps.
+- `(:spec-only …)` for `step` / `nondet` / `any` / `temporal` / `run` / `(:raw …)`; using them in a plain action is a macroexpansion `spec-parse-error`.
+- Header `:class :superclasses :accessor-prefix :package` shape the generated names; existing protocols inherit the class as a mixin or hold it as a delegate.
+- `spec-state-alist` exposes vars for MBT; `clos-driver` replays any `--mbt` trace against the generated class with no mapping code — every `defspec` gets that self-test.
 
 Specs with `const`s declare an instance in the header — `(:module "Bank" :instance ("BankTest" (accounts (set "a" "b"))))` — which emits a second module importing `Bank(accounts = …).*`, hosts the `run`s, and becomes the default `--main`. `run-tests` passes an explicit `--match` built from the spec's run names (quint's default only matches `*Test`). `simulate` always passes `--max-samples` (a `--seed` alone caps samples at 1). ITF var names come back namespaced (`BankTest::Bank::balances`); `spec-name` matches on the last segment.
 

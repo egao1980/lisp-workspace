@@ -67,7 +67,7 @@ Conditions (`spec-error` root): `spec-parse-error` (`use-value`), `spec-emit-err
 
 - Golden emit: `tests/fixtures/<spec>.qnt` compared string-equal to `(emit spec)`; diff, do not regenerate blindly.
 - Frozen traces: `quint run --mbt --seed N --out-itf` output committed as `*.itf.json`; replay in CI without Node (skill **spec-mbt-conformance**).
-- Quint-gated: `(unless (spec-backend-quint:quint-available-p) (skip "quint not installed"))`. `verify` `:checker :tlc` gated on `(tlc-available-p)` (`TLA_JAVA` + `TLA2TOOLS`, see **quint-modeling**); `:checker :apalache` on `SPEC_QUINT_VERIFY=1`.
+- Quint-gated: `(unless (spec-backend-quint:quint-available-p) (skip "quint not installed"))`. `verify` (`:checker :tlc` / `:apalache`) gated on `(java-available-p)` (`JAVA_HOME` = Homebrew `openjdk`, `TLA2TOOLS` = Toolbox jar, see **quint-modeling**).
 - Record the quint version in README; bump fixtures when emit changes, never edit them by hand.
 
 ## Where a model lives

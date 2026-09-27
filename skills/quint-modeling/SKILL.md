@@ -24,19 +24,21 @@ export QUINT_BIN=/tmp/quint-tool/node_modules/.bin/quint
 
 ## Local model checkers (this box)
 
-| Checker | Status | How |
-|---------|--------|-----|
-| **TLC** 2.19 | available | TLA+ Toolbox cask: `/Applications/TLA+ Toolbox.app/Contents/Eclipse/tla2tools.jar` + bundled x86_64 JRE `…/plugins/org.lamport.openjdk.macosx.x86_64_14.0.1.7/Contents/Home/bin/java` (Rosetta; first run ~2 min translating, warm 0.3 s) |
-| **Apalache** (`quint verify` default) | not available | needs JDK ≥ 17; no system JDK installed. Do not `brew install` a JDK without asking |
+| Tool | Where | Notes |
+|------|-------|-------|
+| **JDK 27** | `/opt/homebrew/opt/openjdk` (keg-only, **not on PATH**; `/usr/bin/java` is the Apple stub) | export `JAVA_HOME` / prepend `bin` before running quint or TLC |
+| **TLC** 2.19 | `/Applications/TLA+ Toolbox.app/Contents/Eclipse/tla2tools.jar` (Toolbox cask 1.7.4) | run on JDK 27, native arm64. Ignore the Toolbox-bundled x86_64 JRE 14 (Rosetta, ~2 min first start) |
+| **Apalache** | downloaded by `quint verify` on first use | JDK ≥ 17 satisfied by the above |
 
 ```bash
-export TLA_JAVA="/Applications/TLA+ Toolbox.app/Contents/Eclipse/plugins/org.lamport.openjdk.macosx.x86_64_14.0.1.7/Contents/Home/bin/java"
+export JAVA_HOME=/opt/homebrew/opt/openjdk; export PATH="$JAVA_HOME/bin:$PATH"
 export TLA2TOOLS="/Applications/TLA+ Toolbox.app/Contents/Eclipse/tla2tools.jar"
-PATH="$(dirname "$TLA_JAVA"):$PATH" quint verify spec.qnt --backend tlc --invariants inv    # quint drives TLC
-"$TLA_JAVA" -cp "$TLA2TOOLS" tlc2.TLC -config Spec.cfg Spec.tla                             # direct, after `quint compile --target tlaplus`
+quint verify spec.qnt --invariants inv --max-steps 10                 # Apalache (symbolic, bounded)
+quint verify spec.qnt --backend tlc --invariants inv                  # TLC (explicit, finite state)
+java -cp "$TLA2TOOLS" tlc2.TLC -config Spec.cfg Spec.tla              # direct, after `quint compile --target tlaplus`
 ```
 
-`spec-backend-quint` reads `TLA_JAVA` / `TLA2TOOLS` (`verify … :checker :tlc`); Apalache path gated by `SPEC_QUINT_VERIFY=1`. TLC = finite state only — keep domains small (see Tractability). Prefer `verify :checker :tlc` locally, `run` (simulation) in CI.
+`spec-backend-quint` reads `JAVA_HOME` / `TLA2TOOLS` and exposes `verify … :checker (:apalache | :tlc)`; both gated on `(java-available-p)` so CI skips. TLC = finite state only — keep domains small (see Tractability). Locally: `verify :checker :tlc` for exhaustive finite models, `:apalache` for symbolic/inductive; CI: `run` (simulation) + frozen traces.
 
 ## Language in one screen
 

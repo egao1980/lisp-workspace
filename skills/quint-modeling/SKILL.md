@@ -92,6 +92,14 @@ Finite, small domains: 2–3 participants, values from `1.to(3)`, `--max-steps 1
 
 `--invariant "not(prop)"` = witness a scenario. `--seed` from a failing run is the reproducer — record it in the test.
 
+Gotchas (verified on quint 0.32.0):
+
+- A module with unbound `const` cannot be run/tested/verified — add an instance module (`module BankTest { import Bank(accounts = Set("a", "b")).* run happyTest = … }`) and pass `--main BankTest`. Put `run`s in the instance module.
+- `quint test` default `--match` is `.*Test`: name runs `…Test` or pass `--match "^(a|b)$"`. `--match ".*"` "tests" every definition and fails.
+- `--seed` forces `--max-samples 1`; with `--n-traces N > 1` pass `--max-samples` explicitly.
+- ITF variable names are namespaced through instances (`BankTest::Bank::balances`); map by the last `::` segment.
+- `verify --backend tlc` runs Apalache's bundled TLC, not the Toolbox jar; unbounded ints (counters, balances) never terminate — TLC only for finite models, Apalache (`--max-steps`) otherwise. Apalache 0.56.1 lands in `~/.quint/` on first `verify` (~1.5 s per bounded check afterwards; a `server --port 8822` JVM lingers — kill it in CI-like scripts).
+
 ## ITF trace shape
 
 ```json

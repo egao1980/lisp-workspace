@@ -38,6 +38,8 @@ Protocol/backend split like the rest of cl-stack: `spec-protocol` (nickname `sta
 
 Decl heads: `const var type import pure-val pure-def val def action temporal invariant run assume`. `invariant` = `val` tagged so drivers can enumerate it. `:as "Literal"` on any decl overrides the emitted name.
 
+Specs with `const`s declare an instance in the header — `(:module "Bank" :instance ("BankTest" (accounts (set "a" "b"))))` — which emits a second module importing `Bank(accounts = …).*`, hosts the `run`s, and becomes the default `--main`. `run-tests` passes an explicit `--match` built from the spec's run names (quint's default only matches `*Test`). `simulate` always passes `--max-samples` (a `--seed` alone caps samples at 1). ITF var names come back namespaced (`BankTest::Bank::balances`); `spec-name` matches on the last segment.
+
 ## Forms → Quint
 
 | Lisp | Quint |

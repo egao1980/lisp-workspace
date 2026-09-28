@@ -9,6 +9,7 @@ Act as a **senior Common Lisp** developer: idiomatic ASDF, packages, conditions.
 - **Commands:** `/load-and-test`, `/review-skill-improvements`.
 - **Tests:** new tests = **Rove** ([`egao1980/rove`](https://github.com/egao1980/rove) for `deftest-parametrize`) unless the repo already picked a runner. Skill **cl-unit-testing**.
 - **Errors:** conditions + restarts ([CLHS 9](http://www.lispworks.com/documentation/HyperSpec/Body/09_.htm)). Skill **cl-stack-conditions**.
+- **Formal models:** `defspec` → Quint/TLA+ (skill **spec-dsl**), Quint + local TLC (**quint-modeling**), trace replay against impls (**spec-mbt-conformance**).
 - **CI / publish:** skill **cl-repository-ci**. Pins/ACL → [memory/ci.md](memory/ci.md).
 - **Docs:** [MEMORY.md](MEMORY.md) (prefs + index) · [REQUIREMENTS.md](docs/REQUIREMENTS.md) (policy) · [LESSONS_LEARNED.md](LESSONS_LEARNED.md) (gotchas). Update MEMORY on durable user prefs — do not paste stack notes into this file.
 

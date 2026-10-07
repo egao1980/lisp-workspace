@@ -86,6 +86,11 @@ Canonical workflow: `uses: egao1980/cl-repository/.github/workflows/test-system.
 
 Phase 1 = install (no ASDF-load of overlays). Phase 2 = test (`configure-asdf-source-registry` + `load-system-init-files` → `asdf:test-system`). Client order = OCI then QL.
 
+**Reproduce CI locally** (checkout + OCI deps, no sibling checkouts):
+`cd <repo> && CL_REPO_SYSTEM=<system> ros -l <workspace>/.lisp-workspace/scripts/oci-test-system.lisp`
+(`CL_REPO_CI_WITH`, `CL_TEST=<rove test>`, `CL_EXTRA_DIRS=<patched dep dir>`). Highest cached dep version wins, as in CI.
+`cl-repo.lock` / `.cl-repository/` are local artifacts — never commit them (`create-first-party-repo.sh` seeds `.gitignore`).
+
 Update [`cl-stack/docs/QUICKSTART.md`](https://github.com/egao1980/cl-stack/blob/main/docs/QUICKSTART.md) pins in the **same** change set that publishes a user-facing feature.
 
 After a green PR: merge then trigger publish — skill **[pr-merge-publish](../pr-merge-publish/SKILL.md)**. No human review wait.

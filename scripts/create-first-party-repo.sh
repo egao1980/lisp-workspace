@@ -68,6 +68,18 @@ if [[ ! -d "${DIR}/.git" ]]; then
   git -C "$DIR" init -b main
 fi
 
+# Local artifacts that `git add -A` below would otherwise commit (cl-repo.lock
+# and the OCI cache are per-machine; fasls are per-implementation).
+ensure_ignored() {
+  local gitignore="${DIR}/.gitignore" pattern
+  for pattern in "$@"; do
+    if ! grep -qxF -- "$pattern" "$gitignore" 2>/dev/null; then
+      echo "$pattern" >> "$gitignore"
+    fi
+  done
+}
+ensure_ignored "cl-repo.lock" ".cl-repository/" ".qlot/" "*.fasl" "*.dx64fsl" "*.lx64fsl" "*.wx64fsl" ".DS_Store"
+
 if ! git -C "$DIR" rev-parse --verify HEAD >/dev/null 2>&1; then
   git -C "$DIR" add -A
   git -C "$DIR" status --porcelain | grep -q . || die "nothing to commit in $DIR"

@@ -19,6 +19,11 @@
         (uiop:quit 1)))
 #+sbcl (sb-ext:disable-debugger)
 
+;; Same as the canned ci action (run.lisp): a full WARNING during compile-file
+;; (e.g. a dep re-loaded from the OCI cache redefining a package the client
+;; already brought in) must not abort the run.
+(setf asdf:*compile-file-failure-behaviour* :warn)
+
 (asdf:load-system "cl-repository-client")
 
 (defun %env (name)
@@ -37,6 +42,15 @@
          for file = (and sys (asdf:system-source-file sys))
          when file collect (namestring (uiop:pathname-directory-pathname file)))
    :test #'string=))
+
+;; The client's own configure-asdf-source-registry puts the OCI cache first
+;; while installing, so a dep the client already loaded from another tree
+;; (babel, alexandria, …) would be re-found there and recompiled -- babel's
+;; define-constant tables then collide. Freeze what is loaded, as CI
+;; effectively does by sourcing the client from the same OCI tree.
+(dolist (name (asdf:registered-systems))
+  (when (asdf:component-loaded-p name)
+    (asdf:register-immutable-system name)))
 
 (defun %isolated-registry (checkout)
   (let* ((root (cl-repository-client/installer:systems-root))
@@ -66,21 +80,36 @@
             (when (probe-file init)
               (load init))))))))
 
+(defun %ci-muffle (fn)
+  "As in the canned ci action: a dep reloaded from the OCI cache next to the
+   copy the client already loaded (babel's encoding tables) redefines
+   constants EQUALP-unequal to the old ones; CONTINUE, as CI does."
+  #+sbcl
+  (handler-bind ((sb-ext:defconstant-uneql
+                   (lambda (c)
+                     (let ((r (find-restart 'continue c)))
+                       (when r (invoke-restart r))))))
+    (funcall fn))
+  #-sbcl
+  (funcall fn))
+
 (let* ((system (or (%env "CL_REPO_SYSTEM") (error "CL_REPO_SYSTEM is required")))
        (with (%split (%env "CL_REPO_CI_WITH") #\Space #\Tab))
        (checkout (uiop:getcwd)))
   (format t "~&; oci-test: ~a~%" system)
   (cl-repo:add-registry "https://ghcr.io" :namespace "egao1980/cl-systems" :priority :prepend)
   (%isolated-registry checkout)
-  (apply #'cl-repo:ensure-system-dependencies system
-         :also-tests t :default-source :oci
-         (when with (list :with with)))
+  (%ci-muffle
+   (lambda ()
+     (apply #'cl-repo:ensure-system-dependencies system
+            :also-tests t :default-source :oci
+            (when with (list :with with)))))
   ;; Installing may have added versions; recompute the preferred set.
   (%isolated-registry checkout)
   (let ((root (cl-repository-client/installer:systems-root)))
     (when (probe-file root)
       (%load-system-inits root)))
-  (asdf:load-system system)
+  (%ci-muffle (lambda () (asdf:load-system system)))
   (let* ((test (%env "CL_TEST"))
          (ok (if test
                  (let* ((tests (format nil "~a/tests" system))

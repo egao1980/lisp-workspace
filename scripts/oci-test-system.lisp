@@ -12,6 +12,10 @@
 ;;;;   CL_EXTRA_DIRS    colon-separated extra :directory entries (e.g. a patched dep)
 ;;;;
 ;;;; When several versions of a dep are cached, the highest wins -- same as CI.
+;;;;
+;;;; A system the client already loaded from outside this checkout is refused
+;;;; before asdf:test-system (see oci-vacuous-load.lisp). ASDF will not reload
+;;;; it, so test-system would be a no-op and this script would print ok.
 
 (setf *debugger-hook*
       (lambda (c h)
@@ -24,6 +28,10 @@
 ;; (e.g. a dep re-loaded from the OCI cache redefining a package the client
 ;; already brought in) must not abort the run.
 (setf asdf:*compile-file-failure-behaviour* :warn)
+
+(let ((here (or *load-truename*
+                (error "load oci-test-system.lisp as a file"))))
+  (load (merge-pathnames "oci-vacuous-load.lisp" here)))
 
 (asdf:load-system "cl-repository-client")
 
@@ -152,6 +160,9 @@
   (%ci-muffle
    (lambda ()
      (asdf:load-system system)
+     ;; Loaded from the OCI cache (immutable): test-system would not run
+     ;; this checkout. Refuse. Do not unload or re-register.
+     (%refuse-vacuous-loaded-system system checkout)
      (%maybe-load-hook checkout "pre-test")))
   (let* ((test (%env "CL_TEST"))
          (ok (if test

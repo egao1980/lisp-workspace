@@ -9,6 +9,7 @@ WORKSPACE_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
 WORKSPACE="${LISP_WORKSPACE:-$WORKSPACE_ROOT}"
 ASDF_CONF_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/common-lisp/source-registry.conf.d"
 ASDF_SNIPPET_PREFIX="50-lisp-workspace"
+ASDF_EXCLUSIONS_FILE="00-lisp-workspace-exclusions.conf"
 
 NO_FORK="0"
 UPSTREAM_URL=""
@@ -183,10 +184,23 @@ verify_github_repo_exists() {
   die "GitHub repo ${ORG}/${NAME} not found after fork step. Check gh auth and org ${ORG}."
 }
 
+write_asdf_exclusions() {
+  # Per-checkout dependency caches (cl-repo install --local, qlot) must not leak
+  # stale third-party versions into the global registry via the :tree scans.
+  # conf.d files are processed in name order, so 00- applies to every 50- tree.
+  local conf_path="${ASDF_CONF_DIR}/${ASDF_EXCLUSIONS_FILE}"
+  mkdir -p "$ASDF_CONF_DIR"
+  cat >"$conf_path" <<'EOF'
+;; Added by add-cl-project.sh — skip per-checkout dependency caches in :tree scans
+(:also-exclude ".cl-repository" ".qlot")
+EOF
+}
+
 write_asdf_snippet() {
   local tree_path="$1"
   local conf_path="${ASDF_CONF_DIR}/${ASDF_SNIPPET_PREFIX}-${DEST_NAME}.conf"
   mkdir -p "$ASDF_CONF_DIR"
+  write_asdf_exclusions
   # Files in conf.d/ contain bare directives (ASDF wraps them automatically).
   cat >"$conf_path" <<EOF
 ;; Added by add-cl-project.sh — tree for ${DEST_NAME}

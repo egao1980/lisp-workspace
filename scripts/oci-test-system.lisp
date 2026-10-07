@@ -93,6 +93,13 @@
   #-sbcl
   (funcall fn))
 
+(defun %maybe-load-hook (checkout phase)
+  "Same contract as the canned ci action: scripts/ci/<phase>.lisp in the checkout."
+  (let ((path (merge-pathnames (format nil "scripts/ci/~a.lisp" phase) checkout)))
+    (when (probe-file path)
+      (format t "~&; oci-test: hook ~a~%" path)
+      (load path))))
+
 (let* ((system (or (%env "CL_REPO_SYSTEM") (error "CL_REPO_SYSTEM is required")))
        (with (%split (%env "CL_REPO_CI_WITH") #\Space #\Tab))
        (checkout (uiop:getcwd)))
@@ -101,15 +108,20 @@
   (%isolated-registry checkout)
   (%ci-muffle
    (lambda ()
+     (%maybe-load-hook checkout "pre-install")
      (apply #'cl-repo:ensure-system-dependencies system
             :also-tests t :default-source :oci
-            (when with (list :with with)))))
+            (when with (list :with with)))
+     (%maybe-load-hook checkout "post-install")))
   ;; Installing may have added versions; recompute the preferred set.
   (%isolated-registry checkout)
   (let ((root (cl-repository-client/installer:systems-root)))
     (when (probe-file root)
       (%load-system-inits root)))
-  (%ci-muffle (lambda () (asdf:load-system system)))
+  (%ci-muffle
+   (lambda ()
+     (asdf:load-system system)
+     (%maybe-load-hook checkout "pre-test")))
   (let* ((test (%env "CL_TEST"))
          (ok (if test
                  (let* ((tests (format nil "~a/tests" system))
@@ -120,5 +132,6 @@
                                      (or (find-symbol (string-upcase test) pkg)
                                          (error "no test ~a in ~a" test tests))))
                  (progn (asdf:test-system system) t))))
+    (%maybe-load-hook checkout "post-test")
     (format t "~&; oci-test: ~a ~a~%" system (if ok "ok" "FAIL"))
     (uiop:quit (if ok 0 1))))

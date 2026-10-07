@@ -6,7 +6,8 @@
 ;;;;
 ;;;; Env:
 ;;;;   CL_REPO_SYSTEM   (required) system under test
-;;;;   CL_REPO_CI_WITH  space-separated extra systems (mirrors :cl-repo :ci :with)
+;;;;   CL_REPO_CI_WITH  space-separated extra systems; default = the .asd's :cl-repo :ci :with
+;;;;                    (hooks may add more via cl-repository-ci-lib:*extra-with*)
 ;;;;   CL_TEST          optional Rove test symbol in <system>/tests; default = asdf:test-system
 ;;;;   CL_EXTRA_DIRS    colon-separated extra :directory entries (e.g. a patched dep)
 ;;;;
@@ -93,6 +94,30 @@
   #-sbcl
   (funcall fn))
 
+;; Hooks are written against the canned action's ci-lib (e.g. pushing the
+;; matrix event backend onto *EXTRA-WITH*); provide the surface they use.
+(unless (find-package :cl-repository-ci-lib)
+  (defpackage :cl-repository-ci-lib (:use :cl)))
+(defvar cl-repository-ci-lib::*extra-with* nil)
+(defvar cl-repository-ci-lib::*extra-sources* nil)
+(defun cl-repository-ci-lib::nonempty-env (name) (%env name))
+(export '(cl-repository-ci-lib::*extra-with* cl-repository-ci-lib::*extra-sources*
+          cl-repository-ci-lib::nonempty-env)
+        :cl-repository-ci-lib)
+
+(defun %asd-ci-with (system)
+  "The .asd's (:cl-repo (:ci (:with ...))) — what the canned action reads."
+  (let ((sys (asdf:find-system system nil)))
+    (when sys
+      ;; :properties is a plist in these repos (ci-lib also accepts an alist).
+      (let* ((props (slot-value sys 'asdf/component::properties))
+             (cl-repo (etypecase (first props)
+                        (keyword (getf props :cl-repo))
+                        (cons (cdr (assoc :cl-repo props)))
+                        (null nil))))
+        (mapcar (lambda (s) (string-downcase (string s)))
+                (uiop:ensure-list (getf (getf cl-repo :ci) :with)))))))
+
 (defun %maybe-load-hook (checkout phase)
   "Same contract as the canned ci action: scripts/ci/<phase>.lisp in the checkout."
   (let ((path (merge-pathnames (format nil "scripts/ci/~a.lisp" phase) checkout)))
@@ -109,9 +134,15 @@
   (%ci-muffle
    (lambda ()
      (%maybe-load-hook checkout "pre-install")
-     (apply #'cl-repo:ensure-system-dependencies system
-            :also-tests t :default-source :oci
-            (when with (list :with with)))
+     (let ((with (remove-duplicates
+                  (append (or with (%asd-ci-with system))
+                          (mapcar (lambda (s) (string-downcase (string s)))
+                                  (uiop:ensure-list cl-repository-ci-lib::*extra-with*)))
+                  :test #'string= :from-end t)))
+       (format t "~&; oci-test: with ~{~a~^ ~}~%" with)
+       (apply #'cl-repo:ensure-system-dependencies system
+              :also-tests t :default-source :oci
+              (when with (list :with with))))
      (%maybe-load-hook checkout "post-install")))
   ;; Installing may have added versions; recompute the preferred set.
   (%isolated-registry checkout)

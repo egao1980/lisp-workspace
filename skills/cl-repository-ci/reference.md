@@ -69,6 +69,7 @@ gh workflow run publish.yml -R egao1980/cl-stack-systems -f import=alexandria
 ```
 
 Optional `imports/<name>/system` when ASDF name ≠ directory (e.g. `cl+ssl`).
+Pin a release tag (`v1.4`) when upstream has one, else the full SHA whose asd matches the published `:version`. Do not assume `main` — `cl-idna` / `cl-mime` / `quri` / `rove` default to `master` (`gh api repos/egao1980/<r> -q .default_branch`).
 
 ### Native publish
 
@@ -76,6 +77,8 @@ Reuse `egao1980/cl-repository/.github/workflows/publish-native-package.yml`.
 Honor `.asd` `:cl-repo` overlays — not a parallel YAML-only inventory.
 
 Lisp load path = source publish: `setup-lisp` + `cl-repo:ensure-systems` of packager / oci-client (same as canned `ci` `phase: publish`). Binaries stay in `native-<os>-<arch>` artifacts → `lib/<os>-<arch>/`. Do **not** apt-install SBCL, bootstrap Quicklisp, or raw-`oras pull` the packager tarball. `packager-tag` defaults to `latest`. Do not pin `0.10.0` / `0.12.0` to dodge a missing `http-protocol`.
+
+Heap: gzipping CUDA overlays (~1.3GB) exhausts the default heap — pass `sbcl-dynamic-space-mb` (default 8192; 16384 for fat CUDA). SBCL runtime options precede `--noinform` / toplevel options. No `#` comments inside `VAR=val \` continuations (bash runs a no-op with that env) — `export` instead.
 
 `cl-protobufs` still has a repo-local publish script (`generated-source` overlays) but must load packager via `setup-lisp` + `ensure-systems`, not QL.
 
@@ -89,23 +92,30 @@ jobs:
     uses: egao1980/cl-repository/.github/workflows/test-system.yml@main
 ```
 
-Custom matrix (ABCL/ECL, extra env):
+Extra-impl rows beside the SBCL×OS reusable job (shape from `crypto-protocol/.github/workflows/test.yml`):
 
 ```yaml
-permissions:
-  contents: read
-  packages: read
-steps:
-  - uses: actions/checkout@v5
-  - uses: egao1980/cl-repository/.github/actions/setup-client@main
-  - uses: egao1980/cl-repository/.github/actions/setup-roswell@main
-  - uses: egao1980/cl-repository/.github/actions/ci@main
-    with: { phase: install }
-  - uses: egao1980/cl-repository/.github/actions/ci@main
-    with: { phase: test }
+  test-ccl:                     # test-ecl / test-abcl: same shape
+    runs-on: ubuntu-latest
+    permissions: { contents: read, packages: read }
+    timeout-minutes: 60         # ECL 90 (C backend compile)
+    steps:
+      - uses: actions/checkout@v5
+      - uses: egao1980/cl-repository/.github/actions/setup-lisp@main
+        with: { install-sbcl: "false" }
+      - shell: bash
+        run: ros install ccl-bin && ros use ccl-bin
+      - uses: egao1980/cl-repository/.github/actions/ci@main
+        with: { phase: install }
+      - uses: egao1980/cl-repository/.github/actions/ci@main
+        with: { phase: test }
 ```
 
-Call `setup-client` / `setup-lisp` in **every job** that needs the client. Default matrix: `ubuntu-latest`, `macos-latest`, `windows-latest`. Override with `os-json`.
+- **CCL:** `ccl-bin` (not `ccl`), linux/amd64 only — no Apple Silicon port (local = Rosetta).
+- **ECL:** apt `build-essential libffi-dev libgc-dev libgmp-dev` before `ros install ecl`.
+- **ABCL:** `actions/setup-java` (Temurin 21) + `ros install abcl-bin`; put `jna` + `jna-platform` jars on `CLASSPATH` — the `ci` action adds them to ABCL's class loader (`java -jar` ignores `CLASSPATH`).
+
+Call `setup-lisp` in **every job** that needs the client. Default matrix: `ubuntu-latest`, `macos-latest`, `windows-latest`. Override with `os-json`.
 
 ### `.asd` `:ci`
 

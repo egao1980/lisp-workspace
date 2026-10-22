@@ -26,7 +26,7 @@ Official docs: [roswell.github.io](https://roswell.github.io/), repo [roswell/ro
 ## Interactive debugger (CRITICAL for agents)
 
 - SBCL (and most CL implementations) drop into an **interactive debugger** on unhandled conditions by default. When running CL code from shell scripts or agent tool calls, this causes the process to **appear hung** — it's waiting for debugger input on stdin.
-- **Always** use `--disable-debugger` (SBCL) or `--non-interactive` (Roswell) when running Lisp non-interactively. Roswell's `-e` and script modes typically handle this, but `ros run` does not.
+- **Always** use `--disable-debugger` (SBCL) or `--non-interactive` (Roswell) when running Lisp non-interactively. `ros -e` does **not** — set `*debugger-hook*` in the first `-e` (skill **sbcl**).
 - For SBCL directly: `sbcl --disable-debugger --load script.lisp` or `sbcl --non-interactive --load script.lisp`.
 - In Lisp code you can also set `(sb-ext:disable-debugger)` or wrap with `handler-case` / `handler-bind` to avoid the debugger on errors.
 

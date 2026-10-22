@@ -17,7 +17,9 @@ SBCL drops into an **interactive debugger** on unhandled conditions by default. 
 
 - CLI flag: `sbcl --disable-debugger` or `sbcl --non-interactive` (implies `--disable-debugger` + `--end-toplevel-options`).
 - In Lisp: `(sb-ext:disable-debugger)` — causes unhandled conditions to print a backtrace and exit with non-zero status instead of entering the debugger.
-- Via Roswell: `ros -e '...'` and `ros run -e '...' -q` typically handle this, but `ros run` alone opens an interactive REPL.
+- Via Roswell: `ros -e '...'` does **not** disable it — an error lands at the `0]` prompt, and when stdin closes `ros` exits **0** (false success). Set the hook in the **first** `-e` (later forms are not covered by an unhooked earlier one), or `ros -l script.lisp` with the hook at the top:
+  `ros -e '(setf *debugger-hook* (lambda (c h) (declare (ignore h)) (format t "UNHANDLED: ~A~%" c) (uiop:quit 1)))' -e '…'`
+- Do not drive plain `sbcl` with Roswell's Quicklisp (`--load ~/.roswell/lisp/quicklisp/setup.lisp`): with `--no-userinit` it dies on package `ROSWELL`; without, a second `~/quicklisp` leaks stale fasls. Use `ros`.
 
 ## Useful flags
 

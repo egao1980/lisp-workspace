@@ -97,6 +97,7 @@ Prefer `restart-case` (associates restarts with the condition when the form is `
 - `handler-case` → unwind, then run a clause. Translation, “skip this item”, tests.
 - Library code: no `ignore-errors`, no `(handler-case … (error …))`, no `serious-condition` mop-up.
 - Policy (retry-3, skip, default) lives in the **caller / facade / `with-auto-*`**, not inside the primitive that signals.
+- Handlers are per-thread. A `handler-bind` around `run` / `drain-agenda` does not see worker (KSAR, pool) conditions — establish restarts at the worker site and install default policy in `spawn-*`. A worker `handler-case` that logs and keeps going makes a mid-pipeline death look like idle.
 
 ## Well-known libraries
 
@@ -134,6 +135,8 @@ Wrapping a foreign condition into a protocol type is fine when the facade contra
 ```
 
 Cover unhandled signal **and** at least one restart path for each public recovery.
+
+Domain restart names are symbols in the protocol package; CLHS ones (`use-value`, `continue`, `abort`) are not. From a test package use the `invoke-*` sugar or `protocol::name` — under `(:use :rove)`, `(invoke-restart 'skip)` names `rove:skip` → "No restart".
 
 ## Anti-patterns
 

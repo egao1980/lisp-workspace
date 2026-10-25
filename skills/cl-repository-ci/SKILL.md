@@ -11,11 +11,29 @@ description: >-
 Policy: [MEMORY.md](../../MEMORY.md) · [memory/ci.md](../../memory/ci.md) · [REQUIREMENTS.md](../../docs/REQUIREMENTS.md).
 Examples / YAML / `.asd` snippets: [reference.md](reference.md).
 
-**Convention over scripts.** Packaging **and** CI extras live in the **`.asd`**
-(`:properties (:cl-repo …)` + ASDF fields). Canned GH Actions in
-`egao1980/cl-repository` read them. Do **not** copy `ci-install.lisp` /
-`ci-test.lisp` / `publish-checkout.lisp`. Hooks in `scripts/ci/` only when
-canned cannot express the step.
+**Convention over scripts.** The `.asd` is the project file. A directory with
+`qlfile` is a project. Locally and in CI the interface is the CLI:
+
+```sh
+cl-repo sync
+cl-repo test
+cl-repo publish
+cl-repo add-overlay          # edits the .asd only. bare = this machine's os+arch
+cl-repo publish --overlay    # one overlay. a name selects it
+cl-repo grovel
+cl-repo sync --overlay cuda  # named overlays stay out until asked
+```
+
+Defaults are `https://ghcr.io` / `egao1980/cl-systems`, source `:oci`. No
+`CL_SOURCE_REGISTRY`, no `ql:quickload`, no copied install script. A missing
+`:depends-on` or qlfile name is published, then installed. Do **not** copy
+`ci-install.lisp` / `ci-test.lisp` / `publish-checkout.lisp`. Hooks in
+`scripts/ci/` only when the canned path cannot express the step.
+
+`add-overlay` keys are the parts you pass (`--os`, `--arch`, `--lisp`). A
+lisp-only overlay is not the universal manifest. `sync` stacks every matching
+unnamed overlay, generic first. Same specificity installs both, name order.
+`:ci :env` selects install and pre-test systems from an environment variable.
 
 New system shape (no `:cl-repo` unless overlays; `:oci` implied) → skill **asdf**.
 
@@ -78,7 +96,7 @@ Need to ship a Lisp system to ghcr.io/egao1980/cl-systems?
 
 1. `actions/checkout` → **only** the repo under test.
 2. Bootstrap client from OCI (`setup-lisp` / `setup-client@main`, `version: latest`). **No QL bootstrap.** Do **not** git-checkout `cl-repository`.
-3. Deps from `ghcr.io/egao1980/cl-systems` via canned `ci` (`phase: install`) → `ensure-system-dependencies`.
+3. Deps from `ghcr.io/egao1980/cl-systems`. The canned `ci` install phase is `cl-repo sync`. Test phase is `cl-repo test`.
 4. No copied `ci-*.lisp`. Extras in `.asd` `:cl-repo :ci`. Hooks only in `scripts/ci/`.
 5. No `:sources (("foo" :ql))` — publish `foo` to `cl-systems`, then drop the pin.
 6. Natives: grovel at overlay build; resolve via `cffi:*foreign-library-directories*` + absolute preload — **never** `LD_LIBRARY_PATH` / `DYLD_LIBRARY_PATH`. Auto-load on ASDF load.
@@ -86,7 +104,7 @@ Need to ship a Lisp system to ghcr.io/egao1980/cl-systems?
 
 Canonical workflow: `uses: egao1980/cl-repository/.github/workflows/test-system.yml@main`. Compose YAML + `:ci` examples → [reference.md](reference.md).
 
-Phase 1 = install (no ASDF-load of overlays). Phase 2 = test (`configure-asdf-source-registry` + `load-system-init-files` → `asdf:test-system`). Client order = OCI then QL.
+Phase 1 = `cl-repo sync`. Phase 2 = `cl-repo test` (`asdf:test-system`; a system with no test-op exits 0). Native jobs are `cl-repo grovel` and `cl-repo publish --overlay`.
 
 `setup-lisp`: Ubuntu runs in the `ci-base` **job container** (ros/SBCL/client baked in; `shell: bash` — container default is `sh`). Not a Docker *action* — its SBCL does not survive into later steps. Job containers are Linux-only: macOS/Windows install and `actions/cache` Roswell + the client tree keyed on the **resolved semver** (never `:latest`). Custom jobs use `setup-lisp`, not `setup-client` + `setup-roswell`.
 
@@ -95,13 +113,11 @@ Phase 1 = install (no ASDF-load of overlays). Phase 2 = test (`configure-asdf-so
 - Client loads from `CL_REPOSITORY_DEST` **alone**; the checkout joins the registry after (`clear-checkout-systems`). Hooks / local scripts must not load the client with the checkout on the registry — a checkout in the client graph shadows the bundled copy (`http-encoding-chipz` → `compression-protocol` not found). Optional client-graph deps go in `:ci :with`, not `:depends-on` (`http-backend-dexador` → chipz).
 - `:ci :with` adds install **roots**. `:sources` only pins the origin of names already in the set — a SAT-missed transitive (`dbi` → `dbd-postgres` → `cl-postgres`) belongs in `:with`.
 - `foo/bar` is not a GHCR repo: the client maps it to primary `foo` (`+` → `-plus-`); publish keeps slash provides as metadata. `:with ("foo/bar")` installs `foo`; a secondary of the SUT is a local root, never installed. Do not remap in consumer scripts.
-- Client gunzip is buffered (`chipz:decompress`, ABCL has no Gray-stream chipz) — fat CUDA overlays OOM the default heap. Consumer: stream-extract override in `scripts/ci/pre-install.lisp` (`llm-backend-vllm-cpp`). Native publish heap → [reference.md](reference.md).
+- Layer extract streams gzip (`chipz` Gray streams; ABCL still buffers). Do not redefine `extract-layer` in a pre-install hook. Native publish heap → [reference.md](reference.md).
 
 Extra impls (`test-abcl` / `test-ecl` / `test-ccl` beside `test-system.yml`): [reference.md](reference.md) · [`cl-stack/docs/multi-impl.md`](https://github.com/egao1980/cl-stack/blob/main/docs/multi-impl.md).
 
-**Reproduce CI locally** (checkout + OCI deps, no sibling checkouts):
-`cd <repo> && CL_REPO_SYSTEM=<system> ros -l <workspace>/.lisp-workspace/scripts/oci-test-system.lisp`
-(`CL_REPO_CI_WITH`, `CL_TEST=<rove test>`, `CL_EXTRA_DIRS=<patched dep dir>`). Highest cached dep version wins, as in CI.
+**Reproduce CI locally:** `cl-repo test` in the project directory. `cl-repo sync --locked` installs `cl-repo.lock`. Do not export `CL_SOURCE_REGISTRY` or bootstrap Quicklisp.
 `cl-repo.lock` / `.cl-repository/` are local artifacts — never commit them (`create-first-party-repo.sh` seeds `.gitignore`).
 
 Update [`cl-stack/docs/QUICKSTART.md`](https://github.com/egao1980/cl-stack/blob/main/docs/QUICKSTART.md) pins in the **same** change set that publishes a user-facing feature.

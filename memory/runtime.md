@@ -3,7 +3,7 @@
 ## Event / process / executors
 
 - **cl-stack event-protocol:** app DX = **promises**; default **libuv** (Windows primary); second **libev** (Unix). **Separate GitHub repos per layer** (not colocated): `egao1980/event-protocol` (generics + shared conformance), `egao1980/event-backend-libuv`, `egao1980/event-backend-libev`. Grovel-at-overlay-build. Brief `cl-stack/docs/capabilities/event-protocol.md`. **`submit` yes, pool protocol no. Protocol has no BT.** Hop-off + hop-back is one GF; `:executor` is a function of one thunk (or `NIL` → backend default). Shared BT pools: [`cl-stack-executors`](https://github.com/egao1980/cl-stack-executors) — backends *may* plug that in. Do not add `event-pool` / `worker-protocol`.
-- **event-protocol 0.2.0:** `wake-call` + `submit`. No `bordeaux-threads` on the protocol. Pin ≥0.2.0 for hop-off. Backends: libuv **0.1.2**, libev **0.1.3**, nio **0.1.2**. Executors lib **0.1.0**.
+- **event-protocol 0.2.0:** `wake-call` + `submit`. No `bordeaux-threads` on the protocol. Pin ≥0.2.0 for hop-off. Backends: libuv **0.1.4** (libuv 1.53.0), libev **0.1.3**, nio **0.1.2**. Executors lib **0.1.0**.
 - **event-protocol 0.1.1 / libuv 0.1.1 / libev 0.1.2:** `update-io` — in-place FD interest; fixes libuv `UV_EEXIST` from cancel+re-`uv_poll_init`.
 - **ABCL JVM backends (wave-1):** [`event-backend-nio`](https://github.com/egao1980/event-backend-nio) OCI **0.1.2** (NIO `Selector`; `run` binds `*event-loop*`); [`http-backend-java`](https://github.com/egao1980/http-backend-java) OCI **0.1.0** (`java.net.http` + WS scaffold). Prefer NIO over libuv on ABCL. Pin [`event-protocol`](https://github.com/egao1980/event-protocol) **≥0.2.0** for `submit` / 3-arg `wake-call`.
 

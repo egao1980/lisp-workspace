@@ -7,7 +7,7 @@ Act as a **senior Common Lisp** developer: idiomatic ASDF, packages, conditions.
 - **Skills:** `.lisp-workspace/skills/<name>/SKILL.md` — read the matching skill **before** specialized work. Personal (`~/.cursor/skills/`) apply across repos — do not duplicate here unless overriding. Mid-task fix → `skills/<name>/STAGED.md` (`/review-skill-improvements`). Index: [skills/README.md](skills/README.md).
 - **MCP:** `cl-mcp/` = [cl-ai-project/cl-mcp](https://github.com/cl-ai-project/cl-mcp). Skill **cl-mcp-tooling**. Inspector: `npx @modelcontextprotocol/inspector`.
 - **Commands:** `/load-and-test`, `/review-skill-improvements`, `/team-solve`.
-- **Sample-graded coding problems** (`task.md` + `tests/N.in` / `tests/N.out`): skill **team-solve**. Fresh agents, on-disk ledger, `check-samples.sh` is the verdict. Not for CL repo work.
+- **cl-stack features** (capability brief + existing ASDF test-op): skill **team-solve** (`/team-solve`). Fresh agents, on-disk ledger, `check-feature.sh` is the verdict.
 - **Tests:** new tests = **Rove** ([`egao1980/rove`](https://github.com/egao1980/rove) for `deftest-parametrize`) unless the repo already picked a runner. Skill **cl-unit-testing**.
 - **Errors:** conditions + restarts ([CLHS 9](http://www.lispworks.com/documentation/HyperSpec/Body/09_.htm)). Skill **cl-stack-conditions**.
 - **Formal models:** `defspec` → Quint/TLA+ (skill **spec-dsl**), Quint + local TLC (**quint-modeling**), trace replay against impls (**spec-mbt-conformance**).

@@ -2,11 +2,13 @@ type: command
 requires:
   - table_pattern: repair
 command: |
-  check=.memdoor/workflows/team-solve/check-samples.sh
-  [ -f "$check" ] || check="$HOME/.memdoor/workflows/team-solve/check-samples.sh"
-  bash "$check" > final-test-output.log 2>&1
+  if [ -z "${CHECK:-}" ] || [ ! -f "$CHECK" ]; then
+    printf 'FAIL: set CHECK to check-feature.sh\n' >&2
+    exit 1
+  fi
+  bash "$CHECK" > .team-solve/final-test-output.log 2>&1
   result=$?
-  cat final-test-output.log
+  cat .team-solve/final-test-output.log
   exit "$result"
-timeout: 5m
+timeout: 30m
 max_retries: 0

@@ -1,37 +1,67 @@
 #!/usr/bin/env bash
-# Proves check-samples.sh accepts a matching program and rejects a wrong one.
+# Proves check-feature.sh accepts a passing test-op, rejects a failing one,
+# and rejects a tampered tests/ tree.
 set -euo pipefail
 
 root=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
-check=$root/check-samples.sh
+check=$root/check-feature.sh
 tmp=$(mktemp -d)
 trap 'rm -rf "$tmp"' EXIT
 
-mkdir -p "$tmp/ok"
-cp -R "$root/fixture/." "$tmp/ok/"
-( cd "$tmp/ok" && bash "$check" )
+copy_fixture() {
+    local dest=$1
+    mkdir -p "$dest"
+    tar -C "$root/fixture" -cf - . | tar -C "$dest" -xf -
+}
 
-mkdir -p "$tmp/bad"
-cp -R "$root/fixture/." "$tmp/bad/"
-printf '%s\n' 'print(0)' > "$tmp/bad/solution.py"
+copy_fixture "$tmp/ok"
+( cd "$tmp/ok" && bash "$check" --seal && bash "$check" )
+
+copy_fixture "$tmp/bad"
+cat > "$tmp/bad/src/feature.lisp" <<'EOF'
+(defpackage #:team-solve-fixture
+  (:use #:cl)
+  (:export #:*feature-ok*))
+(in-package #:team-solve-fixture)
+
+(defvar *feature-ok* nil)
+EOF
+( cd "$tmp/bad" && bash "$check" --seal )
 set +e
 ( cd "$tmp/bad" && bash "$check" >"$tmp/bad.log" 2>&1 )
 status=$?
 set -e
 if [ "$status" -eq 0 ]; then
-    printf 'FAIL: broken solution was accepted\n' >&2
+    printf 'FAIL: broken feature was accepted\n' >&2
     cat "$tmp/bad.log" >&2
     exit 1
 fi
 
-mkdir -p "$tmp/empty/tests"
-printf '%s\n' 'print(1)' > "$tmp/empty/solution.py"
+copy_fixture "$tmp/tamper"
+( cd "$tmp/tamper" && bash "$check" --seal )
+printf '\n' >> "$tmp/tamper/tests/tests.lisp"
 set +e
-( cd "$tmp/empty" && bash "$check" >"$tmp/empty.log" 2>&1 )
+( cd "$tmp/tamper" && bash "$check" >"$tmp/tamper.log" 2>&1 )
 status=$?
 set -e
 if [ "$status" -eq 0 ]; then
-    printf 'FAIL: missing samples were accepted\n' >&2
+    printf 'FAIL: tampered tests were accepted\n' >&2
+    cat "$tmp/tamper.log" >&2
+    exit 1
+fi
+if ! grep -q 'contract changed' "$tmp/tamper.log"; then
+    printf 'FAIL: tamper did not report contract changed\n' >&2
+    cat "$tmp/tamper.log" >&2
+    exit 1
+fi
+
+copy_fixture "$tmp/noseal"
+set +e
+( cd "$tmp/noseal" && bash "$check" >"$tmp/noseal.log" 2>&1 )
+status=$?
+set -e
+if [ "$status" -eq 0 ]; then
+    printf 'FAIL: unsealed contract was accepted\n' >&2
     exit 1
 fi
 

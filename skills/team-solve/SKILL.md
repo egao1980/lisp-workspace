@@ -1,35 +1,57 @@
 ---
 name: team-solve
 description: >-
-  Use when a problem directory has task.md plus paired tests/N.in and
-  tests/N.out, or when the user runs /team-solve. Fresh agents, an on-disk
-  ledger, and check-samples.sh is the verdict.
+  Use when implementing a cl-stack Common Lisp feature whose contract is a
+  capability brief plus an existing ASDF test-op, or when the user runs
+  /team-solve. Fresh agents, an on-disk ledger, and check-feature.sh is the verdict.
 ---
 
 # team-solve
 
-Cursor host for the [memdoor team-solve steps](https://github.com/guregodevo/memdoor/tree/main/examples/workflows/team-solve/steps) (Apache-2.0). `steps/*.yaml` prompts are verbatim. Memdoor is not required.
+Ledger method from the [memdoor team-solve steps](https://github.com/guregodevo/memdoor/tree/main/examples/workflows/team-solve/steps) (Apache-2.0). The steps in `steps/` target a cl-stack feature: CLOS protocol or backend in the owning repo, graded by that repo's ASDF test-op.
 
-Not for Common Lisp repo work, refactors, or reviews.
+Not for Python contest problems, refactors with no failing test-op, or reviews.
+
+## Contract
+
+Repo checkout with the `.asd` at its root. `.team-solve/task.md` starts with frontmatter:
+
+```yaml
+---
+system: cli-protocol
+test-system: cli-protocol/tests
+brief: ../cl-stack/docs/capabilities/cli.md
+---
+```
+
+`system` is what `asdf:test-system` runs. `test-system` must already exist. `brief` is optional and read-only. The body is the slice to implement. Locked decisions in the brief stay locked.
+
+`tests/` is the spec. Solver and repair do not edit `tests/`, `task.md`, or the brief. They do not delete or skip assertions. Ledger files stay in `.team-solve/` and are not committed.
 
 ## Coordinator
 
-Dispatch and run the two shell steps. Do not plan, ideate, solve, review, or repair. Do not edit `task.md`, `tests/`, `plan.md`, `notes.md`, `solution.py`, or `review.md`.
+Dispatch and run seal, test, and verify. Do not plan, ideate, implement, review, or repair. Do not edit Lisp, `tests/`, `task.md`, or the brief.
 
-Problem directory needs `task.md` and at least one `tests/*.in` with a matching `.out`. The program is `solution.py` (Python 3 stdlib, stdin to stdout).
+Refuse to start unless `.team-solve/task.md` has `system` and `test-system`, and the checkout root has the `.asd`. Refuse if any of these already exist: `.team-solve/plan.md`, `notes.md`, `review.md`, `contract.sha256`, `test-output.log`, `test-status.txt`, `final-test-output.log`.
 
-Refuse to start if any of these already exist there: `plan.md`, `notes.md`, `solution.py`, `review.md`, `test-output.log`, `test-status.txt`, `final-test-output.log`. Copy the problem to a clean directory.
+Seal first, from the repo root. `$CHECK` is the absolute path of `check-feature.sh` next to this file.
+
+```bash
+bash "$CHECK" --seal
+```
 
 Run id: `team-solve-YYYYMMDDHHMMSS`. Replace `{{.partition}}` in the plan prompt with that id. Nowhere else.
 
-Each agent step is one fresh subagent (Cursor Task, `subagent_type` `generalPurpose`). Do not `resume`. The task text is the step `prompt` plus these two lines and nothing else:
+Each agent step is one fresh subagent (Cursor Task, `subagent_type` `generalPurpose`). Do not `resume`. The task text is the step `prompt` plus these lines and nothing else:
 
 ```
-Problem directory: <absolute path>
-Read and write files only in that directory.
+Repo: <absolute path of the checkout>
+Ledger: <absolute path>/.team-solve
+Paths in the prompt are relative to the repo root.
+Workspace skills, read before editing Lisp: <workspace>/.lisp-workspace/skills/asdf/SKILL.md, cl-unit-testing/SKILL.md, cl-stack-conditions/SKILL.md, cl-repository-ci/SKILL.md
 ```
 
-Do not add hints, earlier replies, or your own plan. Workers must not spawn agents. `ideate-a` and `ideate-b` go out together, in one message, after `plan` has finished.
+No hints and no earlier replies. Workers must not spawn agents. `ideate-a` and `ideate-b` go out together, in one message, after `plan`.
 
 `max_retries: 1` is one re-dispatch of that step when its files are missing. It is not a second repair.
 
@@ -37,9 +59,10 @@ Do not add hints, earlier replies, or your own plan. Workers must not spawn agen
 
 | step | kind | after | done when |
 | --- | --- | --- | --- |
-| `plan` | agent | — | `plan.md` and `notes.md` exist; `<!-- proposal-a -->` and `<!-- proposal-b -->` each occur once |
-| `ideate-a`, `ideate-b` | agents, parallel | plan | proposal text sits immediately before its own marker; the other marker is untouched |
-| `solve` | agent | both ideators | `solution.py` exists and the solver decision is in `notes.md` |
+| seal | command | — | `.team-solve/contract.sha256` exists |
+| `plan` | agent | seal | `plan.md` and `notes.md` exist; `<!-- proposal-a -->` and `<!-- proposal-b -->` each occur once |
+| `ideate-a`, `ideate-b` | agents, parallel | plan | proposal text sits immediately before its own marker |
+| `solve` | agent | both ideators | implementation is in the repo; the solver decision is in `notes.md`; `tests/` is untouched |
 | `test` | command | solve | `test-status.txt` and `test-output.log` exist. A nonzero status does not stop the run |
 | `review` | agent | test | `review.md` exists |
 | `repair` | agent | review | exactly one pass, including when the status is 0 |
@@ -47,31 +70,29 @@ Do not add hints, earlier replies, or your own plan. Workers must not spawn agen
 
 ## Commands
 
-Run from the problem directory. Checker is this skill's `check-samples.sh`. Ignore the `check=` paths inside `test.yaml` and `verify.yaml`; those are Memdoor install paths. The script is the same file.
+From the repo root.
 
 Test, and keep going:
 
 ```bash
-bash "$CHECK" > test-output.log 2>&1
+bash "$CHECK" > .team-solve/test-output.log 2>&1
 result=$?
-printf '%s\n' "$result" > test-status.txt
-cat test-output.log
-printf 'Initial sample-test exit status: %s\n' "$result"
+printf '%s\n' "$result" > .team-solve/test-status.txt
+cat .team-solve/test-output.log
+printf 'Initial test-op exit status: %s\n' "$result"
 ```
 
 Verify. Do not repair again if this fails. Report the log.
 
 ```bash
-bash "$CHECK" > final-test-output.log 2>&1
+bash "$CHECK" > .team-solve/final-test-output.log 2>&1
 result=$?
-cat final-test-output.log
+cat .team-solve/final-test-output.log
 exit "$result"
 ```
 
-`$CHECK` is `.lisp-workspace/skills/team-solve/check-samples.sh` from the workspace root, or the absolute path of the copy next to this file.
-
-A model saying done is not success. `verify` exit 0 is success.
+A model saying done is not success. `verify` exit 0 is success. A contract hash mismatch fails the run before Lisp starts.
 
 ## Checker
 
-`bash .lisp-workspace/skills/team-solve/test-checker.sh` from the workspace root. Fixture is a one-integer double, not a benchmark problem.
+`bash .lisp-workspace/skills/team-solve/test-checker.sh` from the workspace root. The fixture is a one-variable system, not a stack feature.

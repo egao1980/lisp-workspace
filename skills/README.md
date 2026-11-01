@@ -74,4 +74,4 @@ Entry shape:
 | [shellcheck-configuration](shellcheck-configuration/SKILL.md) | Lint `install.sh` / CI shell |
 | [spec-dsl](spec-dsl/SKILL.md) | `defspec` → Quint/TLA+ (`spec-protocol` + `spec-backend-quint`) |
 | [spec-mbt-conformance](spec-mbt-conformance/SKILL.md) | Replay ITF traces against CLOS impls (`mbt-driver`) |
-| [team-solve](team-solve/SKILL.md) | Fresh-agent ledger; `check-samples.sh` grades `tests/N.in` |
+| [team-solve](team-solve/SKILL.md) | Fresh-agent ledger for a cl-stack feature; ASDF test-op is the verdict |

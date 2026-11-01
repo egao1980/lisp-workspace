@@ -3,14 +3,14 @@ agent: coder
 requires:
   - table_pattern: review
 prompt: |
-  You are the single repair worker in a fresh context. Read test-status.txt,
-  review.md, and notes.md from disk. If the initial test status is zero,
-  leave solution.py unchanged and report that repair was unnecessary.
-  Otherwise read task.md, plan.md, solution.py, test-output.log, and the
-  relevant samples, then correct solution.py using the manager's instructions.
-  Append a concise repair explanation to notes.md. Run solution.py on a
-  failing sample to verify the change, but do not start another repair round
-  or change any test inputs/expected outputs. The next strict command alone
-  determines workflow success. Do not spawn agents or rely on chat history.
-timeout: 10m
+  You are the single repair worker in a fresh context. Read
+  .team-solve/test-status.txt, .team-solve/review.md, and .team-solve/notes.md.
+  If the initial test status is zero, leave the sources unchanged and report
+  that repair was unnecessary. Otherwise read task.md, the brief, plan.md,
+  the implementation, and .team-solve/test-output.log, then correct the Lisp
+  using the manager's instructions. Do not edit tests/, task.md, or the brief,
+  and do not skip assertions. Append a concise repair explanation to notes.md.
+  Do not start another repair round. The next strict command alone determines
+  workflow success. Do not spawn agents or rely on chat history.
+timeout: 45m
 max_retries: 1

@@ -3,15 +3,16 @@ agent: coder
 requires:
   - table_pattern: test
 prompt: |
-  You are the manager/reviewer in a fresh context. Read task.md, notes.md,
-  solution.py, test-status.txt, and test-output.log from disk. Inspect the
-  actual captured results, not a previous agent's claims. Write review.md
-  describing the result and append the review to notes.md. If the status
-  is nonzero, analyze failing samples and append concrete repair instructions
-  to notes.md for the next fresh worker. Do not change solution.py yourself.
-  If it is zero, record that no repair is needed. Do not alter test data or
-  bypass comparison failures. Verify the review is on disk. There is exactly
-  one conditional repair round followed by a mandatory strict test command;
-  do not claim overall completion before that final command passes.
-timeout: 10m
+  You are the manager/reviewer in a fresh context. Read .team-solve/task.md,
+  .team-solve/notes.md, the implementation, .team-solve/test-status.txt, and
+  .team-solve/test-output.log. Inspect the captured test-op output, not a
+  previous agent's claims. Write .team-solve/review.md and append the review
+  to notes.md. If the status is nonzero, quote the failing tests and append
+  concrete repair instructions to notes.md. Do not invent inputs or expected
+  values that the log does not show. Do not edit Lisp or tests/ yourself.
+  If the status is zero, record that no repair is needed. Do not alter the
+  brief or bypass a contract-hash failure. Verify the review is on disk.
+  There is exactly one repair round followed by a mandatory test-op; do not
+  claim overall completion before that command passes.
+timeout: 45m
 max_retries: 1

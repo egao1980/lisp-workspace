@@ -2,12 +2,14 @@ type: command
 requires:
   - table_pattern: solve
 command: |
-  check=.memdoor/workflows/team-solve/check-samples.sh
-  [ -f "$check" ] || check="$HOME/.memdoor/workflows/team-solve/check-samples.sh"
-  bash "$check" > test-output.log 2>&1
+  if [ -z "${CHECK:-}" ] || [ ! -f "$CHECK" ]; then
+    printf 'FAIL: set CHECK to check-feature.sh\n' >&2
+    exit 1
+  fi
+  bash "$CHECK" > .team-solve/test-output.log 2>&1
   result=$?
-  printf '%s\n' "$result" > test-status.txt
-  cat test-output.log
-  printf 'Initial sample-test exit status: %s\n' "$result"
-timeout: 5m
+  printf '%s\n' "$result" > .team-solve/test-status.txt
+  cat .team-solve/test-output.log
+  printf 'Initial test-op exit status: %s\n' "$result"
+timeout: 30m
 max_retries: 0

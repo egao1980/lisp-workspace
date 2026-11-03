@@ -59,6 +59,7 @@ Entry shape:
 | [asdf](asdf/SKILL.md) | New `.asd` shape, ASDF registry |
 | [bash-defensive-patterns](bash-defensive-patterns/SKILL.md) | Production Bash / install.sh |
 | [cl-mcp-tooling](cl-mcp-tooling/SKILL.md) | `cl-mcp/` MCP server + Inspector |
+| [cl-static-eclector](cl-static-eclector/SKILL.md) | Eclector CST read; no eval |
 | [cl-repository-ci](cl-repository-ci/SKILL.md) | cl-repo CI + cl-stack-systems publish |
 | [cl-stack-conditions](cl-stack-conditions/SKILL.md) | CLHS 9 conditions + restarts |
 | [cl-unit-testing](cl-unit-testing/SKILL.md) | Rove default, `deftest-parametrize` |

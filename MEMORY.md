@@ -31,6 +31,7 @@ Stack design / pins live in **`memory/*.md`** — open **only** the file that ma
 - **PRs = tracking / staging, not review.** No human review on `egao1980/*`. When CI is green (or no CI + mergeable): **merge immediately**, then **publish** if the repo ships OCI. Skill **pr-merge-publish**. Do **not** close open PRs silently (conflicts / “superseded”) — fix and merge. Close only if the user explicitly says to close/abandon, or the PR author asks to.
 - **Rove:** consume **`egao1980/rove` via OCI** (`ghcr.io/egao1980/cl-systems/rove`). Ignore fukamachi/rove (and other Rove upstream) PRs unless the user asks. Do not merge `egao1980/rove` tracking PRs as part of a stack land unless asked.
 - **Upstream PR branches:** never `gh pr merge --delete-branch` (or otherwise delete) a branch that is the head of an **open upstream PR**. Rove heads (leave them): `cursor/parametrize-3a7a` → fukamachi/rove#76; `cursor/upstream-marks-timeout-1979` → #77; `cursor/upstream-diffs-junit-1979` → #78; `cursor/upstream-fixtures-1979` → #79.
+- **Retiring an unused checkout:** commit anything uncommitted and push unpushed branches/stashes to `archive/<name>` on its `egao1980` remote (verify the remote tip), then delete the local checkout (`remove-cl-project.sh --purge <name>`) and drop it from `repos.manifest`. Do not archive or delete the GitHub repo unless asked.
 - **Never push or create PRs to `CommonLispNext/cl-repository`** — all work stays in **`egao1980/cl-repository`**. Rebase/merge against upstream locally; push only to the fork.
 
 ## Project notes (open one)

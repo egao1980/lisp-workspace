@@ -13,9 +13,10 @@ description: >-
 - **Dev Containers:** [containers.dev](https://containers.dev/) — specification, Features, templates.
 - **Spec repo:** [devcontainers/spec](https://github.com/devcontainers/spec) (JSON schemas, feature metadata).
 
-## Cursor / Agent Skills ecosystem
+## Agent Skills ecosystem
 
-- **Cursor docs:** [Agent Skills](https://www.cursor.com/docs/context/skills) — `.cursor/skills/`, `SKILL.md` format, optional `scripts/` / `references/` / `assets/`.
+- **Claude Code docs:** [Skills](https://code.claude.com/docs/en/skills) — `.claude/skills/`, `SKILL.md` format, optional supporting files. Dev container: [Feature `ghcr.io/anthropics/devcontainer-features/claude-code:1.0`](https://code.claude.com/docs/en/devcontainer).
+- **Cursor docs:** [Agent Skills](https://www.cursor.com/docs/context/skills) — `.cursor/skills/`, same `SKILL.md` format.
 - **Open standard:** [agentskills.io](https://agentskills.io/) — portable skill packages across tools.
 - **Example community collections** (inspect for patterns; verify before copying): [Snowflake-Labs/agent-skills](https://github.com/Snowflake-Labs/agent-skills), community “docker” skill writeups (e.g. SkillMD.ai docker skill guides — third-party, not official Docker Inc.).
 

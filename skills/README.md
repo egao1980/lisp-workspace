@@ -1,27 +1,27 @@
-# Workspace skills (Cursor)
+# Workspace skills
 
-Each subdirectory is a **skill**: `SKILL.md` with YAML frontmatter (`name`, `description`) plus instructions.
-Cursor loads project skills from **`.cursor/skills/`**. Skills live only under **`.lisp-workspace/skills/`**;
-**`.lisp-workspace/.cursor/skills`** → **`../skills`**.
+Each subdirectory is a **skill** ([Agent Skills](https://agentskills.io/) format): `SKILL.md` with YAML frontmatter (`name`, `description`) plus instructions.
+Skills live only under **`.lisp-workspace/skills/`**. `scripts/link-agent-config.sh` links them for each agent:
+Claude Code → `.claude/skills/<name>` (one symlink per skill), Cursor → `.cursor/skills` → `skills/`.
 
 ## Adding
 
 1. `my-skill-name/SKILL.md` with `name` + `description` (what **and** when).
 2. Keep `SKILL.md` short; put examples in `reference.md` / `examples.md` (one level deep).
-3. Commit under `.lisp-workspace/`.
+3. User-invoked only (a slash command, not auto-loaded): add `disable-model-invocation: true`.
+4. Commit under `.lisp-workspace/`, then re-run `./scripts/bootstrap.sh --links-only` at the workspace root.
 
-Personal: `~/.cursor/skills/`. Never `~/.cursor/skills-cursor/` (reserved).
+Personal: `~/.claude/skills/` (Claude Code), `~/.cursor/skills/` (Cursor; never `~/.cursor/skills-cursor/`, reserved).
 
 ## Discovery
 
 From the **workspace root**:
 
 ```bash
-ln -sfn .lisp-workspace/.cursor .cursor
+./.lisp-workspace/scripts/link-agent-config.sh
 ```
 
-Do **not** replace `.lisp-workspace/.cursor/skills` with a root-level shortcut that skips rules/commands/mcp.json.
-Recreate the root `.cursor` symlink after clone if Cursor misses project rules/skills.
+Re-run it if an agent misses a new skill or rule.
 
 ## Staging
 
@@ -69,6 +69,7 @@ Entry shape:
 | [pr-merge-publish](pr-merge-publish/SKILL.md) | Merge when CI green; then OCI publish |
 | [qlot](qlot/SKILL.md) | qlfile, `qlot exec` (legacy) |
 | [quint-modeling](quint-modeling/SKILL.md) | Quint language + CLI, invariants, ITF, local TLC |
+| [review-skill-improvements](review-skill-improvements/SKILL.md) | `/review-skill-improvements`: apply staged skill fixes |
 | [rove](rove/SKILL.md) | Rove quick ref → cl-unit-testing |
 | [roswell](roswell/SKILL.md) | `ros` CLI, implementations |
 | [sbcl](sbcl/SKILL.md) | SBCL debugger / flags |

@@ -42,7 +42,7 @@ bash "$CHECK" --seal
 
 Run id: `team-solve-YYYYMMDDHHMMSS`. Replace `{{.partition}}` in the plan prompt with that id. Nowhere else.
 
-Each agent step is one fresh subagent (Cursor Task, `subagent_type` `generalPurpose`). Do not `resume`. The task text is the step `prompt` plus these lines and nothing else:
+Each agent step is one fresh subagent (Claude Code: Agent tool, `general-purpose`; Cursor: Task, `generalPurpose`). Do not `resume`. The task text is the step `prompt` plus these lines and nothing else:
 
 ```
 Repo: <absolute path of the checkout>

@@ -2,7 +2,7 @@
 ;;;; the current checkout + OCI deps from ghcr.io/egao1980/cl-systems, no sibling
 ;;;; workspace checkouts. Run from the checkout root:
 ;;;;
-;;;;   CL_REPO_SYSTEM=foo-protocol ros -l ~/.cursor/../.lisp-workspace/scripts/oci-test-system.lisp
+;;;;   CL_REPO_SYSTEM=foo-protocol ros -l .lisp-workspace/scripts/oci-test-system.lisp
 ;;;;
 ;;;; Env:
 ;;;;   CL_REPO_SYSTEM   (required) system under test

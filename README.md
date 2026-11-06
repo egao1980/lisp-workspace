@@ -2,15 +2,11 @@
 
 Scripts and docs for this **multi-repo Common Lisp** tree live under **`.lisp-workspace/`** so the visible root stays mostly project checkouts. Prefer private **[egao1980/cl-workspace](https://github.com/egao1980/cl-workspace)** as that root (submodule + `scripts/bootstrap.sh`).
 
-**Cursor config** (`rules/`, `commands/`, `mcp.json`) lives in **`.lisp-workspace/.cursor/`** (this repo). At the **workspace root** (parent of `.lisp-workspace/`), bootstrap (or manually) symlink:
+**Agent config** is tool-neutral and lives here: [AGENTS.md](AGENTS.md) (all agents), [CLAUDE.md](CLAUDE.md) (imports AGENTS.md + Claude Code notes), [skills/](skills/), [rules/](rules/). Claude Code is the primary agent; Cursor works from the same files. At the **workspace root** (parent of `.lisp-workspace/`), bootstrap links them in:
 
 ```bash
-ln -sfn .lisp-workspace/.cursor .cursor
-ln -sfn .lisp-workspace/AGENTS.md AGENTS.md
-ln -sfn .lisp-workspace/LESSONS_LEARNED.md LESSONS_LEARNED.md
+./.lisp-workspace/scripts/link-agent-config.sh   # or ./scripts/bootstrap.sh in cl-workspace
 ```
-
-**`.lisp-workspace/.cursor/skills`** → **`../skills`** (no duplicate skill trees).
 
 **This directory is its own Git repository.** Work here with `git add` / `git commit` so housekeeping stays separate from sibling checkouts (`cl-repository/`, `grpc/`, …). Default branch is **`main`**. Remote: **[egao1980/lisp-workspace](https://github.com/egao1980/lisp-workspace)** (private).
 
@@ -18,7 +14,7 @@ Flat checkout of interdependent projects (e.g. `cl-repository/`, `grpc/`, siblin
 
 **`features/`** — checkout of [egao1980/features](https://github.com/egao1980/features) (Dev Container **Features** for Common Lisp: Roswell, Lem). Not an ASDF library; safe to ignore Lisp system discovery under that tree for coding tasks.
 
-**`cl-mcp/`** — [cl-ai-project/cl-mcp](https://github.com/cl-ai-project/cl-mcp) (MCP server for Lisp: eval, inspect, ASDF, fs, structure-aware edit, tests). Bootstrap: [docs/cl-mcp.md](docs/cl-mcp.md).
+**cl-mcp** — [cl-ai-project/cl-mcp](https://github.com/cl-ai-project/cl-mcp) (MCP server for Lisp) is not part of the workspace by default. Bootstrap if needed: [docs/cl-mcp.md](docs/cl-mcp.md), skill **cl-mcp-tooling**.
 
 ## Add a project from GitHub
 
@@ -54,25 +50,30 @@ Requires `gh auth` with repo admin (or pass `-Token`). Installs under `C:\action
 
 | File | Role |
 |------|------|
-| [AGENTS.md](AGENTS.md) | Expectations for AI/human contributors |
+| [AGENTS.md](AGENTS.md) | Expectations for AI/human contributors (all agents) |
+| [CLAUDE.md](CLAUDE.md) | Claude Code entry point: `@AGENTS.md` + Claude notes |
 | [MEMORY.md](MEMORY.md) | Durable prefs + index |
 | [memory/](memory/) | On-demand stack notes (http, agent-wire, data, runtime, CI pins) |
-| [skills/](skills/) | Cursor **project skills** (`SKILL.md` per folder); **`.lisp-workspace/.cursor/skills` → `../skills`** |
+| [skills/](skills/) | Project skills ([Agent Skills](https://agentskills.io/) `SKILL.md` per folder) |
+| [rules/](rules/) | Path-scoped rules (`paths:` for Claude Code, `globs:` for Cursor) |
 | [skills/README.md](skills/README.md) | Skill index + **staging mechanism** for iterative improvement |
 | [docs/REQUIREMENTS.md](docs/REQUIREMENTS.md) | Workspace requirements and Git policy |
 | [docs/cl-mcp.md](docs/cl-mcp.md) | cl-ai-project/cl-mcp bootstrap and MCP notes |
 | [LESSONS_LEARNED.md](LESSONS_LEARNED.md) | Issues and fixes in practice |
 
-## Cursor integration
+## Agent integration
 
-| Path | Role |
-|------|------|
-| [`.cursor/`](.cursor/) | Rules, commands, `mcp.json` (versioned here). At workspace root: **`.cursor` → `.lisp-workspace/.cursor`**. |
-| Root `AGENTS.md` / `LESSONS_LEARNED.md` | Symlinks → this folder so agents see them at the workspace root. |
-| `.cursor/mcp.json` | cl-mcp MCP server config (stdio via `ros`) |
-| `.cursor/rules/` | Project rules (always-apply workspace rule + glob-scoped Lisp REPL rule) |
-| `.cursor/commands/` | `/load-and-test`, `/review-skill-improvements` |
-| `.cursor/skills` → `../skills` | Symlink so Cursor discovers **this** `skills/` tree (no second copy) |
+One source, generated adapters. [`scripts/link-agent-config.sh`](scripts/link-agent-config.sh) writes symlinks at the workspace root (all gitignored there):
+
+| Source (here) | Claude Code | Cursor |
+|---|---|---|
+| `AGENTS.md` | via `CLAUDE.md` → `@AGENTS.md` | root `AGENTS.md` symlink |
+| `skills/<name>/` | `.claude/skills/<name>` (per skill) | `.cursor/skills` → `skills/` |
+| `rules/<name>.md` | `.claude/rules/<name>.md` | `.cursor/rules/<name>.mdc` |
+
+Tracked at the workspace root (cl-workspace), not generated: `CLAUDE.md` (`@.lisp-workspace/CLAUDE.md`), `.claude/settings.json` (cloud SessionStart hook), `.cursor/environment.json` + `Dockerfile` (Cursor Cloud).
+
+Re-run the script after adding a skill or rule. No MCP server is wired by default.
 
 ## Dev Container
 
@@ -85,8 +86,8 @@ devcontainer exec --workspace-folder . ros run
 
 - **Base:** `mcr.microsoft.com/devcontainers/base:ubuntu`
 - **Feature:** `ghcr.io/egao1980/features/roswell:1` — Roswell + SBCL + **Ultralisp** dist + qlot
-- **Post-create** (`post-create.sh`): writes ASDF snippets for all workspace projects, installs cl-mcp deps via Quicklisp+Ultralisp, verifies cl-mcp loads
-- **Env:** `MCP_PROJECT_ROOT` is set to the container workspace folder
+- **Post-create** (`post-create.sh`): runs bootstrap, writes ASDF snippets for all workspace projects
+- **Claude Code:** `ghcr.io/anthropics/devcontainer-features/claude-code:1.0` (run `claude` inside the container)
 
 ## ASDF
 

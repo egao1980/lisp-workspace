@@ -35,9 +35,45 @@ Single **MCP server** image: **stdio**, **TCP**, or **HTTP** (Streamable HTTP). 
 
 **`npx @modelcontextprotocol/inspector`** ([modelcontextprotocol/inspector](https://github.com/modelcontextprotocol/inspector)) — exercise tools and inspect JSON-RPC without the IDE.
 
-## Cursor
+## Client config
 
-Configure MCP with command **`ros`** (or **`sbcl`**) and args that load **`:cl-mcp`** and call **`(cl-mcp:run …)`**, with env **`MCP_PROJECT_ROOT`** set (often **`${workspaceFolder}`**). Restart the agent after changes.
+Not wired by default — `cl-mcp/` is not in `repos.manifest`. To use it, clone it (`add-cl-project.sh egao1980/cl-mcp`) and register the stdio command above:
+
+- **Claude Code:** project `.mcp.json` at the workspace root, or `claude mcp add cl-mcp -e MCP_PROJECT_ROOT=$PWD -- ros run -s cl-mcp -e "(cl-mcp:run :transport :stdio)"`.
+- **Cursor:** `.cursor/mcp.json` with the same command and env.
+
+Restart the agent after changes.
+
+## REPL-driven workflow (when connected)
+
+When **cl-mcp** is connected, prefer its tools over shell for Lisp. Full ref (in the checkout): `cl-mcp/prompts/repl-driven-development.md`.
+
+```
+EXPLORE → EXPERIMENT → PERSIST → VERIFY → REFINE
+```
+
+| Task | Tool |
+|------|------|
+| Search | `clgrep-search` |
+| Read `.lisp`/`.asd` | `lisp-read-file` (`collapsed=true`, then `name_pattern`) |
+| Other files | `fs-read-file` |
+| Load/reload | `load-system` (not `ql:quickload` via eval) |
+| Eval | `repl-eval` (`package`, `timeout_seconds`) |
+| Inspect | `inspect-object` (`result_object_id`) |
+| Edit existing `.lisp` | `lisp-edit-form` — **never** `fs-write-file` overwrite |
+| Small patch | `lisp-patch-form` |
+| New file | `fs-write-file` skeleton, then `lisp-edit-form` |
+| Parens | `lisp-check-parens` |
+| Symbol / xref | `code-find`, `code-describe`, `code-find-references` (`project_only`) |
+| CLHS | `clhs-lookup` |
+| Tests | `run-tests` |
+
+Shell is OK for `git`, `rove` CLI, user-requested commands.
+
+- **`defmethod`:** specializers in `form_name`, e.g. `"print-object (my-class t)"`.
+- **Dry run:** `dry_run: true` when the matcher is uncertain.
+- Session: `fs-set-project-root` (or `MCP_PROJECT_ROOT`), then `load-system`.
+- Style: 2-space; `lower-case-lisp-case`; `-p` predicates; `+constants+`; `*specials*`; docstrings on public API. Tests/errors: skills **cl-unit-testing** / **cl-stack-conditions**.
 
 Syntax without the server: skill **cl-static-eclector** (`scripts/static-eclector.lisp`). That path does not eval.
 

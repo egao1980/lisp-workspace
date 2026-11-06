@@ -1,5 +1,9 @@
 ---
 description: New .asd — no :cl-repo unless overlays; :oci is the implied dep source
+# Claude Code
+paths:
+  - "**/*.asd"
+# Cursor
 globs: "**/*.asd"
 alwaysApply: false
 ---

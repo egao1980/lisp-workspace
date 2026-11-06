@@ -1,5 +1,9 @@
 ---
 description: Idiomatic CL conditions and restarts for first-party cl-stack Lisp
+# Claude Code
+paths:
+  - "**/*.lisp"
+# Cursor
 globs: "**/*.lisp"
 alwaysApply: false
 ---

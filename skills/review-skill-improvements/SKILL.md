@@ -1,4 +1,12 @@
-Review and apply staged skill improvements.
+---
+name: review-skill-improvements
+description: >-
+  Review pending items in skills/*/STAGED.md and apply, reject, or keep each one.
+  Run only when the user asks for /review-skill-improvements.
+disable-model-invocation: true
+---
+
+# Review staged skill improvements
 
 Scan all `STAGED.md` files under `.lisp-workspace/skills/*/`:
 

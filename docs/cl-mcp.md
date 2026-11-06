@@ -1,6 +1,6 @@
 # cl-mcp bootstrap (this workspace)
 
-Checkout: **`cl-mcp/`** — upstream **[cl-ai-project/cl-mcp](https://github.com/cl-ai-project/cl-mcp)** (fork **`egao1980/cl-mcp`**). Remotes: **`origin`** → `egao1980`, **`upstream`** → `cl-ai-project`.
+Not cloned by default (dropped from `repos.manifest` 2026-11-06). To use it: `./.lisp-workspace/scripts/add-cl-project.sh egao1980/cl-mcp`. Upstream **[cl-ai-project/cl-mcp](https://github.com/cl-ai-project/cl-mcp)** (fork **`egao1980/cl-mcp`**). Remotes: **`origin`** → `egao1980`, **`upstream`** → `cl-ai-project`.
 
 ## What it is
 

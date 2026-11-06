@@ -431,3 +431,10 @@ Require OBJC-SUPPORT still SIGBUS/SIGSEGV flaky (~30%) — separate issue.
 - **Symptom:** `ai-agent-protocol/durability` could not go on default CI: `oras` “name unknown” for `ghcr.io/egao1980/cl-systems/task-protocol`. Same for the rest of the wave-1 trees (`eval-protocol`, `mq-protocol`, `cache-protocol`, …).
 - **Cause:** trees lived only in `cl-workspace`. No `egao1980/<name>` ⇒ no owning-repo `publish-checkout.yml` ⇒ never published. Workflows in the tree do not run until they have a GitHub repo.
 - **Fix:** first-party `*-protocol` / `*-backend-*` / `*-parity` get `egao1980/<name>` the same day (`create-first-party-repo.sh`). Do not treat a workspace directory as landed.
+
+## 2026-11-06 — stale cl-workspace branch wipes sibling checkouts
+
+- **Symptom:** after `git checkout main && git pull --ff-only` in the cl-workspace root, 24 sibling repos (`cache-*`, `mq-*`, `object-store-*`, `ldap-*`, `demiurge`, …) still had `.git` but every tracked file showed ` D`. Their own history was intact.
+- **Cause:** cl-workspace once committed those trees itself (`bd054c0`), then untracked them (`e524220`, 2026-10-07). Local `main` was older than `e524220`. Checking it out overwrote the siblings' files (ignored by `/*/`, so git did not refuse). The fast-forward across `e524220` then deleted them as removed files. Any checkout of a branch from before `e524220` has the same effect.
+- **Fix:** restore each sibling from its own HEAD (`git -C <repo> checkout -- .`) when its status is deletions only. Before switching the root, run `git fetch` and check that the target contains `e524220` (`git merge-base --is-ancestor e524220 <branch>`); pull with `git merge --ff-only origin/main` from a current branch. Old local root branches were pushed to `archive/*` and deleted.
+- **Related:** a sibling's local `origin/HEAD` can still name a merged `cursor/*` branch after GitHub's default moved to `main` (rag-backend-hybrid). `git remote set-head origin -a` refreshes it. Do not trust `origin/HEAD` without that.

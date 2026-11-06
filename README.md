@@ -14,7 +14,7 @@ Flat checkout of interdependent projects (e.g. `cl-repository/`, `grpc/`, siblin
 
 **`features/`** — checkout of [egao1980/features](https://github.com/egao1980/features) (Dev Container **Features** for Common Lisp: Roswell, Lem). Not an ASDF library; safe to ignore Lisp system discovery under that tree for coding tasks.
 
-**cl-mcp** — [cl-ai-project/cl-mcp](https://github.com/cl-ai-project/cl-mcp) (MCP server for Lisp) is not part of the workspace by default. Bootstrap if needed: [docs/cl-mcp.md](docs/cl-mcp.md), skill **cl-mcp-tooling**.
+**lisp-mcp** — first-party MCP server for Lisp ([egao1980/lisp-mcp](https://github.com/egao1980/lisp-mcp), skill **lisp-mcp-tooling**). **cl-mcp** — [cl-ai-project/cl-mcp](https://github.com/cl-ai-project/cl-mcp), the legacy alternative, is not part of the workspace by default. Bootstrap if needed: [docs/cl-mcp.md](docs/cl-mcp.md), skill **cl-mcp-tooling**.
 
 ## Add a project from GitHub
 

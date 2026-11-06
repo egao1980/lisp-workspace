@@ -39,6 +39,8 @@ Single **MCP server** image: **stdio**, **TCP**, or **HTTP** (Streamable HTTP). 
 
 Configure MCP with command **`ros`** (or **`sbcl`**) and args that load **`:cl-mcp`** and call **`(cl-mcp:run …)`**, with env **`MCP_PROJECT_ROOT`** set (often **`${workspaceFolder}`**). Restart the agent after changes.
 
+Syntax without the server: skill **cl-static-eclector** (`scripts/static-eclector.lisp`). That path does not eval.
+
 ## References
 
 - Upstream README: **`cl-mcp/README.md`** in checkout — full tool list, env vars, security notes.

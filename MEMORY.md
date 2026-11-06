@@ -14,7 +14,7 @@ Stack design / pins live in **`memory/*.md`** — open **only** the file that ma
 - **Documentation:** terse; no verbose boilerplate.
 - **cl-stack features** (capability brief + existing ASDF test-op in the owning repo): skill **[team-solve](skills/team-solve/SKILL.md)** (`/team-solve`). Fresh agents talk only through `.team-solve/`; `check-feature.sh` is the verdict. Do not edit `tests/` or the brief.
 - **CL errors = conditions + restarts.** First-party cl-stack uses CLHS 9 (not status-code returns, not Java exceptions). Skill **cl-stack-conditions**.
-- **CL MCP:** [cl-ai-project/cl-mcp](https://github.com/cl-ai-project/cl-mcp), not the quasi/cl-mcp stack.
+- **CL MCP:** first-party [egao1980/lisp-mcp](https://github.com/egao1980/lisp-mcp) (static + structural edit + Swank/Slynk image; skill **lisp-mcp-tooling**). [cl-ai-project/cl-mcp](https://github.com/cl-ai-project/cl-mcp) is the optional legacy server — never the quasi/cl-mcp stack.
 - **GitHub repos:** always full `owner/repo` — never bare repo name when multiple owners share a name.
 - **New first-party protocol / backend / parity = own `egao1980/<name>` the same day.** Workspace-only trees are not a system. No owning repo ⇒ no `publish-checkout.yml` ⇒ never on GHCR ⇒ consumers cannot `:depends-on` it in CI. Create with [scripts/create-first-party-repo.sh](scripts/create-first-party-repo.sh), push `main`, dispatch the first publish. Do not land `*-protocol` / `*-backend-*` / `*-parity` without that remote. New OCI-shipping products follow the same rule. **`egao1980/demiurge`:** replace the legacy tree with the new cl-stack core when shipping — do not keep a second product repo.
 

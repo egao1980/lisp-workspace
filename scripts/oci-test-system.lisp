@@ -79,16 +79,6 @@
        (:tree ,(namestring root))
        :ignore-inherited-configuration))))
 
-(defun %load-system-inits (root)
-  (dolist (system-dir (uiop:subdirectories root))
-    (let ((name (car (last (pathname-directory system-dir)))))
-      ;; Native overlays we never want in a plain source run.
-      (unless (member name '("vllm-cpp" "llama-cpp") :test #'string-equal)
-        (dolist (version-dir (uiop:subdirectories system-dir))
-          (let ((init (merge-pathnames "cl-repo-init.lisp" version-dir)))
-            (when (probe-file init)
-              (load init))))))))
-
 (defun %ci-muffle (fn)
   "As in the canned ci action: a dep reloaded from the OCI cache next to the
    copy the client already loaded (babel's encoding tables) redefines
@@ -153,10 +143,8 @@
               (when with (list :with with))))
      (%maybe-load-hook checkout "post-install")))
   ;; Installing may have added versions; recompute the preferred set.
+  ;; No init files: packages with natives load them at ASDF load.
   (%isolated-registry checkout)
-  (let ((root (cl-repository-client/installer:systems-root)))
-    (when (probe-file root)
-      (%load-system-inits root)))
   (%ci-muffle
    (lambda ()
      (asdf:load-system system)

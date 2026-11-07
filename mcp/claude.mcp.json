@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "lisp-mcp": {
+      "command": "bash",
+      "args": ["-c", "exec \"${CLAUDE_PROJECT_DIR:-$PWD}/.lisp-workspace/scripts/lisp-mcp.sh\""]
+    }
+  }
+}

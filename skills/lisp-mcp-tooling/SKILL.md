@@ -12,6 +12,10 @@ Repos: [`lisp-mcp`](https://github.com/egao1980/lisp-mcp) (server) · [`lisp-sou
 
 ## Wire it
 
+In this workspace it is already wired: `.mcp.json` / `.cursor/mcp.json` (linked by `link-agent-config.sh`) run `.lisp-workspace/scripts/lisp-mcp.sh`. That installs the **published** `lisp-mcp` (`LISP_MCP_VERSION`, default 0.2.0) from GHCR and execs a dumped executable in `~/.cache/lisp-mcp/` (first start builds it; `lisp-mcp.sh --build` / `bootstrap.sh` ahead of time; `--which` shows what runs). Developing lisp-mcp itself: `LISP_MCP_SOURCE=checkout` loads the sibling checkouts.
+
+Elsewhere:
+
 ```bash
 claude mcp add lisp-mcp -- ros -Q -- "$PWD/lisp-mcp/roswell/lisp-mcp.ros" --root "$PWD/<project>"
 # flags: --transport http --port 3000 | --spawn swank|slynk | --attach host:port [--backend slynk]

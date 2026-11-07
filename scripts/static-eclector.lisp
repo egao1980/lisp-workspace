@@ -1,12 +1,14 @@
-;;;; Static Common Lisp check. Eclector reads every form into a CST.
-;;;; Nothing is evaluated: *read-eval* is nil, and evaluate-expression
-;;;; refuses #. even if that flag is wrong. Missing packages are not
-;;;; errors — the package marker only has to be well-formed.
+;;;; Static Common Lisp check, built on lisp-source-protocol (Eclector CST).
+;;;; Nothing is evaluated: #. is refused, symbols are never interned, and a
+;;;; missing package is not an error — the package marker only has to be
+;;;; well-formed. A broken form does not hide the forms after it, and paren
+;;;; imbalances come with a suggested fix position.
 ;;;;
 ;;;;   ros scripts/static-eclector.lisp file.lisp src/
 ;;;;
-;;;; Exit 0 when every file reads. Exit 1 on the first reader error in
-;;;; a file (later files are still checked). Exit 2 when no path was given.
+;;;; Exit 0 when every file reads. Exit 1 when any file has a reader error or
+;;;; a #. form (every file is still checked). Exit 2 when no path was given or
+;;;; lisp-source-protocol cannot be loaded.
 
 (setf *debugger-hook*
       (lambda (c h)
@@ -14,86 +16,85 @@
         (format *error-output* "~&static-eclector: ~A~%" c)
         (uiop:quit 1)))
 
-(ql:quickload '(:eclector :eclector-concrete-syntax-tree) :silent t)
+(unless (asdf:find-system "lisp-source-protocol" nil)
+  (format *error-output* "~&static-eclector: lisp-source-protocol is not on the ASDF path.~%~
+                          Install it (cl-repo sync, or clone egao1980/lisp-source-protocol).~%")
+  (uiop:quit 2))
+
+(let ((*standard-output* (make-broadcast-stream)))
+  (asdf:load-system "lisp-source-protocol"))
 
 (defpackage #:static-eclector
   (:use #:cl)
+  (:local-nicknames (#:src #:lisp-source-protocol))
   (:export #:check-string #:check-file #:check-path #:main))
 
 (in-package #:static-eclector)
 
-(defclass static-client (eclector.concrete-syntax-tree:cst-client) ())
+(defun position-string (parsed offset)
+  "LINE:COLUMN, both 1-based."
+  (multiple-value-bind (line column) (src:offset-line-column (src:parsed-source-text parsed) offset)
+    (format nil "~D:~D" line (1+ column))))
 
-(defmethod eclector.reader:evaluate-expression ((client static-client) expression)
-  (declare (ignore client))
-  (error "static check refuses read-time evaluation of ~S" expression))
+(defun one-line (string)
+  (substitute #\Space #\Newline (string-trim '(#\Space #\Newline #\Tab) string)))
 
-(defmethod eclector.reader:make-structure-instance
-    ((client static-client) name initargs)
-  (declare (ignore client))
-  (list :structure name initargs))
+(defun reportable-p (diagnostic)
+  "Reader errors, and #. forms (refused, so the file would not load as checked)."
+  (or (eq (src:diagnostic-severity diagnostic) :error)
+      (eq (src:diagnostic-kind diagnostic) :read-time-eval)))
 
-(defmethod eclector.reader:interpret-symbol
-    ((client static-client) stream package-indicator symbol-name internp)
-  (declare (ignore stream internp))
-  (if (and (stringp package-indicator)
-           (not (find-package package-indicator)))
-      (make-symbol (concatenate 'string package-indicator "::" symbol-name))
-      (call-next-method)))
+(defun imbalance-hint (parsed imbalance)
+  (format nil "~A~@[ (fix at ~A)~]"
+          (one-line (src:imbalance-message imbalance))
+          (let ((fix (src:imbalance-fix-position imbalance)))
+            (and fix (position-string parsed fix)))))
 
-(defun index-line-column (string index)
-  "1-based line and column of INDEX in STRING."
-  (let ((line 1)
-        (column 1)
-        (end (min (max (or index 0) 0) (length string))))
-    (loop for i below end
-          do (if (char= (char string i) #\Newline)
-                 (setf line (1+ line)
-                       column 1)
-                 (incf column)))
-    (values line column)))
-
-(defun condition-message (condition)
-  (substitute #\Space #\Newline
-              (string-trim '(#\Space #\Newline #\Tab) (princ-to-string condition))))
-
-(defun read-issue (path string condition start)
-  ;; read-from-string reports stream-position relative to :start.
-  (let* ((raw (ignore-errors (eclector.base:stream-position condition)))
-         (index (if (integerp raw) (+ start raw) start)))
-    (multiple-value-bind (line column) (index-line-column string index)
-      (format nil "~A:~D:~D: ~A" path line column (condition-message condition)))))
+(defun check-parsed (parsed path)
+  "Issue strings for PARSED: one per reader error or #. form. Each paren
+imbalance is attached as a hint to the first error at or after its form."
+  (let* ((diagnostics (sort (remove-if-not #'reportable-p (copy-list (src:parsed-source-diagnostics parsed)))
+                            #'< :key #'src:diagnostic-start))
+         (hints (make-hash-table :test #'eq))
+         (loose '()))
+    (dolist (imbalance (src:parsed-source-imbalances parsed))
+      (let ((owner (find-if (lambda (d) (>= (src:diagnostic-start d) (src:imbalance-form-start imbalance)))
+                            diagnostics)))
+        (if owner
+            (push (imbalance-hint parsed imbalance) (gethash owner hints))
+            (push imbalance loose))))
+    (append
+     (loop for d in diagnostics
+           collect (format nil "~A:~A: ~A~{; ~A~}" path (position-string parsed (src:diagnostic-start d))
+                           (one-line (src:diagnostic-message d)) (reverse (gethash d hints))))
+     (loop for imbalance in (reverse loose)
+           collect (format nil "~A:~A: ~A" path
+                           (position-string parsed (or (src:imbalance-open-position imbalance)
+                                                       (src:imbalance-form-start imbalance)))
+                           (imbalance-hint parsed imbalance))))))
 
 (defun check-string (string &key (path "-"))
-  "Read STRING with Eclector. Return issue strings, or NIL when it reads."
+  "Read STRING statically. Return issue strings, or NIL when it reads."
   (check-type string string)
-  (let ((client (make-instance 'static-client))
-        (start 0)
-        (length (length string)))
-    (setf (eclector.reader:state-value client 'cl:*read-eval*) nil)
-    (let ((eclector.base:*client* client))
-      (loop
-        (when (>= start length)
-          (return nil))
-        (handler-case
-            (multiple-value-bind (cst position)
-                (eclector.concrete-syntax-tree:read-from-string
-                 string nil :eof :start start)
-              (when (eq cst :eof)
-                (return nil))
-              (unless (and position (> position start))
-                (return (list (read-issue path string
-                                          "reader did not advance" start))))
-              (setf start position))
-          (error (condition)
-            (return (list (read-issue path string condition start)))))))))
+  (check-parsed (src:read-source string :path path) path))
+
+(defun blank-shebang (string)
+  "STRING with a leading #! line (Roswell scripts) turned into blanks, so
+positions stay the same."
+  (if (and (> (length string) 1) (string= "#!" string :end2 2))
+      (let ((end (or (position #\Newline string) (length string)))
+            (copy (copy-seq string)))
+        (fill copy #\Space :end end)
+        copy)
+      string))
 
 (defun check-file (path)
   (let ((namestring (namestring path)))
-    (handler-case (check-string (uiop:read-file-string path :external-format :utf-8)
-                                :path namestring)
-      (error (condition)
-        (list (format nil "~A:1:1: ~A" namestring (condition-message condition)))))))
+    (handler-case (check-parsed (src:read-source (blank-shebang (uiop:read-file-string path :external-format :utf-8))
+                                                 :path namestring)
+                                namestring)
+      ((or file-error stream-error) (condition)
+        (list (format nil "~A:1:1: ~A" namestring (one-line (princ-to-string condition))))))))
 
 (defun lisp-source-p (path)
   (member (string-downcase (or (pathname-type path) ""))

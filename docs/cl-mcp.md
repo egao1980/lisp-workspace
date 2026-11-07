@@ -1,5 +1,7 @@
 # cl-mcp bootstrap (this workspace)
 
+> **Prefer [`lisp-mcp`](https://github.com/egao1980/lisp-mcp)** — the first-party server (static analysis without evaluation, structural edits that cannot unbalance a file, Swank/Slynk images with debugger, stepping and inspector). Skill **lisp-mcp-tooling**; recipes in the [cl-stack cookbook](https://github.com/egao1980/cl-stack/blob/main/docs/cookbooks/lisp-mcp.md). This page is for the legacy third-party server.
+
 Not cloned by default (dropped from `repos.manifest` 2026-11-06). To use it: `./.lisp-workspace/scripts/add-cl-project.sh egao1980/cl-mcp`. Upstream **[cl-ai-project/cl-mcp](https://github.com/cl-ai-project/cl-mcp)** (fork **`egao1980/cl-mcp`**). Remotes: **`origin`** → `egao1980`, **`upstream`** → `cl-ai-project`.
 
 ## What it is

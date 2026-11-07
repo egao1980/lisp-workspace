@@ -8,6 +8,7 @@
 #   AGENTS.md, LESSONS_LEARNED.md            -> .lisp-workspace/…
 #   .claude/skills/<name>, .claude/rules/<name>.md   (Claude Code)
 #   .cursor/skills, .cursor/rules/<name>.mdc         (Cursor)
+#   .mcp.json, .cursor/mcp.json -> mcp/*.mcp.json    (lisp-mcp server)
 #
 # ROOT keeps its own tracked CLAUDE.md, .claude/settings.json and
 # .cursor/environment.json; this script never touches real files.
@@ -68,8 +69,8 @@ prune .claude/rules
 
 echo "==> Cursor (.cursor/skills, .cursor/rules)"
 mkdir -p .cursor
-# Old layout linked whole dirs and mcp.json/commands; drop those symlinks.
-for old in commands mcp.json rules; do
+# Old layout linked whole dirs and commands; drop those symlinks.
+for old in commands rules; do
   [[ -L ".cursor/${old}" ]] && rm -f ".cursor/${old}"
 done
 link "../${REL}/skills" .cursor/skills
@@ -79,5 +80,9 @@ for f in "${LW}"/rules/*.md; do
   link "../../${REL}/rules/$(basename "$f")" ".cursor/rules/$(basename "$f" .md).mdc"
 done
 prune .cursor/rules
+
+echo "==> MCP (.mcp.json, .cursor/mcp.json -> lisp-mcp)"
+link "${REL}/mcp/claude.mcp.json" .mcp.json
+link "../${REL}/mcp/cursor.mcp.json" .cursor/mcp.json
 
 echo "==> Agent config linked into ${ROOT}"

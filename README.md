@@ -73,7 +73,9 @@ One source, generated adapters. [`scripts/link-agent-config.sh`](scripts/link-ag
 
 Tracked at the workspace root (cl-workspace), not generated: `CLAUDE.md` (`@.lisp-workspace/CLAUDE.md`), `.claude/settings.json` (cloud SessionStart hook), `.cursor/environment.json` + `Dockerfile` (Cursor Cloud).
 
-Re-run the script after adding a skill or rule. No MCP server is wired by default.
+Re-run the script after adding a skill or rule.
+
+**MCP.** The script also links `.mcp.json` (Claude Code) and `.cursor/mcp.json` (Cursor) to [`mcp/`](mcp/): both start the first-party [`lisp-mcp`](https://github.com/egao1980/lisp-mcp) server through [`scripts/lisp-mcp.sh`](scripts/lisp-mcp.sh), rooted at the workspace. The launcher installs the published `lisp-mcp` from GHCR into `~/.cache/lisp-mcp/` and runs a dumped executable (built on first start, or by `bootstrap.sh`). `LISP_MCP_SOURCE=checkout` runs the workspace checkouts instead, for working on lisp-mcp itself. Skill **lisp-mcp-tooling**.
 
 ## Dev Container
 

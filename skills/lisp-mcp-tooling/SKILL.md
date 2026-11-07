@@ -8,7 +8,7 @@ description: >-
 
 # lisp-mcp
 
-Repos: [`lisp-mcp`](https://github.com/egao1980/lisp-mcp) (server) · [`lisp-source-protocol`](https://github.com/egao1980/lisp-source-protocol) (CST, recovery, lint, edits) · [`repl-protocol`](https://github.com/egao1980/repl-protocol) + [`repl-backend-swank`](https://github.com/egao1980/repl-backend-swank) / [`repl-backend-slynk`](https://github.com/egao1980/repl-backend-slynk). MCP wire is `mcp-protocol` ≥ **0.2.1** (tool annotations).
+Repos: [`lisp-mcp`](https://github.com/egao1980/lisp-mcp) (server) · [`lisp-source-protocol`](https://github.com/egao1980/lisp-source-protocol) (CST, recovery, lint, edits) · [`repl-protocol`](https://github.com/egao1980/repl-protocol) + [`repl-backend-swank`](https://github.com/egao1980/repl-backend-swank) / [`repl-backend-slynk`](https://github.com/egao1980/repl-backend-slynk). MCP wire is `mcp-protocol` ≥ **0.3.0** (server notifications). Recipes: [cl-stack cookbook](https://github.com/egao1980/cl-stack/blob/main/docs/cookbooks/lisp-mcp.md).
 
 ## Wire it
 
@@ -23,12 +23,14 @@ stdout is JSON-RPC: the `.ros` launcher sends load output to stderr. Don't print
 
 | Step | Tool |
 |------|------|
-| Find | `source-outline`, `source-find-definitions`, `source-find-references` |
+| Find | `source-outline`, `source-find-definitions`, `source-find-references`, `source-packages`; `live: true` adds the image's answer (`[image]`) |
 | Read | `source-read` (`locator`) → form text + **file hash** |
 | Check | `source-check` (reader errors, imbalances + fix position, lint) |
-| Edit | `edit-replace` / `-insert` / `-delete` / `-wrap` / `-splice` / `-raise` / `-slurp` / `-barf` / `-transpose` / `-rename-symbol` / `-add-export` / `-repair` / `-new-file`; pass `expected_hash`, `dry_run` for the diff |
+| Edit | `edit-replace` / `-insert` / `-delete` / `-wrap` / `-splice` / `-raise` / `-slurp` / `-barf` / `-transpose` / `-move` (also across files) / `-rename-symbol` / `-add-export` / `-repair` / `-new-file`; pass `expected_hash`, `dry_run` for the diff. Inserted code is re-indented (standard table + image hints + project `defmacro` `&body`) |
 | Run | `repl-spawn` (or `repl-connect`), `repl-compile` (form or file), `repl-load-system`, `repl-run-tests`, `repl-eval` |
-| Debug | error → debugger **value**: `debug-backtrace`, `debug-frame-locals`, `debug-eval-in-frame`, `inspect-condition`, `debug-invoke-restart` |
+| Debug | error → debugger **value**: `debug-backtrace`, `debug-frame-locals`, `debug-eval-in-frame`, `debug-step` (`into`/`next`/`out`), `inspect-condition`, `debug-invoke-restart` |
+| Channels (Slynk) | `repl-channel-open` → `repl-eval {"channel"}` prints `#v<entry>:<i>`; `inspect-history`, `repl-channel-close` |
+| Watch | resources `lisp-source:///{+path}`, `repl://{conn}/output`, `repl://{conn}/debugger` (subscribe), `repl://connections`; debugger entries arrive as `warning` log messages |
 | Inspect | `inspect` (`code` or `result` id from `repl-eval`), `inspect-part`, `inspect-back` |
 
 Locators: `defun foo`, `defmethod print-object (my-class t)`, `path:0.2.1`, `line:12[:col]`, `offset:N`, `hash:H`. Never write `.lisp` with generic file tools when lisp-mcp is connected.
@@ -39,5 +41,10 @@ Locators: `defun foo`, `defmethod print-object (my-class t)`, `path:0.2.1`, `lin
 - Broken files: a form that runs to EOF is re-read up to the next column-0 `(`; `imbalance` carries the fix. Edits refuse recovered nodes, sibling slots under `#+`/quote prefixes, the consing dot.
 - `verify-plan` is the gate: no new reader errors/imbalances, declared top-level form delta. Corpus tests: `LISP_SOURCE_CORPUS=<dir>`.
 - Swank evaluates `:emacs-rex` args → `rpc` quotes lists. Backends only map names (`rpc-symbol`); shared logic is `swank-family-connection`. Conformance: `repl-protocol/conformance` against a spawned image.
+- `compile-file-for-emacs` only compiles; `repl-compile-file :load t` loads the fasl with `load-file` (SLIME does the same). An out-of-range restart gets no reply from the server, so `repl-invoke-restart` refuses it (`repl-invalid-restart`).
+- Slynk mrepl announces a dedicated output socket (`:open-dedicated-output-stream port`) and blocks `create-mrepl` until the client connects; `inspect-entry` must run in the channel's thread.
+- Do not set Swank's `*globally-redirect-io*` in a spawned image without an Emacs REPL: requests block after the first redirected write.
+- Notifications: the image event listener runs on the wire reader thread; stdio writes are serialized by `rpc-backend-stdio`'s lock. Over HTTP only in-request notifications are delivered.
+- lisp-mcp caches parsed files by write date + length; call `forget-source` after any write the server makes (same-second, same-length writes are otherwise invisible).
 
 Legacy third-party server: skill **cl-mcp-tooling** (cl-ai-project/cl-mcp).

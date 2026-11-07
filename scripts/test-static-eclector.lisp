@@ -5,7 +5,8 @@
 ;;;; A clean file reads. An unclosed form, a comma outside a backquote,
 ;;;; and #. are failures. #. must not run: it would set *boom* if it did.
 ;;;; A missing package is syntax-valid. The second form's error is reported
-;;;; on its own line.
+;;;; on its own line, an imbalance carries its fix position, and a broken
+;;;; form does not hide a later error.
 
 (pushnew :static-eclector-test *features*)
 
@@ -63,6 +64,15 @@
            (fail "sharp-dot produced no issue"))
           (t t))))
 
+(defun assert-later-errors-reported ()
+  "A broken form does not hide an error further down."
+  (let ((issues (static-eclector:check-string
+                 (format nil "(defun a ()~%  (foo)~%~%(defun b ()~%  ,x)~%") :path "later")))
+    (if (and (= 2 (length issues))
+             (find-if (lambda (i) (search "later:5:" i)) issues))
+        t
+        (fail "later expected two issues, one on line 5: ~S" issues))))
+
 (defun assert-directory ()
   (let* ((dir (merge-pathnames "static-eclector-test/"
                                (uiop:ensure-directory-pathname
@@ -104,6 +114,9 @@
               (assert-issue "unclosed" "(defun foo ()" :contains "expected")
               (assert-issue "comma" ",foo" :contains "backquote")
               (assert-issue "second" (format nil "(a)~%(b") :line 2 :contains "expected")
+              (assert-issue "fix-hint" "(defun foo ()" :contains "fix at 1:14")
+              (assert-issue "stray" "(a))" :line 1 :column 4 :contains "stray")
+              (assert-later-errors-reported)
               (assert-sharp-dot-does-not-run)
               (assert-directory))))
   (if (every #'identity results)

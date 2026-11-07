@@ -10,6 +10,8 @@ Stack design / pins live in **`memory/*.md`** — open **only** the file that ma
 
 - **Python touchpoints:** uv + ruff; line length 120; no black; modern typing (3.12+); optimize imports. **Not for CL repo scripts.**
 - **CL project scripts = CL.** First-party CL repos dogfood cl-stack (`cl-stack-http` × `http-backend-async` × `event-backend-libuv`, pathlib, …). No Python/Node refresh/CI helpers for work the stack already covers. If a gold library exists only in another language, Lisp drives the sexp; freeze that dump rather than adding a second-language script.
+- **Own stack first (explicit rule):** every first-party repo, script and tool uses cl-stack libraries wherever one exists (HTTP async × libuv, `cl-stack-ssl`, protocols/backends); a missing feature or bug goes into the stack, not around it. Also in [AGENTS.md](AGENTS.md).
+- **Commit messages: no session ids / session URLs** (no `Claude-Session:` trailer). `Co-Authored-By:` only.
 - **HTTP client in first-party consumers:** bind `http-backend-async` × `event-backend-libuv` (`http-backend-async:*event-backend-maker*` + `http-protocol:*http-backend*`; http-parity `with-parity` shape). Dexador is maintenance — do not default new tests/docs/examples to it. Goal is dogfooding so we find stack bugs. `cl-stack-http` `:auto` on Unix still falls to dexador — prefer explicit `:async`.
 - **Documentation:** terse; no verbose boilerplate.
 - **cl-stack features** (capability brief + existing ASDF test-op in the owning repo): skill **[team-solve](skills/team-solve/SKILL.md)** (`/team-solve`). Fresh agents talk only through `.team-solve/`; `check-feature.sh` is the verdict. Do not edit `tests/` or the brief.

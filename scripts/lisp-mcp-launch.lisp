@@ -8,7 +8,8 @@
 ;;;;   LISP_MCP_VERSION  OCI tag for SOURCE=oci (default: newest)
 ;;;;   LISP_MCP_OUTPUT   executable path for ACTION=build
 ;;;;   LISP_MCP_CACHE    cache directory; OCI installs go to <cache>/systems/
-;;;;   LISP_MCP_WORKSPACE  workspace root (for SOURCE=checkout and the client checkout)
+;;;;   LISP_MCP_WORKSPACE  workspace root (for SOURCE=checkout)
+;;;;   CL_REPOSITORY_DEST  the OCI-installed cl-repository client (default ~/.cl-repository-client)
 ;;;;   LISP_MCP_ARGS     server arguments, separated by ASCII 31 (unit separator)
 ;;;;
 ;;;; stdout carries JSON-RPC when serving, so everything printed while loading
@@ -49,18 +50,23 @@
   "Install lisp-mcp and its closure into a private tree (never the shared
 cl-repository tree: its other systems' init files are not ours to load), with
 an ASDF registry that cannot see workspace checkouts."
-  (let ((client (merge-pathnames "cl-repository/" *workspace*))
+  (let ((client (uiop:ensure-directory-pathname
+                 (env "CL_REPOSITORY_DEST"
+                      (namestring (merge-pathnames ".cl-repository-client/" (user-homedir-pathname))))))
         (systems (uiop:ensure-directory-pathname
                   (merge-pathnames "systems/" (uiop:ensure-directory-pathname
                                                (env "LISP_MCP_CACHE" (namestring (uiop:xdg-cache-home "lisp-mcp/")))))))
         (version (env "LISP_MCP_VERSION")))
     (ensure-directories-exist systems)
-    ;; The client loads from the normal registry (it needs the workspace's TLS
-    ;; stack). Then what is loaded is frozen and lisp-mcp resolves only from
-    ;; the private tree, never from a workspace checkout.
-    (when (uiop:directory-exists-p client)
-      (asdf:initialize-source-registry
-       `(:source-registry (:directory ,(namestring client)) :inherit-configuration)))
+    ;; The client is the one installed from OCI (setup-client.sh, the same tree
+    ;; the cl-repo CLI runs), never a workspace checkout: it ships its own TLS
+    ;; (cl-stack-ssl) and HTTP stacks. Then what is loaded is frozen and
+    ;; lisp-mcp resolves only from the private tree.
+    (unless (uiop:directory-exists-p client)
+      (error "no cl-repository client at ~A: install it with cl-repository's setup-client.sh (bootstrap.sh does)"
+             client))
+    (asdf:initialize-source-registry
+     `(:source-registry (:tree ,(namestring client)) :ignore-inherited-configuration))
     (asdf:load-system "cl-repository-client")
     (format *error-output* "~&lisp-mcp: registry HTTP via ~(~A~)~%"
             (progn (uiop:symbol-call :cl-oci-client/http :ensure-http-backend)

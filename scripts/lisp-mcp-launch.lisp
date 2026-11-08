@@ -14,6 +14,11 @@
 ;;;;
 ;;;; stdout carries JSON-RPC when serving, so everything printed while loading
 ;;;; goes to stderr.
+;;;;
+;;;; lisp-mcp.sh runs `ros +Q run`: no Quicklisp in the image (roswell's -Q, and a
+;;;; plain `ros run`, load it), so ASDF is required here.
+
+(require :asdf)
 
 (setf *debugger-hook*
       (lambda (c h)

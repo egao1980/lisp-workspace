@@ -1,6 +1,8 @@
 ;;;; Verdict for one sealed cl-stack feature checkout.
 ;;;; TEAM_SOLVE_REPO, TEAM_SOLVE_SYSTEM, TEAM_SOLVE_TEST_SYSTEM.
 
+(require :asdf)
+
 (setf *debugger-hook*
       (lambda (condition hook)
         (declare (ignore hook))

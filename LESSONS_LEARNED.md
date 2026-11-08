@@ -458,3 +458,16 @@ Require OBJC-SUPPORT still SIGBUS/SIGSEGV flaky (~30%) — separate issue.
 - **`:defsystem-depends-on` is a dependency.** `cl-stack-brotli` metadata listed `cffi` but not `asdf-native`, so consumers could not read its `.asd`. Both the packager (metadata) and the client walk (missing definer → install) handle it now.
 - **The shipped client never ran async HTTP.** `setup-client.sh` seeds the client tree from the client's `qlfile`; `http-backend-async` / `event-backend-libuv` were not in it, so every install used dexador. Add them once http-backend-async 0.2.14 is published.
 - **Roswell's qlot launcher can die with `no translation for #P"SYS:DEFLATE"`.** Load `.qlot/setup.lisp` with `ros -Q -l` instead of `qlot exec`. A stale `.qlot` may also predate new deps (cl-stack-ssl) or ship an old upstream rove without `deftest-parametrize`.
+
+## 2026-11-08 — MEMORY-FAULT in dlopen: a reinstall rewrote a loaded library
+
+- **Symptom:** http-backend-async on ci-base crashed in `dlopen` (`MEMORY-FAULT #xF6CB`) loading libuv *or* libev, with an earlier `pc=0x1290` jump; macOS/Windows VMs passed. Every isolated probe passed.
+- **Cause:** `cmd-sync` force-reinstalls its `:with` extras *after* the HTTP layer's Content-Encoding probe has loaded `cl-stack-brotli` from the install tree. The installer wrote files with `:if-exists :supersede`, which on SBCL truncates and rewrites the **same inode**, so it overwrote the code pages of the mapped `libbrotli*.so`. The process ran on corrupted code from then on.
+- **Fix (cl-repository v0.27.4, #76):** the installer writes a temp file in the same directory and renames it over the target (new inode; existing mappings keep the old one), and leaves identical files untouched. Rule: never rewrite a file a running image may have open or mapped; atomic rename only.
+- **Debugging lessons:**
+  - A `dlopen` probe of an **already-loaded** library proves nothing: glibc only bumps a refcount. Probe with a different never-loaded library each time.
+  - A bug that needs a populated install tree doesn't show up in probes that start from an empty one.
+  - `LD_DEBUG=files` (with `LD_DEBUG_OUTPUT`) shows every open/init/fini. No `file=` line before the fault means `dlopen` died before looking up the file.
+- **Also on 2026-11-08 (v0.27.3, #75):**
+  - The client pins systems it already runs through sync and test, so a second `cl+ssl` copy doesn't re-run `reload.lisp` and unload the live libcrypto.
+  - `cl-repo:*sync-with*` restores CI extra install roots (`with:` input, pre-install `*extra-with*`), dropped since fc64c87.

@@ -6,3 +6,7 @@
 
 # Local ABCL/CFFI JNA jars (download in CI / smoke; do not commit)
 vendor/jna/
+
+# cl-repo local artifacts (never commit)
+cl-repo.lock
+.cl-repository/

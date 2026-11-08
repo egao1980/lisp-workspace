@@ -96,3 +96,5 @@ A model saying done is not success. `verify` exit 0 is success. A contract hash 
 ## Checker
 
 `bash .lisp-workspace/skills/team-solve/test-checker.sh` from the workspace root. The fixture is a one-variable system, not a stack feature.
+
+The verdict runs `cl-repo test --system <system>` in the repo root when `cl-repo` is on PATH, so dependencies come from GHCR. Without the client it falls back to `run-test.lisp` under `ros -Q` (no Quicklisp). `TEAM_SOLVE_RUNNER=lisp` forces the fallback; the self-test passes with either runner.

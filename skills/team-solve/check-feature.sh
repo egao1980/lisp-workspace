@@ -83,7 +83,8 @@ export TEAM_SOLVE_SYSTEM=$system
 export TEAM_SOLVE_TEST_SYSTEM=$test_system
 
 # Dependencies come from cl-repo (GHCR), never Quicklisp/qlot. The plain-Lisp
-# fallback is for machines without the client; `ros -Q` keeps Quicklisp out.
+# fallback is for machines without the client; `ros +Q` keeps Quicklisp out
+# (roswell's -Q turns it on).
 # TEAM_SOLVE_RUNNER=lisp forces the fallback.
 runner=${TEAM_SOLVE_RUNNER:-auto}
 if [ "$runner" = auto ]; then
@@ -96,7 +97,7 @@ case "$runner" in
         (cd "$repo" && cl-repo test --system "$system") ;;
     lisp)
         if command -v ros >/dev/null 2>&1; then
-            ros -Q -e '(setf *debugger-hook* (lambda (c h) (declare (ignore h)) (format *error-output* "UNHANDLED: ~A~%" c) (uiop:quit 1)))' \
+            ros +Q -e '(require :asdf)' -e '(setf *debugger-hook* (lambda (c h) (declare (ignore h)) (format *error-output* "UNHANDLED: ~A~%" c) (uiop:quit 1)))' \
                 -l "$root/run-test.lisp"
         else
             sbcl --noinform --disable-debugger --non-interactive --load "$root/run-test.lisp"

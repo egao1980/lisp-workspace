@@ -27,7 +27,7 @@ launch() {  # launch ACTION [args...]
   for a in "$@"; do joined+="${joined:+$'\x1f'}$a"; done
   LISP_MCP_ACTION="$action" LISP_MCP_SOURCE="$SOURCE" LISP_MCP_VERSION="$VERSION" \
     LISP_MCP_OUTPUT="$BIN" LISP_MCP_WORKSPACE="$WORKSPACE" LISP_MCP_ARGS="$joined" LISP_MCP_CACHE="$CACHE" \
-    exec ros run -- --dynamic-space-size 4096 --non-interactive --load "$HERE/lisp-mcp-launch.lisp"
+    exec ros +Q run -- --dynamic-space-size 4096 --non-interactive --load "$HERE/lisp-mcp-launch.lisp"
 }
 
 case "${1:-}" in

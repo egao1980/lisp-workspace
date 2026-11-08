@@ -471,3 +471,14 @@ Require OBJC-SUPPORT still SIGBUS/SIGSEGV flaky (~30%) — separate issue.
 - **Also on 2026-11-08 (v0.27.3, #75):**
   - The client pins systems it already runs through sync and test, so a second `cl+ssl` copy doesn't re-run `reload.lisp` and unload the live libcrypto.
   - `cl-repo:*sync-with*` restores CI extra install roots (`with:` input, pre-install `*extra-with*`), dropped since fc64c87.
+
+## 2026-11-08 — green CI that could not fail; `ros -Q` loads Quicklisp
+
+- **Roswell flags:** `+Q` is `--no-quicklisp`. **`-Q` turns Quicklisp on**, and so does a plain `ros run`. A `.ros` script's `exec ros -Q -- $0` line also wins over the caller's `ros +Q -- script.ros`. So `cl-repo`, `lisp-mcp.ros` and the lisp-mcp build all ran with Quicklisp's searchers live. Missing systems resolved from `~/.roswell/lisp/quicklisp/dists` (fiasco) or QL `local-projects`, and the cl-repo resolver counted them as installed. Use `+Q` in shebangs and launchers, and `(require :asdf)` when the script then needs ASDF (`ros:ensure-asdf` in `.ros` scripts). Check with `(find-package :ql)` → NIL.
+- **CI exit codes:**
+  - `ros -e '(asdf:test-system …)'` with no debugger hook drops into the REPL on error, reads EOF and exits **0**.
+  - A test-op of `(symbol-call :rove :run c)` without `(unless … (error …))` also never fails.
+  - Together they hid an unreadable packager test file and four stale tests in cl-repository (fixed in #78).
+  - Always set `*debugger-hook*` to quit nonzero and check `rove:run`. `fiasco:run-package-tests` needs the same check.
+- **ASDF 3.3.1 sessions:** a test inside `test-op` shares the operate session, which caches system lookups. Registry changes don't show to `find-system` until `asdf/session:*asdf-session*` is bound to NIL (`with-asdf-session :override t` was not enough).
+- **HTTP/2 SETTINGS:** GHCR sends identifier 0x4876 (unknown). RFC 9113 §6.5.2 says ignore it. `http2` warned "Peer settings not used" on every connection.

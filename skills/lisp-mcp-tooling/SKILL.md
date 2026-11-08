@@ -17,7 +17,7 @@ In this workspace it is already wired: `.mcp.json` / `.cursor/mcp.json` (linked 
 Elsewhere:
 
 ```bash
-claude mcp add lisp-mcp -- ros -Q -- "$PWD/lisp-mcp/roswell/lisp-mcp.ros" --root "$PWD/<project>"
+claude mcp add lisp-mcp -- ros +Q -- "$PWD/lisp-mcp/roswell/lisp-mcp.ros" --root "$PWD/<project>"
 # flags: --transport http --port 3000 | --spawn swank|slynk | --attach host:port [--backend slynk]
 ```
 

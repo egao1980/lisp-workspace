@@ -82,13 +82,27 @@ export TEAM_SOLVE_REPO=$repo
 export TEAM_SOLVE_SYSTEM=$system
 export TEAM_SOLVE_TEST_SYSTEM=$test_system
 
-set +e
-if command -v sbcl >/dev/null 2>&1; then
-    sbcl --noinform --disable-debugger --non-interactive --load "$root/run-test.lisp"
-else
-    ros -e '(setf *debugger-hook* (lambda (c h) (declare (ignore h)) (format *error-output* "UNHANDLED: ~A~%" c) (uiop:quit 1)))' \
-        -l "$root/run-test.lisp"
+# Dependencies come from cl-repo (GHCR), never Quicklisp/qlot. The plain-Lisp
+# fallback is for machines without the client; `ros -Q` keeps Quicklisp out.
+# TEAM_SOLVE_RUNNER=lisp forces the fallback.
+runner=${TEAM_SOLVE_RUNNER:-auto}
+if [ "$runner" = auto ]; then
+    if command -v cl-repo >/dev/null 2>&1; then runner=cl-repo; else runner=lisp; fi
 fi
+
+set +e
+case "$runner" in
+    cl-repo)
+        (cd "$repo" && cl-repo test --system "$system") ;;
+    lisp)
+        if command -v ros >/dev/null 2>&1; then
+            ros -Q -e '(setf *debugger-hook* (lambda (c h) (declare (ignore h)) (format *error-output* "UNHANDLED: ~A~%" c) (uiop:quit 1)))' \
+                -l "$root/run-test.lisp"
+        else
+            sbcl --noinform --disable-debugger --non-interactive --load "$root/run-test.lisp"
+        fi ;;
+    *) printf 'FAIL: unknown TEAM_SOLVE_RUNNER %s\n' "$runner" >&2; exit 1 ;;
+esac
 status=$?
 set -e
 if [ "$status" -eq 0 ]; then

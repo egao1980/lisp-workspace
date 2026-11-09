@@ -482,3 +482,12 @@ Require OBJC-SUPPORT still SIGBUS/SIGSEGV flaky (~30%) — separate issue.
   - Always set `*debugger-hook*` to quit nonzero and check `rove:run`. `fiasco:run-package-tests` needs the same check.
 - **ASDF 3.3.1 sessions:** a test inside `test-op` shares the operate session, which caches system lookups. Registry changes don't show to `find-system` until `asdf/session:*asdf-session*` is bound to NIL (`with-asdf-session :override t` was not enough).
 - **HTTP/2 SETTINGS:** GHCR sends identifier 0x4876 (unknown). RFC 9113 §6.5.2 says ignore it. `http2` warned "Peer settings not used" on every connection.
+
+## 2026-11-09 — cl-repo 0.27.6 regressions; async HTTP not ready as default
+
+- **`+Q` and the reader:** with `ros +Q` ASDF/UIOP load only when `(ros:ensure-asdf)` runs. A script that calls it inside the same top-level form that names `uiop:` / `asdf:` symbols dies at read time ("Package UIOP does not exist"). Put `(ros:ensure-asdf)` in a top-level form of its own. CI loads the client through `run.lisp`, so only the CLI broke (v0.27.6, fixed in v0.27.7).
+- **`directory` returns truenames:** `(directory "**/*.asd")` follows symlinks, so a path filter applied afterwards (`/.qlot/`) never matches what a `.qlot/` link points to. Walk with `uiop:collect-sub*directories` and refuse to enter dot-directories.
+- **HEAD responses have no body** (RFC 9110 §9.3.2), whatever `Content-Length` says; 204/304 neither. http-backend-async ≤ 0.2.14 waited for the body: every blob push (HEAD first) timed out. An empty body with `Content-Encoding` must not be decoded (gzip of 0 octets → "Unexpected EOF").
+- **Two OpenSSLs in one image (macOS/Windows):** when cl+ssl loads the system OpenSSL before cl-stack-ssl loads its own ("cl+ssl was loaded before cl-stack-ssl"), handing cl+ssl's global `SSL_CTX` to the other library's functions faults ("Memory fault … Continuing with fingers crossed"). Every later fault is noise. Find the first one.
+- **The cl-repo default backend is dexador** until http-backend-async ≥ 0.2.15 ships in the client package and the macOS/Windows OpenSSL ordering is fixed (`CL_REPO_HTTP_BACKEND=auto` opts in).
+- **Test the checkout, not the client's copy:** for a repo the client itself depends on (http-backend-async, http-protocol), check that the log compiles `…/<checkout>/src/…`, not `~/.cl-repository-client/<name>-<ver>/…`.

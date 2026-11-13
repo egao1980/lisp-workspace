@@ -12,7 +12,7 @@ Repos: [`lisp-mcp`](https://github.com/egao1980/lisp-mcp) (server) · [`lisp-sou
 
 ## Wire it
 
-In this workspace it is already wired: `.mcp.json` / `.cursor/mcp.json` (linked by `link-agent-config.sh`) run `.lisp-workspace/scripts/lisp-mcp.sh`. That installs the **published** `lisp-mcp` (`LISP_MCP_VERSION`, default 0.2.0) from GHCR and execs a dumped executable in `~/.cache/lisp-mcp/` (first start builds it; `lisp-mcp.sh --build` / `bootstrap.sh` ahead of time; `--which` shows what runs). Developing lisp-mcp itself: `LISP_MCP_SOURCE=checkout` loads the sibling checkouts.
+In this workspace it is already wired: `.mcp.json` / `.cursor/mcp.json` (linked by `link-agent-config.sh`) run `.lisp-workspace/scripts/lisp-mcp.sh`. That installs the **published** `lisp-mcp` (`LISP_MCP_VERSION`, default 0.2.3) from GHCR, with `swank` and `slynk` as install roots in the same private tree, and execs a dumped executable in `~/.cache/lisp-mcp/` (first start builds it; `lisp-mcp.sh --build` / `bootstrap.sh` ahead of time; `--which` shows what runs). Developing lisp-mcp itself: `LISP_MCP_SOURCE=checkout` loads the sibling checkouts.
 
 Elsewhere:
 
@@ -47,6 +47,7 @@ Locators: `defun foo`, `defmethod print-object (my-class t)`, `path:0.2.1`, `lin
 - Swank evaluates `:emacs-rex` args → `rpc` quotes lists. Backends only map names (`rpc-symbol`); shared logic is `swank-family-connection`. Conformance: `repl-protocol/conformance` against a spawned image.
 - `compile-file-for-emacs` only compiles; `repl-compile-file :load t` loads the fasl with `load-file` (SLIME does the same). An out-of-range restart gets no reply from the server, so `repl-invoke-restart` refuses it (`repl-invalid-restart`).
 - Slynk mrepl announces a dedicated output socket (`:open-dedicated-output-stream port`) and blocks `create-mrepl` until the client connects; `inspect-entry` must run in the channel's thread.
+- `repl-spawn` starts `ros +Q run` (no Quicklisp). Swank/Slynk load with `asdf:load-system`: `repl-protocol:system-registry-form` puts the directories where the server finds them (its cl-repo tree; GHCR `swank` / `slynk` are cl-stack-systems imports) in front of the child registry. Install them as `:ci :with` roots / launcher `:with`, never as `:depends-on` (the server must not load them).
 - Do not set Swank's `*globally-redirect-io*` in a spawned image without an Emacs REPL: requests block after the first redirected write.
 - Notifications: the image event listener runs on the wire reader thread; stdio writes are serialized by `rpc-backend-stdio`'s lock. Over HTTP only in-request notifications are delivered.
 - lisp-mcp caches parsed files by write date + length; call `forget-source` after any write the server makes (same-second, same-length writes are otherwise invisible).

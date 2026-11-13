@@ -93,7 +93,10 @@ an ASDF registry that cannot see workspace checkouts."
          :ignore-inherited-configuration)))
     (setf (symbol-value (find-symbol "*SYSTEMS-ROOT*" "CL-REPOSITORY-CLIENT/INSTALLER")) systems)
     (uiop:symbol-call :cl-repo :add-registry "https://ghcr.io" :namespace "egao1980/cl-systems" :priority :prepend)
-    (uiop:symbol-call :cl-repo :load-system "lisp-mcp" :version version :default-source :oci)
+    ;; swank / slynk are install roots only: repl-spawn images load them with ASDF
+    ;; from this tree (the server never loads them).
+    (uiop:symbol-call :cl-repo :load-system "lisp-mcp" :version version :default-source :oci
+                                             :with (list "swank" "slynk"))
     (unless (asdf:component-loaded-p "lisp-mcp")
       (error "lisp-mcp ~@[~A ~]could not be installed from ghcr.io/egao1980/cl-systems" version))
     (let ((source (asdf:system-source-directory "lisp-mcp")))

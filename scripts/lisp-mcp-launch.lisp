@@ -93,7 +93,10 @@ an ASDF registry that cannot see workspace checkouts."
          :ignore-inherited-configuration)))
     (setf (symbol-value (find-symbol "*SYSTEMS-ROOT*" "CL-REPOSITORY-CLIENT/INSTALLER")) systems)
     (uiop:symbol-call :cl-repo :add-registry "https://ghcr.io" :namespace "egao1980/cl-systems" :priority :prepend)
-    (uiop:symbol-call :cl-repo :load-system "lisp-mcp" :version version :default-source :oci)
+    ;; swank / slynk are install roots only: repl-spawn images load them with ASDF
+    ;; from this tree (the server never loads them).
+    (uiop:symbol-call :cl-repo :load-system "lisp-mcp" :version version :default-source :oci
+                                             :with (list "swank" "slynk"))
     (unless (asdf:component-loaded-p "lisp-mcp")
       (error "lisp-mcp ~@[~A ~]could not be installed from ghcr.io/egao1980/cl-systems" version))
     (let ((source (asdf:system-source-directory "lisp-mcp")))
@@ -110,11 +113,17 @@ an ASDF registry that cannot see workspace checkouts."
     (and raw (uiop:split-string raw :separator (list (code-char 31))))))
 
 (if (string-equal (env "LISP_MCP_ACTION" "serve") "build")
-    (let ((output (or (env "LISP_MCP_OUTPUT") (error "LISP_MCP_OUTPUT is required to build"))))
+    (let ((output (or (env "LISP_MCP_OUTPUT") (error "LISP_MCP_OUTPUT is required to build")))
+          ;; DUMP-IMAGE clears ASDF's configuration and the restored image
+          ;; re-initializes the *default* registry: put this one back, or
+          ;; repl-spawn cannot find swank / slynk in the private tree.
+          (registry asdf/source-registry:*source-registry-parameter*))
       (ensure-directories-exist output)
       (format *error-output* "~&lisp-mcp: writing ~A~%" output)
       (setf uiop:*image-entry-point*
-            (lambda () (uiop:symbol-call :lisp-mcp :main :args (uiop:command-line-arguments))))
+            (lambda ()
+              (asdf:initialize-source-registry registry)
+              (uiop:symbol-call :lisp-mcp :main :args (uiop:command-line-arguments))))
       (uiop:dump-image output :executable t))
     (progn
       (uiop:symbol-call :lisp-mcp :main :args (server-args))

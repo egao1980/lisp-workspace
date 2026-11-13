@@ -498,3 +498,12 @@ Require OBJC-SUPPORT still SIGBUS/SIGSEGV flaky (~30%) — separate issue.
 - **Depend on `cl-stack-ssl`, never on `cl+ssl` directly.** cl-stack-ssl pins cl+ssl to its own OpenSSL only if it loads first. A bare `cl+ssl` dependency (or a hook that loads cl+ssl first) takes Homebrew's OpenSSL 4 on macOS (`ASN1_STRING_data` undefined) or a second OpenSSL. http-backend-async 0.2.16 fixed this; macOS CI is green for the first time.
 - **cl-repository's own CI never loads `.github/actions/ci/run.lisp`.** An unbalanced edit merged green and broke every repo's canned CI. `ci-action-files-read-balanced` now reads each action file with `*read-suppress*`. Check an edited action with lisp-mcp `source-check` before pushing.
 - **A qlot lock commit is not a pin.** For a qlfile `github` entry with no ref, the lock's `github-<sha>` is only qlot's snapshot. The client used to publish a sha tag when none existed; from 0.27.12 it installs the latest OCI version, as for `ql` dist dates.
+
+## 2026-11-13 — async HTTP default again; CRLF; spawn and lock fixes
+
+- **cl-repo ≥ 0.27.13 uses async HTTP by default** (libuv + cl-stack-ssl, dexador fallback). cl-repository's `checkout-client-async` job runs the branch's own client on Linux, macOS and Windows. The other macOS/Windows jobs only load the *published* client.
+- **CRLF breaks `format` strings:** a Windows checkout turned a line-ending `~` into `~<Return>`, an unknown directive, so the client did not compile. Repos need `.gitattributes` with `* text=auto eol=lf`.
+- **A test-op may delegate to any system** (`http2` → `http2/test`). `cl-repo sync` ≥ 0.27.13 walks the `:in-order-to` test-op targets, not only `<name>/tests`.
+- **`cl-repo lock` pinned the oldest installed version** (first directory listed) until 0.27.14. A stale gitignored `cl-repo.lock` then made the project load old code. When versions look wrong, check the lock first.
+- **`repl-spawn` gets Swank/Slynk from GHCR** (swank 2.32, slynk 1.0.43 imports). A child that fails to start now exits at once (repl-protocol 0.2.5) instead of idling in the debugger for 180 s. `slynk:1.0.43` was republished under the same tag with `contrib/`, so delete any older install of that tag.
+- **A dependency minimum is a floor, not an upgrade:** `cl-repo sync` keeps an installed 0.2.4 when the minimum is 0.2.4, so a fix in 0.2.5 reaches consumers only when they raise the minimum.

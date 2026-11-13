@@ -113,11 +113,17 @@ an ASDF registry that cannot see workspace checkouts."
     (and raw (uiop:split-string raw :separator (list (code-char 31))))))
 
 (if (string-equal (env "LISP_MCP_ACTION" "serve") "build")
-    (let ((output (or (env "LISP_MCP_OUTPUT") (error "LISP_MCP_OUTPUT is required to build"))))
+    (let ((output (or (env "LISP_MCP_OUTPUT") (error "LISP_MCP_OUTPUT is required to build")))
+          ;; DUMP-IMAGE clears ASDF's configuration and the restored image
+          ;; re-initializes the *default* registry: put this one back, or
+          ;; repl-spawn cannot find swank / slynk in the private tree.
+          (registry asdf/source-registry:*source-registry-parameter*))
       (ensure-directories-exist output)
       (format *error-output* "~&lisp-mcp: writing ~A~%" output)
       (setf uiop:*image-entry-point*
-            (lambda () (uiop:symbol-call :lisp-mcp :main :args (uiop:command-line-arguments))))
+            (lambda ()
+              (asdf:initialize-source-registry registry)
+              (uiop:symbol-call :lisp-mcp :main :args (uiop:command-line-arguments))))
       (uiop:dump-image output :executable t))
     (progn
       (uiop:symbol-call :lisp-mcp :main :args (server-args))

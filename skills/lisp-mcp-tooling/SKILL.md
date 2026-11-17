@@ -12,7 +12,7 @@ Repos: [`lisp-mcp`](https://github.com/egao1980/lisp-mcp) (server) · [`lisp-sou
 
 ## Wire it
 
-In this workspace it is already wired: `.mcp.json` / `.cursor/mcp.json` (linked by `link-agent-config.sh`) run `.lisp-workspace/scripts/lisp-mcp.sh`. That installs the **published** `lisp-mcp` (`LISP_MCP_VERSION`, default 0.2.4) from GHCR, with `swank` and `slynk` as install roots in the same private tree, and execs a dumped executable in `~/.cache/lisp-mcp/` (first start builds it; `lisp-mcp.sh --build` / `bootstrap.sh` ahead of time; `--which` shows what runs). Developing lisp-mcp itself: `LISP_MCP_SOURCE=checkout` loads the sibling checkouts.
+In this workspace it is already wired: `.mcp.json` / `.cursor/mcp.json` (linked by `link-agent-config.sh`) run `.lisp-workspace/scripts/lisp-mcp.sh`. That installs the **published** `lisp-mcp` (`LISP_MCP_VERSION`, default 0.3.0) from GHCR, with `swank` and `slynk` as install roots in the same private tree, and execs a dumped executable in `~/.cache/lisp-mcp/` (first start builds it; `lisp-mcp.sh --build` / `bootstrap.sh` ahead of time; `--which` shows what runs). Developing lisp-mcp itself: `LISP_MCP_SOURCE=checkout` loads the sibling checkouts.
 
 Elsewhere:
 
@@ -30,11 +30,12 @@ stdout is JSON-RPC: the `.ros` launcher sends load output to stderr. Don't print
 | Find | `source-outline`, `source-find-definitions`, `source-find-references`, `source-packages`; `live: true` adds the image's answer (`[image]`) |
 | Read | `source-read` (`locator`) → form text + **file hash** |
 | Check | `source-check` (reader errors, imbalances + fix position, lint) |
-| Edit | `edit-replace` / `-insert` / `-delete` / `-wrap` / `-splice` / `-raise` / `-slurp` / `-barf` / `-transpose` / `-move` (also across files) / `-rename-symbol` / `-add-export` / `-repair` / `-new-file`; pass `expected_hash`, `dry_run` for the diff. Inserted code is re-indented (standard table + image hints + project `defmacro` `&body`) |
+| Edit | `edit-replace` / `-insert` / `-delete` / `-wrap` / `-splice` / `-raise` / `-slurp` / `-barf` / `-transpose` / `-move` (also across files) / `-rename-symbol` / `-add-export` / `-repair` / `-new-file`; pass `expected_hash`, `dry_run` for the diff, `compile: true` to get the image's compiler notes for the changed forms in the same result. A miss lists close matches, and a stale hash shows the current form plus the hash to retry with, so there is no need to re-read. Inserted code is re-indented (standard table + image hints + project `defmacro` `&body`) |
 | Run | `repl-spawn` (or `repl-connect`), `repl-compile` (form or file), `repl-load-system`, `repl-run-tests`, `repl-eval` |
 | Debug | error → debugger **value**: `debug-backtrace`, `debug-frame-locals`, `debug-eval-in-frame`, `debug-step` (`into`/`next`/`out`), `inspect-condition`, `debug-invoke-restart` |
 | Channels (Slynk) | `repl-channel-open` → `repl-eval {"channel"}` prints `#v<entry>:<i>`; `inspect-history`, `repl-channel-close` |
 | Watch | resources `lisp-source:///{+path}`, `repl://{conn}/output`, `repl://{conn}/debugger` (subscribe), `repl://connections`; debugger entries arrive as `warning` log messages |
+| Long output | a result over 200 lines / 16k chars shows head + tail + `Stored as oN`: `output-read {"id":"oN","grep":"FAIL\|error"}` or `offset`/`limit`, or resource `lisp-output://oN[/lines/a-b\|/grep/p]`. Grep the stored output; don't re-run the build or test to see more |
 | Inspect | `inspect` (`code` or `result` id from `repl-eval`), `inspect-part`, `inspect-back` |
 
 Locators: `defun foo`, `defmethod print-object (my-class t)`, `path:0.2.1`, `line:12[:col]`, `offset:N`, `hash:H`. Never write `.lisp` with generic file tools when lisp-mcp is connected.

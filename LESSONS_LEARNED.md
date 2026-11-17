@@ -507,3 +507,9 @@ Require OBJC-SUPPORT still SIGBUS/SIGSEGV flaky (~30%) — separate issue.
 - **`cl-repo lock` pinned the oldest installed version** (first directory listed) until 0.27.14. A stale gitignored `cl-repo.lock` then made the project load old code. When versions look wrong, check the lock first.
 - **`repl-spawn` gets Swank/Slynk from GHCR** (swank 2.32, slynk 1.0.43 imports). A child that fails to start now exits at once (repl-protocol 0.2.5) instead of idling in the debugger for 180 s. `slynk:1.0.43` was republished under the same tag with `contrib/`, so delete any older install of that tag.
 - **A dependency minimum is a floor, not an upgrade:** `cl-repo sync` keeps an installed 0.2.4 when the minimum is 0.2.4, so a fix in 0.2.5 reaches consumers only when they raise the minimum.
+
+## 2026-11-17 — agent-harness practices from opencode v2 (lisp-mcp 0.3.0)
+
+- **mcp-protocol validates tool arguments against the schema before the handler runs.** Leniency in a handler (`"false"` → false) never runs, because `call-tool` has already rejected the call. Argument repair belongs in `mcp-protocol:repair-tool-arguments` (0.3.1), which runs before validation.
+- **Bound tool output in one place, not per tool.** lisp-mcp 0.3.0 wraps every handler. Long text comes back as head + tail + `Stored as oN` and stays readable through `output-read` (page / grep) or `lisp-output://` resources. Agents should grep the stored output rather than re-running a build or test to see more.
+- **An error message is the model's next prompt.** Misses and stale hashes now carry what the retry needs: close matches, the current form, the hash to use. That avoids a read round trip.

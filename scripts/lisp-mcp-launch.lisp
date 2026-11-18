@@ -119,6 +119,14 @@ an ASDF registry that cannot see workspace checkouts."
           ;; repl-spawn cannot find swank / slynk in the private tree.
           (registry asdf/source-registry:*source-registry-parameter*))
       (ensure-directories-exist output)
+      ;; The client's natives (cl-stack-ssl's libcrypto, libuv) live in its
+      ;; versioned tree: a saved image reopens them at startup and dies once a
+      ;; client upgrade removes that tree. The server never uses them.
+      (when (find-package "CFFI")
+        (dolist (lib (uiop:symbol-call :cffi :list-foreign-libraries :loaded-only t))
+          (format *error-output* "~&lisp-mcp: not saving foreign library ~A~%"
+                  (uiop:symbol-call :cffi :foreign-library-name lib))
+          (uiop:symbol-call :cffi :close-foreign-library lib)))
       (format *error-output* "~&lisp-mcp: writing ~A~%" output)
       (setf uiop:*image-entry-point*
             (lambda ()

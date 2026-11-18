@@ -1,8 +1,12 @@
 {
   "mcpServers": {
-    "lisp-mcp": {
+    "lisp-code": {
       "command": "bash",
-      "args": ["-c", "exec \"${CLAUDE_PROJECT_DIR:-$PWD}/.lisp-workspace/scripts/lisp-mcp.sh\""]
+      "args": ["-c", "exec \"${CLAUDE_PROJECT_DIR:-$PWD}/.lisp-workspace/scripts/lisp-mcp.sh\" --tools code"]
+    },
+    "lisp-image": {
+      "command": "bash",
+      "args": ["-c", "exec \"${CLAUDE_PROJECT_DIR:-$PWD}/.lisp-workspace/scripts/lisp-mcp.sh\" --tools image"]
     }
   }
 }

@@ -10,8 +10,13 @@
   "icon": "./.claude-plugin/icon.png",
   "keywords": ["common-lisp", "lisp", "asdf", "sbcl", "mcp", "cl-stack", "cl-repo"],
   "mcpServers": {
-    "lisp-mcp": {
-      "command": "${CLAUDE_PLUGIN_ROOT}/scripts/lisp-mcp.sh"
+    "lisp-code": {
+      "command": "${CLAUDE_PLUGIN_ROOT}/scripts/lisp-mcp.sh",
+      "args": ["--tools", "code"]
+    },
+    "lisp-image": {
+      "command": "${CLAUDE_PLUGIN_ROOT}/scripts/lisp-mcp.sh",
+      "args": ["--tools", "image"]
     }
   }
 }

@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-marketplace.json",
+  "name": "cl-stack",
+  "description": "Claude Code plugins for Common Lisp on cl-stack",
+  "owner": { "name": "egao1980", "url": "https://github.com/egao1980" },
+  "plugins": [
+    {
+      "name": "lisp-workspace",
+      "source": "./",
+      "description": "Common Lisp skills, the lisp-mcp server and cl-stack conventions",
+      "category": "development",
+      "tags": ["common-lisp", "mcp"]
+    }
+  ]
+}

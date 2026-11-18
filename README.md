@@ -61,6 +61,40 @@ Requires `gh auth` with repo admin (or pass `-Token`). Installs under `C:\action
 | [docs/cl-mcp.md](docs/cl-mcp.md) | cl-ai-project/cl-mcp bootstrap and MCP notes |
 | [LESSONS_LEARNED.md](LESSONS_LEARNED.md) | Issues and fixes in practice |
 
+## Claude Code plugin
+
+This repo is also a Claude Code plugin marketplace, `cl-stack`, with one plugin, `lisp-workspace`. Use it in any Common Lisp project, with no submodule:
+
+```text
+/plugin marketplace add egao1980/lisp-workspace
+/plugin install lisp-workspace@cl-stack
+```
+
+Or pre-configure a project's `.claude/settings.json`, so collaborators are offered the plugin when they trust the folder:
+
+```json
+{
+  "extraKnownMarketplaces": {
+    "cl-stack": { "source": { "source": "github", "repo": "egao1980/lisp-workspace" } }
+  },
+  "enabledPlugins": { "lisp-workspace@cl-stack": true }
+}
+```
+
+| Piece | From |
+|---|---|
+| Skills (`lisp-workspace:asdf`, `lisp-workspace:cl-unit-testing`, …) | [`skills/`](skills/) |
+| MCP server `lisp-mcp` | [`scripts/lisp-mcp.sh`](scripts/lisp-mcp.sh), rooted at the project (`$CLAUDE_PROJECT_DIR`) |
+| Conventions and rules as session context | SessionStart hook [`scripts/plugin-session-start.sh`](scripts/plugin-session-start.sh): prints [`plugin/context.md`](plugin/context.md) and [`rules/`](rules/) |
+
+- **Why a hook.** Plugins load no `CLAUDE.md` and no path-scoped rules, so the hook prints them.
+- **Toolchain checks.** It reports a missing Roswell or cl-repo client. When both are present, it starts the lisp-mcp executable build in the background, so the first MCP start is fast.
+- **No double loading.** In a project that has `.lisp-workspace/` (cl-workspace), the hook prints nothing, because `CLAUDE.md` already loads `AGENTS.md`. Don't enable the plugin there as well, or `lisp-mcp` runs twice.
+
+Prerequisites: [Roswell](https://roswell.github.io/) with SBCL, and the cl-repo client (`setup-client.sh` from [cl-repository](https://github.com/egao1980/cl-repository)). Check the plugin with `claude plugin validate .`. The manifest sets no `version`, so installs follow the latest commit on `main`.
+
+Example project: [egao1980/cl-stack-sample](https://github.com/egao1980/cl-stack-sample).
+
 ## Agent integration
 
 One source, generated adapters. [`scripts/link-agent-config.sh`](scripts/link-agent-config.sh) writes symlinks at the workspace root (all gitignored there):

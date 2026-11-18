@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
+  "name": "lisp-workspace",
+  "displayName": "Common Lisp (cl-stack)",
+  "description": "Common Lisp on cl-stack: skills (ASDF, Rove, conditions, cl-repo CI, Roswell, SBCL, Quint), the lisp-mcp server (static analysis, structural edits, live Swank/Slynk images) and the cl-stack conventions as session context.",
+  "author": { "name": "egao1980", "url": "https://github.com/egao1980" },
+  "homepage": "https://github.com/egao1980/lisp-workspace",
+  "repository": "https://github.com/egao1980/lisp-workspace",
+  "license": "MIT",
+  "icon": "./.claude-plugin/icon.png",
+  "keywords": ["common-lisp", "lisp", "asdf", "sbcl", "mcp", "cl-stack", "cl-repo"],
+  "mcpServers": {
+    "lisp-mcp": {
+      "command": "${CLAUDE_PLUGIN_ROOT}/scripts/lisp-mcp.sh"
+    }
+  }
+}

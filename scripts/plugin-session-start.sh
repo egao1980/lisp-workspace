@@ -33,7 +33,7 @@ export PATH="$HOME/.roswell/bin:$HOME/.local/bin:$PATH"
 command -v ros >/dev/null 2>&1 || missing+=("Roswell (\`ros\`): https://roswell.github.io/ then \`ros install sbcl-bin\`")
 client_dir="${CL_REPOSITORY_DEST:-$HOME/.cl-repository-client}"
 if ! ls -d "$client_dir"/cl-oci-*/ >/dev/null 2>&1; then
-  missing+=("the cl-repo client: run setup-client.sh from https://github.com/egao1980/cl-repository (.github/actions/setup-client/)")
+  missing+=("the cl-repo client: \`curl -fsSL https://raw.githubusercontent.com/egao1980/cl-repository/main/install.sh | bash\` (needs oras and python3)")
 fi
 
 if (( ${#missing[@]} > 0 )); then

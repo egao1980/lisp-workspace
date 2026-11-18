@@ -508,6 +508,13 @@ Require OBJC-SUPPORT still SIGBUS/SIGSEGV flaky (~30%) — separate issue.
 - **`repl-spawn` gets Swank/Slynk from GHCR** (swank 2.32, slynk 1.0.43 imports). A child that fails to start now exits at once (repl-protocol 0.2.5) instead of idling in the debugger for 180 s. `slynk:1.0.43` was republished under the same tag with `contrib/`, so delete any older install of that tag.
 - **A dependency minimum is a floor, not an upgrade:** `cl-repo sync` keeps an installed 0.2.4 when the minimum is 0.2.4, so a fix in 0.2.5 reaches consumers only when they raise the minimum.
 
+## 2026-11-18 — agent loop: retries, compaction, terse tools (llm-protocol 0.4.0, ai-agent-protocol 0.4.0, lisp-mcp 0.3.2)
+
+- **Retry by failure class, not by "is it an HTTP error".** `llm-retry-class` splits rate limit / overload / transient / context overflow; only the first three are retried, with Retry-After honoured. A context overflow is never retried as is: compact first (`conversation:compact-turns`), then retry once.
+- **Compaction exists on both sides.** Agent-side (`summary-memory`, templated, verbatim token tail, never splitting a tool call from its result) works with any provider. API-side (Anthropic `compact_20260112`, `:server-compaction`) keeps the cache warm and needs the returned `compaction` block sent back verbatim — append the whole response, not its text.
+- **At max steps, ask for a summary with tools disabled instead of stopping.** `tool-choice :none` with the same tool list keeps the cached prefix; the run ends with done / left / next.
+- **Terse tool output by default.** Diffs of written edits, long backtraces and passing test lines are the bulk of MCP tokens; `verbose: true` brings them back when needed.
+
 ## 2026-11-17 — agent-harness practices from opencode v2 (lisp-mcp 0.3.1)
 
 - **mcp-protocol validates tool arguments against the schema before the handler runs.** Leniency in a handler (`"false"` → false) never runs, because `call-tool` has already rejected the call. Argument repair belongs in `mcp-protocol:repair-tool-arguments` (0.3.1), which runs before validation.

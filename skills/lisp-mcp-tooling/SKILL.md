@@ -12,7 +12,7 @@ Repos: [`lisp-mcp`](https://github.com/egao1980/lisp-mcp) (server) · [`lisp-sou
 
 ## Wire it
 
-In this workspace it is already wired: `.mcp.json` / `.cursor/mcp.json` (linked by `link-agent-config.sh`) run `.lisp-workspace/scripts/lisp-mcp.sh`. That installs the **published** `lisp-mcp` (`LISP_MCP_VERSION`, default 0.3.1) from GHCR, with `swank` and `slynk` as install roots in the same private tree, and execs a dumped executable in `~/.cache/lisp-mcp/` (first start builds it; `lisp-mcp.sh --build` / `bootstrap.sh` ahead of time; `--which` shows what runs). Developing lisp-mcp itself: `LISP_MCP_SOURCE=checkout` loads the sibling checkouts.
+In this workspace it is already wired: `.mcp.json` / `.cursor/mcp.json` (linked by `link-agent-config.sh`) run `.lisp-workspace/scripts/lisp-mcp.sh`. That installs the **published** `lisp-mcp` (`LISP_MCP_VERSION`, default 0.3.2) from GHCR, with `swank` and `slynk` as install roots in the same private tree, and execs a dumped executable in `~/.cache/lisp-mcp/` (first start builds it; `lisp-mcp.sh --build` / `bootstrap.sh` ahead of time; `--which` shows what runs). Developing lisp-mcp itself: `LISP_MCP_SOURCE=checkout` loads the sibling checkouts.
 
 Elsewhere:
 
@@ -35,7 +35,8 @@ stdout is JSON-RPC: the `.ros` launcher sends load output to stderr. Don't print
 | Debug | error → debugger **value**: `debug-backtrace`, `debug-frame-locals`, `debug-eval-in-frame`, `debug-step` (`into`/`next`/`out`), `inspect-condition`, `debug-invoke-restart` |
 | Channels (Slynk) | `repl-channel-open` → `repl-eval {"channel"}` prints `#v<entry>:<i>`; `inspect-history`, `repl-channel-close` |
 | Watch | resources `lisp-source:///{+path}`, `repl://{conn}/output`, `repl://{conn}/debugger` (subscribe), `repl://connections`; debugger entries arrive as `warning` log messages |
-| Long output | a result over 200 lines / 16k chars shows head + tail + `Stored as oN`: `output-read {"id":"oN","grep":"FAIL\|error"}` or `offset`/`limit`, or resource `lisp-output://oN[/lines/a-b\|/grep/p]`. Grep the stored output; don't re-run the build or test to see more |
+| Terse / verbose | output is terse by default (4 backtrace frames, written edits as `+a -b lines`, passing Rove checks dropped, no hints). Pass `verbose: true` only when you need the diff, the full backtrace or the hints; `--verbose` / `LISP_MCP_VERBOSE=1` flips the default |
+| Long output | a result over 120 lines / 10k chars (4x with `verbose`) shows head + tail + `Stored as oN`: `output-read {"id":"oN","grep":"FAIL\|error"}` or `offset`/`limit`, or resource `lisp-output://oN[/lines/a-b\|/grep/p]`. Grep the stored output; don't re-run the build or test to see more |
 | Inspect | `inspect` (`code` or `result` id from `repl-eval`), `inspect-part`, `inspect-back` |
 
 Locators: `defun foo`, `defmethod print-object (my-class t)`, `path:0.2.1`, `line:12[:col]`, `offset:N`, `hash:H`. Never write `.lisp` with generic file tools when lisp-mcp is connected.

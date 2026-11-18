@@ -12,7 +12,7 @@ Repos: [`lisp-mcp`](https://github.com/egao1980/lisp-mcp) (server) · [`lisp-sou
 
 ## Wire it
 
-In this workspace it is already wired: `.mcp.json` / `.cursor/mcp.json` (linked by `link-agent-config.sh`) run `.lisp-workspace/scripts/lisp-mcp.sh`. That installs the **published** `lisp-mcp` (`LISP_MCP_VERSION`, default 0.3.2) from GHCR, with `swank` and `slynk` as install roots in the same private tree, and execs a dumped executable in `~/.cache/lisp-mcp/` (first start builds it; `lisp-mcp.sh --build` / `bootstrap.sh` ahead of time; `--which` shows what runs). Developing lisp-mcp itself: `LISP_MCP_SOURCE=checkout` loads the sibling checkouts.
+In this workspace it is already wired: `.mcp.json` / `.cursor/mcp.json` (linked by `link-agent-config.sh`) run `.lisp-workspace/scripts/lisp-mcp.sh`. That installs the **published** `lisp-mcp` (`LISP_MCP_VERSION`, default 0.4.0) from GHCR, with `swank` and `slynk` as install roots in the same private tree, and execs a dumped executable in `~/.cache/lisp-mcp/` (first start builds it; `lisp-mcp.sh --build` / `bootstrap.sh` ahead of time; `--which` shows what runs). Developing lisp-mcp itself: `LISP_MCP_SOURCE=checkout` loads the sibling checkouts.
 
 Elsewhere:
 
@@ -37,6 +37,7 @@ stdout is JSON-RPC: the `.ros` launcher sends load output to stderr. Don't print
 | Watch | resources `lisp-source:///{+path}`, `repl://{conn}/output`, `repl://{conn}/debugger` (subscribe), `repl://connections`; debugger entries arrive as `warning` log messages |
 | Terse / verbose | output is terse by default (4 backtrace frames, written edits as `+a -b lines`, passing Rove checks dropped, no hints). Pass `verbose: true` only when you need the diff, the full backtrace or the hints; `--verbose` / `LISP_MCP_VERBOSE=1` flips the default |
 | Long output | a result over 120 lines / 10k chars (4x with `verbose`) shows head + tail + `Stored as oN`: `output-read {"id":"oN","grep":"FAIL\|error"}` or `offset`/`limit`, or resource `lisp-output://oN[/lines/a-b\|/grep/p]`. Grep the stored output; don't re-run the build or test to see more |
+| Long runs | `repl-eval` / `repl-compile` / `repl-load-system` / `repl-run-tests` / `debug-invoke-restart` / `debug-step` past their `timeout` (60 s; 300 load, 600 tests) keep running as **job jN** and return at once. Do **not** call it again: the same tool + arguments returns the running job. Wait for the `lisp-mcp/jobs` log message, or `job-status {"id":"jN"}` / `job-wait` (≤ 300 s); `job-list`; `job-cancel` interrupts it (then the job reports the debugger). Pass a larger `timeout` only to block longer |
 | Inspect | `inspect` (`code` or `result` id from `repl-eval`), `inspect-part`, `inspect-back` |
 
 Locators: `defun foo`, `defmethod print-object (my-class t)`, `path:0.2.1`, `line:12[:col]`, `offset:N`, `hash:H`. Never write `.lisp` with generic file tools when lisp-mcp is connected.
@@ -52,6 +53,7 @@ Locators: `defun foo`, `defmethod print-object (my-class t)`, `path:0.2.1`, `lin
 - `repl-spawn` starts `ros +Q run` (no Quicklisp). Swank/Slynk load with `asdf:load-system`: `repl-protocol:system-registry-form` puts the directories where the server finds them (its cl-repo tree; GHCR `swank` / `slynk` are cl-stack-systems imports) in front of the child registry. Install them as `:ci :with` roots / launcher `:with`, never as `:depends-on` (the server must not load them).
 - Do not set Swank's `*globally-redirect-io*` in a spawned image without an Emacs REPL: requests block after the first redirected write.
 - Notifications: the image event listener runs on the wire reader thread; stdio writes are serialized by `rpc-backend-stdio`'s lock. Over HTTP only in-request notifications are delivered.
+- Background jobs (lisp-mcp ≥ 0.4.0): the worker answers `repl-timeout` with `keep-waiting` and transfers its errors to the waiting call (restart `transfer-error`). Concurrent requests on one connection rely on repl-protocol ≥ 0.2.6 attributing a debugger level by the `:debug` event's continuations.
 - lisp-mcp caches parsed files by write date + length; call `forget-source` after any write the server makes (same-second, same-length writes are otherwise invisible).
 
 Legacy third-party server: skill **cl-mcp-tooling** (cl-ai-project/cl-mcp).

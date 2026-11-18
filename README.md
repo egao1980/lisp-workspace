@@ -91,7 +91,7 @@ Or pre-configure a project's `.claude/settings.json`, so collaborators are offer
 - **Toolchain checks.** It reports a missing Roswell or cl-repo client. When both are present, it starts the lisp-mcp executable build in the background, so the first MCP start is fast.
 - **No double loading.** In a project that has `.lisp-workspace/` (cl-workspace), the hook prints nothing, because `CLAUDE.md` already loads `AGENTS.md`. Don't enable the plugin there as well, or `lisp-mcp` runs twice.
 
-Prerequisites: [Roswell](https://roswell.github.io/) with SBCL, and the cl-repo client (`setup-client.sh` from [cl-repository](https://github.com/egao1980/cl-repository)). Check the plugin with `claude plugin validate .`. The manifest sets no `version`, so installs follow the latest commit on `main`.
+Prerequisites: [Roswell](https://roswell.github.io/) with SBCL, and the cl-repo client ([`install.sh`](https://github.com/egao1980/cl-repository#quick-start) from cl-repository). Check the plugin with `claude plugin validate .`. The manifest sets no `version`, so installs follow the latest commit on `main`.
 
 Example project: [egao1980/cl-stack-sample](https://github.com/egao1980/cl-stack-sample).
 

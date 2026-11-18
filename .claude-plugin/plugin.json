@@ -7,6 +7,7 @@
   "homepage": "https://github.com/egao1980/lisp-workspace",
   "repository": "https://github.com/egao1980/lisp-workspace",
   "license": "MIT",
+  "icon": "./.claude-plugin/icon.png",
   "keywords": ["common-lisp", "lisp", "asdf", "sbcl", "mcp", "cl-stack", "cl-repo"],
   "mcpServers": {
     "lisp-mcp": {

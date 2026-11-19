@@ -84,12 +84,12 @@ Or pre-configure a project's `.claude/settings.json`, so collaborators are offer
 | Piece | From |
 |---|---|
 | Skills (`lisp-workspace:asdf`, `lisp-workspace:cl-unit-testing`, …) | [`skills/`](skills/) |
-| MCP server `lisp-mcp` | [`scripts/lisp-mcp.sh`](scripts/lisp-mcp.sh), rooted at the project (`$CLAUDE_PROJECT_DIR`) |
+| MCP servers `lisp-code` (`--tools code`) and `lisp-image` (`--tools image`) | [`scripts/lisp-mcp.sh`](scripts/lisp-mcp.sh), rooted at the project (`$CLAUDE_PROJECT_DIR`) |
 | Conventions and rules as session context | SessionStart hook [`scripts/plugin-session-start.sh`](scripts/plugin-session-start.sh): prints [`plugin/context.md`](plugin/context.md) and [`rules/`](rules/) |
 
 - **Why a hook.** Plugins load no `CLAUDE.md` and no path-scoped rules, so the hook prints them.
 - **Toolchain checks.** It reports a missing Roswell or cl-repo client. When both are present, it starts the lisp-mcp executable build in the background, so the first MCP start is fast.
-- **No double loading.** In a project that has `.lisp-workspace/` (cl-workspace), the hook prints nothing, because `CLAUDE.md` already loads `AGENTS.md`. Don't enable the plugin there as well, or `lisp-mcp` runs twice.
+- **No double loading.** In a project that has `.lisp-workspace/` (cl-workspace), the hook prints nothing, because `CLAUDE.md` already loads `AGENTS.md`. Don't enable the plugin there as well, or the lisp-mcp servers run twice.
 
 Prerequisites: [Roswell](https://roswell.github.io/) with SBCL, and the cl-repo client ([`install.sh`](https://github.com/egao1980/cl-repository#quick-start) from cl-repository). Check the plugin with `claude plugin validate .`. The manifest sets no `version`, so installs follow the latest commit on `main`.
 
@@ -109,7 +109,7 @@ Tracked at the workspace root (cl-workspace), not generated: `CLAUDE.md` (`@.lis
 
 Re-run the script after adding a skill or rule.
 
-**MCP.** The script also links `.mcp.json` (Claude Code) and `.cursor/mcp.json` (Cursor) to [`mcp/`](mcp/): both start the first-party [`lisp-mcp`](https://github.com/egao1980/lisp-mcp) server through [`scripts/lisp-mcp.sh`](scripts/lisp-mcp.sh), rooted at the workspace. The launcher installs the published `lisp-mcp` from GHCR into `~/.cache/lisp-mcp/` and runs a dumped executable (built on first start, or by `bootstrap.sh`). `LISP_MCP_SOURCE=checkout` runs the workspace checkouts instead, for working on lisp-mcp itself. Skill **lisp-mcp-tooling**.
+**MCP.** The script also links `.mcp.json` (Claude Code) and `.cursor/mcp.json` (Cursor) to [`mcp/`](mcp/): both start the first-party [`lisp-mcp`](https://github.com/egao1980/lisp-mcp) through [`scripts/lisp-mcp.sh`](scripts/lisp-mcp.sh), rooted at the workspace, as two servers: `lisp-code` (`--tools code`: source, edit, output) and `lisp-image` (`--tools image`: repl, debug, inspect, jobs, output). An agent that only reads and edits loads only the `lisp-code` tool definitions. The launcher installs the published `lisp-mcp` from GHCR into `~/.cache/lisp-mcp/` and runs a dumped executable (built on first start, or by `bootstrap.sh`). `LISP_MCP_SOURCE=checkout` runs the workspace checkouts instead, for working on lisp-mcp itself. Skill **lisp-mcp-tooling**.
 
 ## Dev Container
 

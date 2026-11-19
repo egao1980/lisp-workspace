@@ -12,14 +12,17 @@ Repos: [`lisp-mcp`](https://github.com/egao1980/lisp-mcp) (server) · [`lisp-sou
 
 ## Wire it
 
-In this workspace it is already wired: `.mcp.json` / `.cursor/mcp.json` (linked by `link-agent-config.sh`) run `.lisp-workspace/scripts/lisp-mcp.sh`. That installs the **published** `lisp-mcp` (`LISP_MCP_VERSION`, default 0.4.1) from GHCR, with `swank` and `slynk` as install roots in the same private tree, and execs a dumped executable in `~/.cache/lisp-mcp/` (first start builds it; `lisp-mcp.sh --build` / `bootstrap.sh` ahead of time; `--which` shows what runs). Developing lisp-mcp itself: `LISP_MCP_SOURCE=checkout` loads the sibling checkouts.
+In this workspace it is already wired: `.mcp.json` / `.cursor/mcp.json` (linked by `link-agent-config.sh`) and the plugin manifest run `.lisp-workspace/scripts/lisp-mcp.sh` as **two servers**: `lisp-code` (`--tools code`) and `lisp-image` (`--tools image`). That installs the **published** `lisp-mcp` (`LISP_MCP_VERSION`, default 0.5.0) from GHCR, with `swank` and `slynk` as install roots in the same private tree, and execs a dumped executable in `~/.cache/lisp-mcp/` (first start builds it; `lisp-mcp.sh --build` / `bootstrap.sh` ahead of time; `--which` shows what runs). Developing lisp-mcp itself: `LISP_MCP_SOURCE=checkout` loads the sibling checkouts.
 
 Elsewhere:
 
 ```bash
 claude mcp add lisp-mcp -- ros +Q -- "$PWD/lisp-mcp/roswell/lisp-mcp.ros" --root "$PWD/<project>"
 # flags: --transport http --port 3000 | --spawn swank|slynk | --attach host:port [--backend slynk]
+#        --tools GROUPS (or LISP_MCP_TOOLS)
 ```
+
+**Tool groups (≥ 0.5.0).** `--tools` takes a comma list of `source`, `edit`, `output`, `repl`, `debug`, `inspect`, `jobs`, or a preset: `code` = source,edit,output; `image` = repl,debug,inspect,jobs,output; `all` (default). Instructions, resources (`repl://` with the image groups) and image log messages follow the groups. Without an image group the source/edit schemas drop `live`, `compile` and `connection`. The two servers are separate processes, so `compile: true` on an edit and `live: true` on a source tool need `--tools all`; in the split, compile with `repl-compile` (`path` + `locator`) on `lisp-image`. Claude Code tool names: `mcp__lisp-code__edit-replace`, `mcp__lisp-image__repl-eval`.
 
 stdout is JSON-RPC: the `.ros` launcher sends load output to stderr. Don't print to stdout in server code.
 
@@ -30,7 +33,7 @@ stdout is JSON-RPC: the `.ros` launcher sends load output to stderr. Don't print
 | Find | `source-outline`, `source-find-definitions`, `source-find-references`, `source-packages`; `live: true` adds the image's answer (`[image]`) |
 | Read | `source-read` (`locator`) → form text + **file hash** |
 | Check | `source-check` (reader errors, imbalances + fix position, lint) |
-| Edit | `edit-replace` / `-insert` / `-delete` / `-wrap` / `-splice` / `-raise` / `-slurp` / `-barf` / `-transpose` / `-move` (also across files) / `-rename-symbol` / `-add-export` / `-repair` / `-new-file`; pass `expected_hash`, `dry_run` for the diff, `compile: true` to get the image's compiler notes for the changed forms in the same result. A miss lists close matches, and a stale hash shows the current form plus the hash to retry with, so there is no need to re-read. Inserted code is re-indented (standard table + image hints + project `defmacro` `&body`) |
+| Edit | `edit-replace` / `-insert` / `-delete` / `-rename-symbol` / `-add-export` / `-new-file`, and `edit-structure` with `op` `wrap` (`head`) / `splice` / `raise` / `slurp` / `barf` (`direction`) / `transpose` / `move` (`target_locator`, `target_path`: also across files) / `repair` (`index`, no locator). 0.5.0 removed the separate `edit-wrap` … `edit-move`, `edit-repair` tools. Pass `expected_hash`, `dry_run` for the diff, `compile: true` to get the image's compiler notes for the changed forms in the same result. A miss lists close matches, and a stale hash shows the current form plus the hash to retry with, so there is no need to re-read. Inserted code is re-indented (standard table + image hints + project `defmacro` `&body`) |
 | Run | `repl-spawn` (or `repl-connect`), `repl-compile` (form or file), `repl-load-system`, `repl-run-tests`, `repl-eval` |
 | Debug | error → debugger **value**: `debug-backtrace`, `debug-frame-locals`, `debug-eval-in-frame`, `debug-step` (`into`/`next`/`out`), `inspect-condition`, `debug-invoke-restart` |
 | Channels (Slynk) | `repl-channel-open` → `repl-eval {"channel"}` prints `#v<entry>:<i>`; `inspect-history`, `repl-channel-close` |
@@ -54,6 +57,7 @@ Locators: `defun foo`, `defmethod print-object (my-class t)`, `path:0.2.1`, `lin
 - Do not set Swank's `*globally-redirect-io*` in a spawned image without an Emacs REPL: requests block after the first redirected write.
 - Notifications: the image event listener runs on the wire reader thread; stdio writes are serialized by `rpc-backend-stdio`'s lock. Over HTTP only in-request notifications are delivered.
 - Background jobs (lisp-mcp ≥ 0.4.0): the worker answers `repl-timeout` with `keep-waiting` and transfers its errors to the waiting call (restart `transfer-error`). Concurrent requests on one connection rely on repl-protocol ≥ 0.2.6 attributing a debugger level by the `:debug` event's continuations.
+- Catalog size (0.5.0): common arguments (`path`, `locator`, `expected_hash`, `dry_run`, `compile`, `connection`, `symbol`, `package`, `verbose`) carry no schema description; the server instructions explain them and the locator syntax once (`*argument-notes*`, `*instruction-parts*` in `server.lisp`). `groups-test` budgets the tools/list bytes for the catalog (≤ 18.4 KB) and per group; keep new tools inside them.
 - lisp-mcp caches parsed files by write date + length; call `forget-source` after any write the server makes (same-second, same-length writes are otherwise invisible).
 
 Legacy third-party server: skill **cl-mcp-tooling** (cl-ai-project/cl-mcp).

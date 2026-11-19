@@ -1,8 +1,12 @@
 {
   "mcpServers": {
-    "lisp-mcp": {
+    "lisp-code": {
       "command": "bash",
-      "args": ["${workspaceFolder}/.lisp-workspace/scripts/lisp-mcp.sh", "--root", "${workspaceFolder}"]
+      "args": ["${workspaceFolder}/.lisp-workspace/scripts/lisp-mcp.sh", "--root", "${workspaceFolder}", "--tools", "code"]
+    },
+    "lisp-image": {
+      "command": "bash",
+      "args": ["${workspaceFolder}/.lisp-workspace/scripts/lisp-mcp.sh", "--root", "${workspaceFolder}", "--tools", "image"]
     }
   }
 }

@@ -36,10 +36,10 @@ Work as a senior Common Lisp developer: idiomatic ASDF, packages, CLOS, conditio
 
 A gap in the stack is fixed in the stack, not worked around with a third-party library.
 
-**lisp-mcp (this plugin's MCP server).**
-- Read with `source-outline`, `source-read` and `source-check`; they never evaluate code.
-- Change `.lisp` and `.asd` files only through the `edit-*` tools. Pass a locator and the `expected_hash` from `source-read`. Every write is re-read and refused if it would unbalance the file. Add `compile: true` to compile the changed forms.
-- Run code in a separate image: `repl-spawn`, then `repl-eval`, `repl-load-system`, `repl-run-tests`.
+**lisp-mcp (this plugin's MCP servers: `lisp-code` for source and edits, `lisp-image` for the live image).**
+- Read with `source-outline`, `source-read` and `source-check` (`lisp-code`); they never evaluate code.
+- Change `.lisp` and `.asd` files only through the `edit-*` tools (`lisp-code`). Pass a locator and the `expected_hash` from `source-read`. Every write is re-read and refused if it would unbalance the file. Wrap, splice, raise, slurp, barf, transpose, move and repair are `edit-structure` with an `op`.
+- Run code in a separate image (`lisp-image`): `repl-spawn`, then `repl-eval`, `repl-load-system`, `repl-run-tests`. Compile edited forms with `repl-compile` (path and locator).
 - An error comes back as a debugger state (`debug-*`, `inspect-*`), not a hang.
 - A call that outlasts its timeout becomes a job (`job-status`, `job-wait`). Do not start another copy while it runs.
 - Output is terse by default: pass `"verbose": true` for full diffs and backtraces. Read cut-short output by its `oN` id with `output-read`.

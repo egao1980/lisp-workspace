@@ -115,6 +115,21 @@ Extra-impl rows beside the SBCL×OS reusable job (shape from `crypto-protocol/.g
 - **ECL:** apt `build-essential libffi-dev libgc-dev libgmp-dev` before `ros install ecl`.
 - **ABCL:** `actions/setup-java` (Temurin 21) + `ros install abcl-bin`; put `jna` + `jna-platform` jars on `CLASSPATH` — the `ci` action adds them to ABCL's class loader (`java -jar` ignores `CLASSPATH`).
 
+Run a command in a subdirectory project (demos) — `phase: run` = `cl-repo run -- <command>` in `working-directory`, any OS, step fails on non-zero exit (cl-repository#103):
+
+```yaml
+      - uses: egao1980/cl-repository/.github/actions/ci@main
+        with:
+          phase: run
+          working-directory: harness/data
+          command: >-
+            sbcl --non-interactive --no-userinit --eval '(require "asdf")'
+            --eval '(asdf:load-system "harness-demos-data")'
+            --eval '(harness-demos-data:run-demos)'
+```
+
+`command` is shell-split (quotes group words; no pipes / redirections). Bare `sbcl` = Roswell's SBCL when none is on PATH. Extra tools (git, jj) in earlier steps. Example: `egao1980/cl-stack-demos` `.github/workflows/harness-demos.yml`.
+
 Call `setup-lisp` in **every job** that needs the client. Default matrix: `ubuntu-latest`, `macos-latest`, `windows-latest`. Override with `os-json`.
 
 ### `.asd` `:ci`

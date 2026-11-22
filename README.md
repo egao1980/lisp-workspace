@@ -95,6 +95,73 @@ Prerequisites: [Roswell](https://roswell.github.io/) with SBCL, and the cl-repo 
 
 Example project: [egao1980/cl-stack-sample](https://github.com/egao1980/cl-stack-sample).
 
+## cl-stack-code harness
+
+[`cl-stack-code`](https://github.com/egao1980/cl-stack-code) is the cl-stack coding agent: a terminal session, or headless `-p` runs. [`scripts/cl-stack-code.sh`](scripts/cl-stack-code.sh) installs the published package from GHCR and runs it as a fast-start executable. It works like `lisp-mcp.sh`.
+
+### Install
+
+You need [Roswell](https://roswell.github.io/) with SBCL and the cl-repo client ([`install.sh`](https://github.com/egao1980/cl-repository#quick-start)). Then get the launcher in one of three ways:
+
+- **Submodule** (cl-workspace): `.lisp-workspace/scripts/cl-stack-code.sh`.
+- **Plugin**: the `cl-stack` marketplace is a clone of this repo, so the launcher is at `~/.claude/plugins/marketplaces/cl-stack/scripts/cl-stack-code.sh`.
+- **Direct download**: a copy of the script on its own fetches its build driver ([`scripts/cl-stack-code-launch.lisp`](scripts/cl-stack-code-launch.lisp)) on first build.
+
+  ```bash
+  mkdir -p ~/.local/bin
+  curl -fsSL https://raw.githubusercontent.com/egao1980/lisp-workspace/main/scripts/cl-stack-code.sh \
+    -o ~/.local/bin/cl-stack-code && chmod +x ~/.local/bin/cl-stack-code
+  ```
+
+A symlink to the launcher works as well (`ln -s …/scripts/cl-stack-code.sh ~/.local/bin/cl-stack-code`).
+
+### Build
+
+```bash
+cl-stack-code.sh --build    # install from ghcr.io, dump ~/.cache/cl-stack-code/cl-stack-code-<version>-<lisp>
+cl-stack-code.sh --which    # print the executable path; builds it first when missing
+```
+
+- **When it builds.** The first run builds the executable, which takes about two minutes. `bootstrap.sh` builds it ahead of time. After that, a start takes well under a second.
+- **Pinned version.** The launcher pins the cl-stack-code version in one place, `VERSION` in the script. Override it with `CL_STACK_CODE_VERSION`.
+- **Rebuilds.** The executable's name carries the version and the Roswell Lisp, so a new pin or a new SBCL builds a new executable and removes the old one. It also rebuilds when a native library it reopens at startup is gone, for example libuv or libcrypto after a cl-repo client upgrade.
+- **Output.** Build output goes to stderr. The executable prints no banner.
+
+### CLI
+
+```bash
+cl-stack-code.sh                                   # interactive terminal session
+cl-stack-code.sh -p "fix the failing test" --permission-mode acceptEdits \
+  --allowed-tools 'bash(cl-repo test *) bash(program:cl-repo)'
+cl-stack-code.sh -p "…" --permission-mode plan     # changes go to a copy; add --apply to apply them
+cl-stack-code.sh --help
+```
+
+Arguments pass straight through. See the [cl-stack-code README](https://github.com/egao1980/cl-stack-code#readme) for output formats, sessions (`-c`, `-r`), plan mode, permission rules and settings files (`.cl-stack-code/settings.json`).
+
+**Shell rules.** A `bash` call is allowed only when every resource it touches is allowed. Each simple command has two resources: `bash:<words>` and `program:<argv0>`. So allowing `cl-repo test` takes two rules: `bash(cl-repo test *)` and `bash(program:cl-repo)`.
+
+### Models
+
+`--model provider` or `--model provider:model`. The default is `anthropic`.
+
+| Provider | Key | Endpoint | Model |
+|---|---|---|---|
+| `anthropic` | `ANTHROPIC_API_KEY` (or `ANTHROPIC_AUTH_TOKEN`) | `ANTHROPIC_BASE_URL` (default api.anthropic.com) | `ANTHROPIC_MODEL` |
+| `openai` (any OpenAI-compatible server) | `OPENAI_API_KEY` (or `LM_API_TOKEN`) | `OPENAI_BASE_URL` (default api.openai.com/v1) | `OPENAI_MODEL` |
+
+```bash
+# a local OpenAI-compatible server (LM Studio, llama.cpp, vLLM, Unsloth Studio, …)
+export OPENAI_BASE_URL=http://localhost:1234/v1 OPENAI_API_KEY=… OPENAI_MODEL=qwen/qwen3-coder
+cl-stack-code.sh --model openai -p "…"
+```
+
+`--model provider:model` splits at the first colon. For a model id that has a colon in it (`org/model:quant`), set `OPENAI_MODEL` and pass `--model openai`. Sampling parameters go in `--model-param KEY=VALUE` or in the `modelParams` settings object.
+
+### Editors (ACP)
+
+`cl-stack-code.sh --acp` will serve the Agent Client Protocol to editors, starting with cl-stack-code 0.11.0. With the current pin, it prints a "needs cl-stack-code >= 0.11.0" message. Instructions for Zed, Emacs and VS Code will follow with 0.11.0.
+
 ## Agent integration
 
 One source, generated adapters. [`scripts/link-agent-config.sh`](scripts/link-agent-config.sh) writes symlinks at the workspace root (all gitignored there):

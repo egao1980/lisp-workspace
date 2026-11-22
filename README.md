@@ -133,11 +133,10 @@ cl-stack-code.sh --which    # print the executable path; builds it first when mi
 cl-stack-code.sh                                   # interactive terminal session
 cl-stack-code.sh -p "fix the failing test" --permission-mode acceptEdits \
   --allowed-tools 'bash(cl-repo test *) bash(program:cl-repo)'
-cl-stack-code.sh -p "…" --permission-mode plan     # changes go to a copy; add --apply to apply them
 cl-stack-code.sh --help
 ```
 
-Arguments pass straight through. See the [cl-stack-code README](https://github.com/egao1980/cl-stack-code#readme) for output formats, sessions (`-c`, `-r`), plan mode, permission rules and settings files (`.cl-stack-code/settings.json`).
+Arguments pass straight through. See the [cl-stack-code README](https://github.com/egao1980/cl-stack-code#readme) for output formats, sessions (`-c`, `-r`), permission rules and settings files (`.cl-stack-code/settings.json`).
 
 **Shell rules.** A `bash` call is allowed only when every resource it touches is allowed. Each simple command has two resources: `bash:<words>` and `program:<argv0>`. So allowing `cl-repo test` takes two rules: `bash(cl-repo test *)` and `bash(program:cl-repo)`.
 

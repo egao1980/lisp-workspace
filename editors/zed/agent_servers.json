@@ -1,0 +1,16 @@
+{
+  "agent_servers": {
+    "cl-stack-code": {
+      "type": "custom",
+      "command": "/ABSOLUTE/PATH/TO/lisp-workspace/scripts/cl-stack-code.sh",
+      "args": ["--acp", "--model", "openai"],
+      "env": {
+        "OPENAI_BASE_URL": "http://localhost:8888/v1",
+        "OPENAI_MODEL": "unsloth/Qwen3.8-Flash-Next-GGUF",
+        "OPENAI_TIMEOUT": "600",
+        "OPENAI_STREAM_IDLE_TIMEOUT": "300",
+        "PATH": "/HOME/.local/bin:/HOME/.roswell/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin"
+      }
+    }
+  }
+}

@@ -69,11 +69,12 @@ cl-repository tree), with an ASDF registry that cannot see workspace checkouts."
     ;; that load them with ASDF from this tree.
     (uiop:symbol-call :cl-repo :load-system "cl-stack-code" :version version :default-source :oci
                                                   :with (list "swank" "slynk"))
-    ;; The async HTTP client advertises zstd, brotli and snappy and warns on
-    ;; every model call when a Content-Encoding backend is not loaded;
-    ;; cl-stack-code does not depend on them (egao1980/cl-stack-code#29).
-    (dolist (name '("http-encoding-zstd" "http-encoding-brotli" "http-encoding-snappy"))
-      (uiop:symbol-call :cl-repo :load-system name :default-source :oci))
+    ;; cl-stack-code/acp (--acp) has deps of its own (acp-protocol,
+    ;; acp-backend-stdio) that the core does not pull in. Install them and
+    ;; load it into the image, so --acp answers initialize at once.
+    (uiop:symbol-call :cl-repo :ensure-system-dependencies "cl-stack-code"
+                      :with (list "cl-stack-code/acp") :also-tests nil :default-source :oci)
+    (asdf:load-system "cl-stack-code/acp")
     (unless (asdf:component-loaded-p "cl-stack-code")
       (error "cl-stack-code ~A could not be installed from ghcr.io/egao1980/cl-systems" version))
     (let ((loaded (asdf:component-version (asdf:find-system "cl-stack-code"))))

@@ -23,7 +23,7 @@ while [[ -L "$SELF" ]]; do  # a symlink (e.g. ~/.local/bin/cl-stack-code): find 
 done
 HERE="$(cd "$(dirname "$SELF")" && pwd)"
 LAUNCH_URL="https://raw.githubusercontent.com/egao1980/lisp-workspace/main/scripts/cl-stack-code-launch.lisp"
-VERSION="${CL_STACK_CODE_VERSION:-0.12.1}"
+VERSION="${CL_STACK_CODE_VERSION:-0.12.2}"
 ACP_MIN="0.11.0"
 CACHE="${XDG_CACHE_HOME:-$HOME/.cache}/cl-stack-code"
 export PATH="$HOME/.roswell/bin:$PATH"
@@ -71,10 +71,17 @@ launch_build() {  # write $1
   local driver; driver="$(launch_file)"
   [[ -d "${CL_REPOSITORY_DEST:-$HOME/.cl-repository-client}" ]] \
     || die "needs the cl-repository client: curl -fsSL https://raw.githubusercontent.com/egao1980/cl-repository/main/install.sh | bash"
-  CL_STACK_CODE_VERSION="$VERSION" CL_STACK_CODE_OUTPUT="$1" CL_STACK_CODE_CACHE="$CACHE" \
-    CL_STACK_CODE_NATIVES="$1.natives" \
-    ros +Q run -- --dynamic-space-size 4096 --non-interactive --no-userinit \
-      --load "$driver" 1>&2
+  # two images: install (with the cl-repository client), then dump (without
+  # it, so cl-stack-code never runs on the client's older copies)
+  local phase
+  for phase in install dump; do
+    CL_STACK_CODE_PHASE="$phase" CL_STACK_CODE_REGISTRY="$1.registry" \
+      CL_STACK_CODE_VERSION="$VERSION" CL_STACK_CODE_OUTPUT="$1" CL_STACK_CODE_CACHE="$CACHE" \
+      CL_STACK_CODE_NATIVES="$1.natives" \
+      ros +Q run -- --dynamic-space-size 4096 --non-interactive --no-userinit \
+        --load "$driver" 1>&2 || { rm -f "$1.registry"; return 1; }
+  done
+  rm -f "$1.registry"
 }
 
 build() {  # build $BIN once: under a lock, into a temporary file, then renamed

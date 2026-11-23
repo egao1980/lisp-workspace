@@ -159,7 +159,32 @@ cl-stack-code.sh --model openai -p "…"
 
 ### Editors (ACP)
 
-`cl-stack-code.sh --acp` will serve the Agent Client Protocol to editors, starting with cl-stack-code 0.11.0. With the current pin, it prints a "needs cl-stack-code >= 0.11.0" message. Instructions for Zed, Emacs and VS Code will follow with 0.11.0.
+`cl-stack-code.sh --acp` serves the [Agent Client Protocol](https://agentclientprotocol.com) on stdin and stdout, the way editors start an agent. File reads and writes go through the editor's buffers, `bash` runs in the editor's terminal, and approvals are the editor's permission prompts. Build the executable first (`--build`): the editor waits for the `initialize` reply, which a built executable sends in about a second.
+
+#### Zed
+
+[`editors/zed/`](editors/zed/) has the `agent_servers` entry ([`agent_servers.json`](editors/zed/agent_servers.json)) and the setup steps ([README](editors/zed/README.md)). In short:
+
+```json
+"agent_servers": {
+  "cl-stack-code": {
+    "type": "custom",
+    "command": "/ABSOLUTE/PATH/TO/lisp-workspace/scripts/cl-stack-code.sh",
+    "args": ["--acp", "--model", "openai"],
+    "env": {
+      "OPENAI_BASE_URL": "http://localhost:8888/v1",
+      "OPENAI_MODEL": "unsloth/Qwen3.8-Flash-Next-GGUF",
+      "OPENAI_TIMEOUT": "600",
+      "OPENAI_STREAM_IDLE_TIMEOUT": "300",
+      "PATH": "/HOME/.local/bin:/HOME/.roswell/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin"
+    }
+  }
+}
+```
+
+- `PATH` must contain `cl-repo` and `ros`: with `lispImage: spawn` the session's Lisp image starts through `cl-repo run`.
+- The key is not in the settings. Export `OPENAI_API_KEY` (or `ANTHROPIC_API_KEY`) and start Zed from that shell, so the agent inherits it.
+- Open the project folder in Zed. cl-stack-code takes Zed's project root as its working directory, with that project's `AGENTS.md`, settings, skills and rules.
 
 ## Agent integration
 

@@ -8,7 +8,7 @@ Tool-neutral. Claude Code also reads [CLAUDE.md](CLAUDE.md), which imports this 
 
 - **Skills:** `.lisp-workspace/skills/<name>/SKILL.md` ([Agent Skills](https://agentskills.io/) format) — read the matching skill **before** specialized work. Personal skills (`~/.claude/skills/`, `~/.cursor/skills/`) apply across repos — do not duplicate here unless overriding. Mid-task fix → `skills/<name>/STAGED.md` (`/review-skill-improvements`). Index: [skills/README.md](skills/README.md).
 - **Rules:** `.lisp-workspace/rules/<name>.md` — path-scoped (`*.asd`, `*.lisp`). Agents without rule support: read the matching rule before editing those files.
-- **User-invoked skills:** `/team-solve`, `/review-skill-improvements`.
+- **User-invoked skills:** `/team-solve`, `/review-skill-improvements`, `/blog` (publish a note on egao1980/cl-blog).
 - **cl-stack features** (capability brief + existing ASDF test-op): skill **team-solve**. Fresh agents, on-disk ledger, `check-feature.sh` is the verdict.
 - **Tests:** new tests = **Rove** ([`egao1980/rove`](https://github.com/egao1980/rove) for `deftest-parametrize`) unless the repo already picked a runner. Skill **cl-unit-testing**.
 - **Errors:** conditions + restarts ([CLHS 9](http://www.lispworks.com/documentation/HyperSpec/Body/09_.htm)). Skill **cl-stack-conditions**.

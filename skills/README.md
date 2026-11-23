@@ -58,6 +58,7 @@ Entry shape:
 | [add-cl-project](add-cl-project/SKILL.md) | Clone + fork + ASDF wiring |
 | [asdf](asdf/SKILL.md) | New `.asd` shape, ASDF registry |
 | [bash-defensive-patterns](bash-defensive-patterns/SKILL.md) | Production Bash / install.sh |
+| [blog](blog/SKILL.md) | `/blog`: post a note on egao1980/cl-blog (PR, merge when green, Pages deploy) |
 | [cl-mcp-tooling](cl-mcp-tooling/SKILL.md) | `cl-mcp/` MCP server + Inspector |
 | [cl-static-eclector](cl-static-eclector/SKILL.md) | Eclector CST read; no eval |
 | [cl-repository-ci](cl-repository-ci/SKILL.md) | cl-repo CI + cl-stack-systems publish |

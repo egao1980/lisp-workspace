@@ -49,6 +49,8 @@ See `cl-stack-ssl.asd`, `event-backend-libuv.asd`:
 
 Creates `egao1980/<name>` if missing, pushes `main`, registers ASDF. Required the same day as the tree — workspace-only protocol/backend/parity is forbidden.
 
+Pass `--private` first (`create-first-party-repo.sh --private <name>`) for a private product or library repo. Its GHCR packages are private too, so consumers' CI needs read access to them (package settings → Manage Actions access).
+
 ## Publish commands
 
 First-party source-only — tag/release on `egao1980/<repo>`, then:

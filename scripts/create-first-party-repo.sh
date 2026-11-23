@@ -11,12 +11,16 @@ WORKSPACE="${LISP_WORKSPACE:-$WORKSPACE_ROOT}"
 
 usage() {
   cat <<'EOF'
-Usage: create-first-party-repo.sh <name> [description]
+Usage: create-first-party-repo.sh [--private] <name> [description]
 
 Create github.com/<org>/<name> from the workspace tree <name>/ (or push if the
 repo already exists). Inits git, commits if needed, registers ASDF.
 
 <name> is the directory and GitHub repo (e.g. task-protocol).
+
+Options:
+  --private   create the GitHub repo as private (default: public). Ignored
+              when the repo already exists; its visibility is left alone.
 
 Environment:
   LISP_WORKSPACE, GITHUB_WORKSPACE_ORG (default: egao1980)
@@ -26,6 +30,12 @@ EOF
 die() { echo "create-first-party-repo.sh: $*" >&2; exit 1; }
 
 require_cmd() { command -v "$1" >/dev/null 2>&1 || die "required command not found: $1"; }
+
+VISIBILITY="--public"
+if [[ "${1:-}" == "--private" ]]; then
+  VISIBILITY="--private"
+  shift
+fi
 
 if [[ $# -lt 1 || "$1" == "-h" || "$1" == "--help" ]]; then
   usage
@@ -99,8 +109,8 @@ if gh repo view "$slug" >/dev/null 2>&1; then
   fi
   git -C "$DIR" push -u origin HEAD
 else
-  echo "Creating https://github.com/${slug}"
-  gh repo create "$slug" --public --description "$DESCRIPTION" --source="$DIR" --remote=origin --push
+  echo "Creating https://github.com/${slug} (${VISIBILITY#--})"
+  gh repo create "$slug" "$VISIBILITY" --description "$DESCRIPTION" --source="$DIR" --remote=origin --push
 fi
 
 # Register ASDF even when the tree already existed (--skip-clone).

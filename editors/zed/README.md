@@ -1,6 +1,6 @@
 # cl-stack-code in Zed
 
-[Zed](https://zed.dev) runs external agents over the [Agent Client Protocol](https://agentclientprotocol.com). `scripts/cl-stack-code.sh --acp` serves cl-stack-code that way (cl-stack-code 0.11.0 or later; the launcher pins 0.13.0). Zed then sends your prompts to cl-stack-code, along with the MCP servers configured in Zed (stdio and HTTP; 0.13.0 or later). cl-stack-code reads and writes files through Zed's buffers, runs `bash` in Zed's terminal and asks for approvals in Zed's permission dialog.
+[Zed](https://zed.dev) runs external agents over the [Agent Client Protocol](https://agentclientprotocol.com). `scripts/cl-stack-code.sh --acp` serves cl-stack-code that way (cl-stack-code 0.11.0 or later, 0.13.1 or later on macOS; the launcher pins 0.13.1). Zed then sends your prompts to cl-stack-code, along with the MCP servers configured in Zed (stdio and HTTP; 0.13.0 or later). cl-stack-code reads and writes files through Zed's buffers, runs `bash` in Zed's terminal and asks for approvals in Zed's permission dialog.
 
 A recorded session: [cl-stack-demos `harness/zed-sample`](https://github.com/egao1980/cl-stack-demos/tree/main/harness/zed-sample).
 
@@ -44,6 +44,7 @@ Modes (`default`, `acceptEdits`, `bypassPermissions`, `plan`) are cl-stack-code'
 ## Troubleshooting
 
 - **"Loading…" forever.** The executable is missing or stale, so the agent is building. Run `scripts/cl-stack-code.sh --build` in a terminal and try again.
+- **"Loading…" forever, the agent at full CPU (macOS).** cl-stack-code before 0.13.1 spins when Zed starts it: Zed passes its crash reporter's Mach exception port to the agent, and SBCL's traps go to that port instead of becoming signals (cl-stack-code#43). 0.13.1 clears the inherited port at startup. Rebuild with `scripts/cl-stack-code.sh --build`.
 - **401 / no key.** Zed was started without `OPENAI_API_KEY` in its environment (see 3).
 - **`Component … not found` in the Lisp image.** `cl-repo` is not on `env.PATH`, or the project was never synced. Run `cl-repo sync` in the project once.
 - **Logs.** Zed's command palette: `dev: open acp logs` shows every JSON-RPC message. The agent's stderr goes to Zed's log (`zed: open log`).

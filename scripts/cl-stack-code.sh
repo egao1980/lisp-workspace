@@ -30,12 +30,23 @@ export PATH="$HOME/.roswell/bin:$PATH"
 
 die() { echo "cl-stack-code: $*" >&2; exit 2; }
 
+ros_config() {  # ros_config KEY: a Roswell setting, read from its config file.
+  # No Lisp starts on the way to an existing executable: `ros config show` runs
+  # an SBCL, and one an editor starts can inherit a Mach exception port that
+  # takes its traps, so it spins (Zed on macOS, cl-stack-code#43).
+  local f="${ROSWELL_HOME:-$HOME/.roswell}/config" v=""
+  [[ -f "$f" ]] && v="$(awk -F'\t' -v k="$1" '$1 == k { print $3; exit }' "$f")"
+  if [[ -z "$v" ]] && command -v ros >/dev/null 2>&1; then
+    v="$(ros config show "$1" 2>/dev/null || true)"
+  fi
+  echo "$v"
+}
+
 lisp_key() {  # the Roswell default Lisp and its version, e.g. sbcl-bin-2.4.11
-  command -v ros >/dev/null 2>&1 || die "needs Roswell (ros) on PATH: https://roswell.github.io"
   local impl ver
-  impl="$(ros config show default.lisp 2>/dev/null || true)"
+  impl="$(ros_config default.lisp)"
   impl="${impl:-sbcl-bin}"
-  ver="$(ros config show "$impl.version" 2>/dev/null || true)"
+  ver="$(ros_config "$impl.version")"
   echo "${impl}-${ver:-unknown}"
 }
 
@@ -68,6 +79,7 @@ launch_file() {  # the build driver: beside this script, else (a downloaded scri
 }
 
 launch_build() {  # write $1
+  command -v ros >/dev/null 2>&1 || die "needs Roswell (ros) on PATH: https://roswell.github.io"
   local driver; driver="$(launch_file)"
   [[ -d "${CL_REPOSITORY_DEST:-$HOME/.cl-repository-client}" ]] \
     || die "needs the cl-repository client: curl -fsSL https://raw.githubusercontent.com/egao1980/cl-repository/main/install.sh | bash"

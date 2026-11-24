@@ -78,17 +78,33 @@ if [[ ! -d "${DIR}/.git" ]]; then
   git -C "$DIR" init -b main
 fi
 
-# Local artifacts that `git add -A` below would otherwise commit (cl-repo.lock
-# and the OCI cache are per-machine; fasls are per-implementation).
-ensure_ignored() {
-  local gitignore="${DIR}/.gitignore" pattern
-  for pattern in "$@"; do
-    if ! grep -qxF -- "$pattern" "$gitignore" 2>/dev/null; then
-      echo "$pattern" >> "$gitignore"
+# Append each line to <file> unless it is already there (whole-line match).
+ensure_lines() {
+  local file="$1" line
+  shift
+  # A last line without a newline would swallow the first appended line.
+  if [[ -s "$file" && -n "$(tail -c 1 "$file")" ]]; then
+    echo >> "$file"
+  fi
+  for line in "$@"; do
+    if ! grep -qxF -- "$line" "$file" 2>/dev/null; then
+      echo "$line" >> "$file"
     fi
   done
 }
-ensure_ignored "cl-repo.lock" ".cl-repository/" ".qlot/" "*.fasl" "*.dx64fsl" "*.lx64fsl" "*.wx64fsl" ".DS_Store"
+
+# Local artifacts that `git add -A` below would otherwise commit (cl-repo.lock
+# and the OCI cache are per-machine; fasls are per-implementation).
+ensure_lines "${DIR}/.gitignore" \
+  "cl-repo.lock" ".cl-repository/" ".qlot/" "*.fasl" "*.dx64fsl" "*.lx64fsl" "*.wx64fsl" ".DS_Store"
+
+# LF in every clone. Windows git defaults to core.autocrlf=true, which turns a
+# FORMAT tilde-newline into tilde-Return: SBCL then fails to compile the file.
+# `* text=auto` only starts a new file; appended to an existing one it would
+# override that file's earlier rules (`binary` and the like).
+gitattributes="${DIR}/.gitattributes"
+[[ -e "$gitattributes" ]] || echo "* text=auto" > "$gitattributes"
+ensure_lines "$gitattributes" "*.lisp text eol=lf" "*.asd text eol=lf" "*.ros text eol=lf"
 
 if ! git -C "$DIR" rev-parse --verify HEAD >/dev/null 2>&1; then
   git -C "$DIR" add -A

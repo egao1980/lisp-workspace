@@ -119,6 +119,7 @@ Extra impls (`test-abcl` / `test-ecl` / `test-ccl` beside `test-system.yml`): [r
 
 **Reproduce CI locally:** `cl-repo test` in the project directory. `cl-repo sync --locked` installs `cl-repo.lock`. Do not export `CL_SOURCE_REGISTRY` or bootstrap Quicklisp.
 `cl-repo.lock` / `.cl-repository/` are local artifacts — never commit them (`create-first-party-repo.sh` seeds `.gitignore`).
+**Line endings:** the canned workflows set `core.autocrlf=false` / `core.eol=lf` before checkout (cl-repository#178), so a Windows job compiles a FORMAT tilde-newline. `create-first-party-repo.sh` also seeds `.gitattributes` (`*.lisp` / `*.asd` / `*.ros` `eol=lf`) for local Windows clones.
 
 Update [`cl-stack/docs/QUICKSTART.md`](https://github.com/egao1980/cl-stack/blob/main/docs/QUICKSTART.md) pins in the **same** change set that publishes a user-facing feature.
 

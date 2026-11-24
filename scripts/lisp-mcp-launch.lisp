@@ -127,6 +127,11 @@ an ASDF registry that cannot see workspace checkouts."
           (format *error-output* "~&lisp-mcp: not saving foreign library ~A~%"
                   (uiop:symbol-call :cffi :foreign-library-name lib))
           (uiop:symbol-call :cffi :close-foreign-library lib)))
+      (let ((auto (and (find-package "CL-STACK-SSL")
+                       (find-symbol "*AUTO-SYSTEM-CERT-STORE*" "CL-STACK-SSL"))))
+        ;; cl-stack-ssl's start-up hook (3.5.9.4) installs the OS trust store through
+        ;; that closed libcrypto and kills the image: the server never uses TLS.
+        (when auto (setf (symbol-value auto) nil)))
       (format *error-output* "~&lisp-mcp: writing ~A~%" output)
       (setf uiop:*image-entry-point*
             (lambda ()

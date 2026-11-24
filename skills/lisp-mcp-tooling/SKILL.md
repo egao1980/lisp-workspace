@@ -12,7 +12,7 @@ Repos: [`lisp-mcp`](https://github.com/egao1980/lisp-mcp) (server) · [`lisp-sou
 
 ## Wire it
 
-In this workspace it is already wired: `.mcp.json` / `.cursor/mcp.json` (linked by `link-agent-config.sh`) and the plugin manifest run `.lisp-workspace/scripts/lisp-mcp.sh` as **two servers**: `lisp-code` (`--tools code`) and `lisp-image` (`--tools image`). That installs the **published** `lisp-mcp` (`LISP_MCP_VERSION`, default 0.5.0) from GHCR, with `swank` and `slynk` as install roots in the same private tree, and execs a dumped executable in `~/.cache/lisp-mcp/` (first start builds it; `lisp-mcp.sh --build` / `bootstrap.sh` ahead of time; `--which` shows what runs). Developing lisp-mcp itself: `LISP_MCP_SOURCE=checkout` loads the sibling checkouts.
+In this workspace it is already wired: `.mcp.json` / `.cursor/mcp.json` (linked by `link-agent-config.sh`) and the plugin manifest run `.lisp-workspace/scripts/lisp-mcp.sh` as **two servers**: `lisp-code` (`--tools code`) and `lisp-image` (`--tools image`). That installs the **published** `lisp-mcp` (`LISP_MCP_VERSION`, default 0.7.2) from GHCR, with `swank` and `slynk` as install roots in the same private tree, and execs a dumped executable in `~/.cache/lisp-mcp/` (first start builds it; `lisp-mcp.sh --build` / `bootstrap.sh` ahead of time; `--which` shows what runs). Developing lisp-mcp itself: `LISP_MCP_SOURCE=checkout` loads the sibling checkouts.
 
 Elsewhere:
 
@@ -48,7 +48,8 @@ Locators: `defun foo`, `defmethod print-object (my-class t)`, `path:0.2.1`, `lin
 ## Invariants (when changing the libraries)
 
 - Source side never evaluates (`#.` → placeholder) or interns (`symbol-token`). Wire side never interns (`wire-symbol`); numbers parse only from strict number syntax.
-- Broken files: a form that runs to EOF is re-read up to the next column-0 `(`; `imbalance` carries the fix. Edits refuse recovered nodes, sibling slots under `#+`/quote prefixes, the consing dot.
+- Reader conditionals are source (lisp-source-protocol ≥ 0.2.5, lisp-mcp ≥ 0.7.2): every `#+`/`#-` is a `:feature-conditional` form whatever the server's features, an excluded branch re-read as plain Lisp (`feature-excluded-p`). Outline, locators, references and edits see every branch; insert / delete / transpose / move on a branch's form act on the whole conditional. Features never decide what an edit writes. Comments in inserted code are still dropped (lisp-source-protocol#11): put them inside the form.
+- Broken files: a form that runs to EOF is re-read up to the next column-0 `(` or `#+`/`#-`; `imbalance` carries the fix. Edits refuse recovered nodes, sibling slots under quote prefixes and a `#+`/`#-` feature expression, the consing dot.
 - `verify-plan` is the gate: no new reader errors/imbalances, declared top-level form delta. Corpus tests: `LISP_SOURCE_CORPUS=<dir>`.
 - Swank evaluates `:emacs-rex` args → `rpc` quotes lists. Backends only map names (`rpc-symbol`); shared logic is `swank-family-connection`. Conformance: `repl-protocol/conformance` against a spawned image.
 - `compile-file-for-emacs` only compiles; `repl-compile-file :load t` loads the fasl with `load-file` (SLIME does the same). An out-of-range restart gets no reply from the server, so `repl-invoke-restart` refuses it (`repl-invalid-restart`).

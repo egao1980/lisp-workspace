@@ -23,7 +23,7 @@ while [[ -L "$SELF" ]]; do  # a symlink (e.g. ~/.local/bin/cl-stack-code): find 
 done
 HERE="$(cd "$(dirname "$SELF")" && pwd)"
 LAUNCH_URL="https://raw.githubusercontent.com/egao1980/lisp-workspace/main/scripts/cl-stack-code-launch.lisp"
-VERSION="${CL_STACK_CODE_VERSION:-0.13.3}"
+VERSION="${CL_STACK_CODE_VERSION:-0.14.0}"
 ACP_MIN="0.11.0"
 CACHE="${XDG_CACHE_HOME:-$HOME/.cache}/cl-stack-code"
 export PATH="$HOME/.roswell/bin:$PATH"

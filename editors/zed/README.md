@@ -1,6 +1,6 @@
 # cl-stack-code in Zed
 
-[Zed](https://zed.dev) runs external agents over the [Agent Client Protocol](https://agentclientprotocol.com). `scripts/cl-stack-code.sh --acp` serves cl-stack-code that way (cl-stack-code 0.11.0 or later, 0.13.1 or later on macOS; the launcher pins 0.13.3). Zed then sends your prompts to cl-stack-code, along with the MCP servers configured in Zed (stdio and HTTP; 0.13.0 or later). cl-stack-code reads and writes files through Zed's buffers, runs `bash` in Zed's terminal and asks for approvals in Zed's permission dialog.
+[Zed](https://zed.dev) runs external agents over the [Agent Client Protocol](https://agentclientprotocol.com). `scripts/cl-stack-code.sh --acp` serves cl-stack-code that way (cl-stack-code 0.11.0 or later, 0.13.1 or later on macOS; the launcher pins 0.14.0). Zed then sends your prompts to cl-stack-code, along with the MCP servers configured in Zed (stdio and HTTP; 0.13.0 or later). cl-stack-code reads and writes files through Zed's buffers, runs `bash` in Zed's terminal and asks for approvals in Zed's permission dialog.
 
 A recorded session: [cl-stack-demos `harness/zed-sample`](https://github.com/egao1980/cl-stack-demos/tree/main/harness/zed-sample).
 

@@ -30,7 +30,7 @@ brief: ../cl-stack/docs/capabilities/cli.md
 
 ## Coordinator
 
-Dispatch and run seal, test, and verify. Do not plan, ideate, implement, review, or repair. Do not edit Lisp, `tests/`, `task.md`, or the brief.
+Dispatch and run seal, test, and verify. Do not plan, ideate, implement, review, or repair. Do not edit Lisp, `tests/`, `task.md`, or the brief. One exception: when a run proves a sealed test impossible to pass (it contradicts the brief, the published stack or another sealed test), and the user agrees, fix it in its own test-only commit, never weakening or deleting an assertion, disclose it in the commit and PR, re-seal, and run test, review, repair and verify again.
 
 Refuse to start unless `.team-solve/task.md` has `system` and `test-system`, and the checkout root has the `.asd`. Refuse if any of these already exist: `.team-solve/plan.md`, `notes.md`, `review.md`, `contract.sha256`, `test-output.log`, `test-status.txt`, `final-test-output.log`.
 

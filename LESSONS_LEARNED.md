@@ -2,7 +2,7 @@
 
 Append-only log of **symptom → cause → fix**. Open the matching `##` heading — do not read this file end-to-end.
 
-**Index:** fork/`owner/repo` · MCP/eclector · GHA Windows runner · ASDF registry · devcontainer/`act`/ShellCheck · OCI/cl-repository/natives · HTTP/Windows/libev · multi-impl (ECL/CCL/CLISP/ABCL) · schema/blackboard/restarts · canned `uses:`/`run.lisp`
+**Index:** fork/`owner/repo` · MCP/eclector · GHA Windows runner · ASDF registry · devcontainer/`act`/ShellCheck · OCI/cl-repository/natives · HTTP/Windows/libev · multi-impl (ECL/CCL/CLISP/ABCL) · schema/blackboard/restarts · canned `uses:`/`run.lisp` · threads/macOS SIGKILL
 
 ## 2026-03 — `cl-protobufs` bootstrap and `egao1980` fork
 
@@ -537,3 +537,13 @@ Require OBJC-SUPPORT still SIGBUS/SIGSEGV flaky (~30%) — separate issue.
 - **The client cannot use a newer copy of a system it runs.** It pins loaded systems because reloading natives crashed it (cl+ssl, libbrotli). cl-repo 0.27.18 upgrades a *pure-Lisp* `:defsystem-depends-on` extension in place (asdf-native 0.3.0 → 0.3.1). Still open: a project that needs a newer *native-bearing* system the client runs (cl-stack-ssl, http-backend-async, event-backend-libuv) only gets `loaded-system-shadows-newer` during in-image work: `.asd` reading, `CL_REPO_TEST_IN_PROCESS`, publish loads. The default `cl-repo test` is safe because it uses a fresh image. Next step: a clear error naming the system and "upgrade the client", then run such work in a fresh image.
 - **A version constraint must name the version that has the API you call.** llm-backend-vllm-cpp called `vllm-cpp:embed` (0.2.0+) but declared a bare `"vllm-cpp"`, so an installed 0.1.1 satisfied it. A bare dependency is satisfied by whatever is installed.
 - **"Job was not acquired by Runner" is not a test failure.** macOS arm64 runners repeatedly never started (capacity). Check the annotation before reading logs; when macOS is the only red job, run the suite locally on macOS.
+
+## 2026-11 — macOS 26: SIGKILL (exit 137) after an asynchronous thread kill
+
+**Symptom:** an SBCL test image dies with exit 137 at a random point, usually at the next `run-program`, or while compiling. `~/Library/Logs/DiagnosticReports/sbcl-*.ips` shows `_os_unfair_lock_corruption_abort` under `_malloc_fork_prepare` → `fork` → `spawn`, or under a large `malloc` (`ZSTD_*`, from `SB-C::COMPRESS`). There is no jetsam entry. macOS caps those reports at 25 per signature, so the exit code may be the only evidence.
+
+**Cause:** `bt:destroy-thread` / `sb-thread:terminate-thread` (or `interrupt-thread` with a non-local exit, or `sb-ext:with-timeout`) unwound a thread while it held one of xzone malloc's locks. The lock's owner is then dead, and the next `fork` or large malloc aborts the process. SBCL 2.4.11 and 2.6.9 both reproduce it.
+
+**Seen in:** ws-backend-websocket-driver ≤ 0.4.3. Its `close-connection` closed the socket under the reader, and the reader then trapped into a debug-info malloc and was killed.
+
+**Fix:** never kill or interrupt-unwind a thread a library doesn't fully control. Stop it cooperatively: set a flag, wake it (`shutdown(2)`, an async handle, a condition variable), then join it with a bounded wait and `warn` on timeout. Fixed in ws-backend-websocket-driver 0.4.4. The other sites are listed in egao1980/cl-stack#464.

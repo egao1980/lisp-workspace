@@ -17,7 +17,7 @@ set -euo pipefail
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 WORKSPACE="$(cd "$HERE/../.." && pwd)"
-VERSION="${LISP_MCP_VERSION:-0.7.4}"
+VERSION="${LISP_MCP_VERSION:-0.7.5}"
 CACHE="${XDG_CACHE_HOME:-$HOME/.cache}/lisp-mcp"
 BIN="${LISP_MCP_BIN:-$CACHE/lisp-mcp-$VERSION}"
 SOURCE="${LISP_MCP_SOURCE:-oci}"
